@@ -20,7 +20,7 @@ export const SendNotice = () => {
     setError(null);
 
     try {
-      const response = await fetch(`http://localhost:5001/api/user/getPharmaData/${licenseNo}`);
+      const response = await fetch(`https://medscore-api.onrender.com/api/user/getPharmaData/${licenseNo}`);
       const result = await response.json();
 
       if (!response.ok) {
@@ -41,7 +41,7 @@ export const SendNotice = () => {
         const distId = localStorage.getItem('userId');
         const pharmaId=_id;
         console.log("_id",_id,"distId",distId)
-        const response = await fetch(`http://localhost:5001/api/user/checkIfLinked/${pharmaId}/${distId}`);
+        const response = await fetch(`https://medscore-api.onrender.com/api/user/checkIfLinked/${pharmaId}/${distId}`);
         const result = await response.json();
   
         if (!response.ok) {

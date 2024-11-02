@@ -80,7 +80,7 @@ export const DistributorHomePage = ({ onLogout }) => {
     try {
       // Fetch invoice data
       const distId = localStorage.getItem('userId');
-      const invoiceResponse = await fetch(`http://localhost:5001/api/user/getInvoiceRDforDist/${license}/${distId}`);
+      const invoiceResponse = await fetch(`https://medscore-api.onrender.com/api/user/getInvoiceRDforDist/${license}/${distId}`);
       const invoiceResult = await invoiceResponse.json();
       console.log("invoiceResult",invoiceResult)
       if (!invoiceResponse.ok) {

@@ -31,7 +31,7 @@ const [dl_code,setDl_code]=useState('');
       setLoading(true);
       setError(null);
       const distId = localStorage.getItem('userId');
-      const response = await fetch(`http://localhost:5001/api/user/getInvoiceRDforDist/${license}/${distId}`);
+      const response = await fetch(`https://medscore-api.onrender.com/api/user/getInvoiceRDforDist/${license}/${distId}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

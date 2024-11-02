@@ -30,7 +30,7 @@ export const AdminHomeScreen = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`http://localhost:5001/api/user/getInvoiceRD/${licenseNo}`);
+      const response = await fetch(`https://medscore-api.onrender.com/api/user/getInvoiceRD/${licenseNo}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -55,7 +55,7 @@ export const AdminHomeScreen = () => {
     try {
       setDistLoading(true);
       setDistError(null);
-      const response = await fetch(`http://localhost:5001/api/user/getDistData/${customerId}`);
+      const response = await fetch(`https://medscore-api.onrender.com/api/user/getDistData/${customerId}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

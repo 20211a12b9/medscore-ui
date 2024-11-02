@@ -63,7 +63,7 @@ console.log("pharmaDrugLicense",pharmaDrugLicense)
 
     try {
         // First API call to create invoice
-        const response = await fetch(`http://localhost:5001/api/user/InvoiceReportDefault/${customerId}`, {
+        const response = await fetch(`https://medscore-api.onrender.com/api/user/InvoiceReportDefault/${customerId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -76,7 +76,7 @@ console.log("pharmaDrugLicense",pharmaDrugLicense)
 
         if (response.ok) {
             // Get all distributor data
-            const getalldistData = await fetch(`http://localhost:5001/api/user/getdistdatabyphid/${pharmaId}`);
+            const getalldistData = await fetch(`https://medscore-api.onrender.com/api/user/getdistdatabyphid/${pharmaId}`);
             const response = await getalldistData.json();
             const distributors = response.data; // Assuming the structure has a `data` key
             console.log("getAllDistData", distributors);
@@ -103,7 +103,7 @@ MedScore Team`
 
                 const distFullPhoneNumber = `+91${distributor.phone_number.trim()}`;
                 
-                return fetch('http://localhost:5001/api/user/sendSMS/', {
+                return fetch('https://medscore-api.onrender.com/api/user/sendSMS/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -114,7 +114,7 @@ MedScore Team`
                     })
                 });
             });
-            const smsResponse = await fetch('http://localhost:5001/api/user/sendSMS/', {
+            const smsResponse = await fetch('https://medscore-api.onrender.com/api/user/sendSMS/', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json'

@@ -49,7 +49,7 @@ export const Login = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5001/api/user/login', {
+      const response = await fetch('https://medscore-api.onrender.com/api/user/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

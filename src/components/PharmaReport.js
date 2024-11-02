@@ -36,7 +36,7 @@ const PharmaReport = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`http://localhost:5001/api/user/getInvoiceRD/${license}`);
+      const response = await fetch(`https://medscore-api.onrender.com/api/user/getInvoiceRD/${license}`);
       console.log("response----",response)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -84,7 +84,7 @@ const PharmaReport = () => {
         disputeReasons.find(r => r.value === disputeReason)?.label;
        console.log("finalReason",finalReason)
       const response = await fetch(
-        `http://localhost:5001/api/user/disputebypharma/${selectedInvoice.pharmadrugliseanceno}/${selectedInvoice.invoice}/${selectedInvoice.customerId}`,
+        `https://medscore-api.onrender.com/api/user/disputebypharma/${selectedInvoice.pharmadrugliseanceno}/${selectedInvoice.invoice}/${selectedInvoice.customerId}`,
         {
           method: 'PUT',
           headers: {
@@ -100,7 +100,7 @@ const PharmaReport = () => {
         throw new Error('Failed to submit dispute');
       }
       const fullPhoneNumber = `+917036222121`;
-       await fetch('http://localhost:5001/api/user/sendSMS/', {
+       await fetch('https://medscore-api.onrender.com/api/user/sendSMS/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -60,7 +60,7 @@ const InvoiceForm = () => {
 
     try {
       // Submit the invoice
-      const response = await fetch(`http://localhost:5001/api/user/Invoice/${customerId}`, {
+      const response = await fetch(`https://medscore-api.onrender.com/api/user/Invoice/${customerId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -72,7 +72,7 @@ const InvoiceForm = () => {
 
       if (response.ok) {
         // Send SMS notification
-        const smsResponse = await fetch('http://localhost:5001/api/user/sendSMS/', {
+        const smsResponse = await fetch('https://medscore-api.onrender.com/api/user/sendSMS/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

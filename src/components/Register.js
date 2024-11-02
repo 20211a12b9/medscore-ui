@@ -45,8 +45,8 @@ export const Register = ({ onRegistrationSuccess }) => {
 
         try {
             const endpoint = user_type === 'pharmacy' 
-                ? 'http://localhost:5001/api/user/Pharmacyregister'
-                : 'http://localhost:5001/api/user/Distributorregister';
+                ? 'https://medscore-api.onrender.com/api/user/Pharmacyregister'
+                : 'https://medscore-api.onrender.com/api/user/Distributorregister';
 
             const response = await fetch(endpoint, {
                 method: 'POST',

@@ -67,7 +67,7 @@ const CreditScoreDisplay = () => {
   const fetchInvoiceData = async () => {
     try {
       const license = localStorage.getItem("dl_code");
-      const response = await fetch(`http://localhost:5001/api/user/getInvoiceRD/${license}`);
+      const response = await fetch(`https://medscore-api.onrender.com/api/user/getInvoiceRD/${license}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

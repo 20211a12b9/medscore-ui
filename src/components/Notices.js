@@ -27,7 +27,7 @@ const [dl_code,setDl_code]=useState('');
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`http://localhost:5001/api/user/getInvoice/${license}`);
+      const response = await fetch(`https://medscore-api.onrender.com/api/user/getInvoice/${license}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

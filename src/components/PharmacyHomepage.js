@@ -19,7 +19,7 @@ export const PharmacyHomepage = ({ onLogout }) => {
     setError(null);
     
     try {
-      const response = await fetch(`http://localhost:5001/api/user/getInvoice/${licenseNo}`);
+      const response = await fetch(`https://medscore-api.onrender.com/api/user/getInvoice/${licenseNo}`);
       const result = await response.json();
 
       if (!response.ok) {
@@ -57,7 +57,7 @@ export const PharmacyHomepage = ({ onLogout }) => {
         }
 
         const response = await fetch(
-          `http://localhost:5001/api/user/getPharamaDatainPharma/${userId}`,
+          `https://medscore-api.onrender.com/api/user/getPharamaDatainPharma/${userId}`,
           {
             method: 'GET',
             headers: {
@@ -104,7 +104,7 @@ export const PharmacyHomepage = ({ onLogout }) => {
         }
 
         const response = await fetch(
-          `http://localhost:5001/api/user/countNotices/${license}`,
+          `https://medscore-api.onrender.com/api/user/countNotices/${license}`,
           {
             method: 'GET',
             headers: {

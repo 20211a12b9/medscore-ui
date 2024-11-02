@@ -25,7 +25,7 @@ const UpdateDefaultReport = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`http://localhost:5001/api/user/getInvoiceRDforDistUpdate/${license}`);
+      const response = await fetch(`https://medscore-api.onrender.com/api/user/getInvoiceRDforDistUpdate/${license}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -56,7 +56,7 @@ const UpdateDefaultReport = () => {
       
       // Call the updateDefault endpoint
       const response = await fetch(
-        `http://localhost:5001/api/user/updateReportDefault/${invoice.pharmadrugliseanceno}/${invoice.invoice}/${invoice.customerId}`,
+        `https://medscore-api.onrender.com/api/user/updateReportDefault/${invoice.pharmadrugliseanceno}/${invoice.invoice}/${invoice.customerId}`,
         {
           method: 'PUT',
           

@@ -19,7 +19,7 @@ export const PharmacySearch = () => {
     setError(null);
 
     try {
-      const response = await fetch(`http://localhost:5001/api/user/getPharmaData/${licenseNo}`);
+      const response = await fetch(`https://medscore-api.onrender.com/api/user/getPharmaData/${licenseNo}`);
       const result = await response.json();
 
       if (!response.ok) {
@@ -43,7 +43,7 @@ export const PharmacySearch = () => {
     //   const pharmaId=pharmaDrugliceId
       const customerId = localStorage.getItem('userId');
     console.log("-sss-",customerId)
-      const response = await fetch(`http://localhost:5001/api/user/linkPharma/${customerId}`, {
+      const response = await fetch(`https://medscore-api.onrender.com/api/user/linkPharma/${customerId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
