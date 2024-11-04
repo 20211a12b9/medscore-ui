@@ -1,6 +1,7 @@
 import React, { useState,useEffect } from 'react';
 import { Loader2, AlertCircle, Search } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { config } from '../config';
 
 const ReportOfPharama = () => {
   const [licenseNo, setLicenseNo] = useState('');
@@ -31,7 +32,7 @@ const [dl_code,setDl_code]=useState('');
       setLoading(true);
       setError(null);
       const distId = localStorage.getItem('userId');
-      const response = await fetch(`https://medscore-api.onrender.com/api/user/getInvoiceRDforDist/${license}/${distId}`);
+      const response = await fetch(`${config.API_HOST}/api/user/getInvoiceRDforDist/${license}/${distId}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

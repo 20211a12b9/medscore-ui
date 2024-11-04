@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { config } from '../config';
 
 export const Home = () => {
     const navigate = useNavigate();
@@ -15,7 +16,7 @@ export const Home = () => {
         window.location.href = '/';
     };
     const handleRegister = () => {
-        window.location.href = '/register';
+        window.location.href = '/Register';
     };
 
    

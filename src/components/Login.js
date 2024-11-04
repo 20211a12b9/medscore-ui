@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate, Navigate, replace } from 'react-router-dom';
 import { AppContext } from '../AppContext';
+import { config } from '../config';
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ export const Login = () => {
     setError('');
 
     try {
-      const response = await fetch('https://medscore-api.onrender.com/api/user/login', {
+      const response = await fetch(`${config.API_HOST}/api/user/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -64,6 +65,7 @@ export const Login = () => {
         localStorage.setItem('jwttoken', data.jwttoken);
         localStorage.setItem('userType', data.usertype);
         localStorage.setItem('userId', data.id);
+        localStorage.setItem('pharmacy_name', data.pharmacy_name);
         setIsLoggedIn(true);
         
         // Navigate with replace to prevent back navigation to login
@@ -274,6 +276,22 @@ export const Login = () => {
               Register 
             </button>
           </div>
+          <div style={{ textAlign: 'right', marginTop: '-1rem', marginBottom: '1rem' }}>
+  <button
+    onClick={() => navigate('/ForgotPassword')}
+    type="button"
+    style={{
+      background: 'none',
+      border: 'none',
+      color: '#2563eb',
+      fontSize: '0.875rem',
+      cursor: 'pointer',
+      textDecoration: 'underline',
+    }}
+  >
+    Forgot Password?
+  </button>
+</div>
         </form>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { config } from '../config';
 
 export const ReportDefault = () => {
   const [licenseNo, setLicenseNo] = useState('');
@@ -20,7 +21,7 @@ export const ReportDefault = () => {
     setError(null);
 
     try {
-      const response = await fetch(`https://medscore-api.onrender.com/api/user/getPharmaData/${licenseNo}`);
+      const response = await fetch(`${config.API_HOST}/api/user/getPharmaData?licenseNo=${licenseNo}`);
       const result = await response.json();
 
       if (!response.ok) {
@@ -42,7 +43,7 @@ export const ReportDefault = () => {
         const distId = localStorage.getItem('userId');
         const pharmaId=_id;
         console.log("_id",_id,"distId",distId)
-        const response = await fetch(`https://medscore-api.onrender.com/api/user/checkIfLinked/${pharmaId}/${distId}`);
+        const response = await fetch(`${config.API_HOST}/api/user/checkIfLinked/${pharmaId}/${distId}`);
         const result = await response.json();
   
   

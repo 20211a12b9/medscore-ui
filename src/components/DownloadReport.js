@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2, AlertCircle, Download } from 'lucide-react';
+import { config } from '../config';
 
 const DownloadReport = () => {
   const [licenseNo, setLicenseNo] = useState('');
@@ -25,7 +26,13 @@ const DownloadReport = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`https://medscore-api.onrender.com/api/user/getInvoiceRD/${license}`);
+      const response = await fetch(`${config.API_HOST}/api/user/getInvoiceRD?licenseNo=${license}`);
+      
+      if (response.status === 404) {
+        setError('No invoices found in database');
+        setInvoices([]);
+        return;
+      }
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -54,10 +61,10 @@ const DownloadReport = () => {
     const license = await localStorage.getItem("dl_code");
     try {
       setDownloading(true);
-      const response = await fetch(`https://medscore-api.onrender.com/api/user/downloadReport/${license}/excel`, {
+      const response = await fetch(`${config.API_HOST}/api/user/downloadReport/excel?license=${license}`, {
         method: 'GET',
       });
-
+      
       if (!response.ok) {
         throw new Error('Failed to download report');
       }

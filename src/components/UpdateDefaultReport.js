@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Loader2, AlertCircle, Search } from 'lucide-react';
+import { config } from '../config';
 
 const UpdateDefaultReport = () => {
   const [licenseNo, setLicenseNo] = useState('');
@@ -25,8 +26,17 @@ const UpdateDefaultReport = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`https://medscore-api.onrender.com/api/user/getInvoiceRDforDistUpdate/${license}`);
-      
+      const response = await fetch(
+        `${config.API_HOST}/api/user/getInvoiceRDforDistUpdate?licenseNo=${license}`,
+        {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+            
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -56,7 +66,7 @@ const UpdateDefaultReport = () => {
       
       // Call the updateDefault endpoint
       const response = await fetch(
-        `https://medscore-api.onrender.com/api/user/updateReportDefault/${invoice.pharmadrugliseanceno}/${invoice.invoice}/${invoice.customerId}`,
+        `${config.API_HOST}/api/user/updateReportDefault/${invoice.pharmadrugliseanceno}/${invoice.invoice}/${invoice.customerId}`,
         {
           method: 'PUT',
           

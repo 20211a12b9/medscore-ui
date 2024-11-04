@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2, AlertCircle, Search, User, X, LogOut } from 'lucide-react';
+import { config } from '../config';
 
 export const AdminHomeScreen = () => {
   const [licenseNo, setLicenseNo] = useState('');
@@ -30,7 +31,7 @@ export const AdminHomeScreen = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`https://medscore-api.onrender.com/api/user/getInvoiceRD/${licenseNo}`);
+      const response = await fetch(`${config.API_HOST}/api/user/getInvoiceRD/${licenseNo}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -55,7 +56,7 @@ export const AdminHomeScreen = () => {
     try {
       setDistLoading(true);
       setDistError(null);
-      const response = await fetch(`https://medscore-api.onrender.com/api/user/getDistData/${customerId}`);
+      const response = await fetch(`${config.API_HOST}/api/user/getDistData/${customerId}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

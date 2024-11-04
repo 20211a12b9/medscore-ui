@@ -6,6 +6,7 @@ import {
   CartesianGrid, Tooltip, ResponsiveContainer, Cell 
 } from 'recharts';
 import { AlertCircle } from 'lucide-react';
+import { config } from '../config';
 
 export const DistributorHomePage = ({ onLogout }) => {
   const [license, setLicenseNo] = useState('');
@@ -80,11 +81,33 @@ export const DistributorHomePage = ({ onLogout }) => {
     try {
       // Fetch invoice data
       const distId = localStorage.getItem('userId');
-      const invoiceResponse = await fetch(`https://medscore-api.onrender.com/api/user/getInvoiceRDforDist/${license}/${distId}`);
+      const invoiceResponse = await fetch(
+        `${config.API_HOST}/api/user/getInvoiceRDforDist/${distId}?licenseNo=${license}`,
+        {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+         
+        }
+      );
+  
+      // Check if response is JSON
+      const contentType = invoiceResponse.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Server error. Please try again later.');
+      }
       const invoiceResult = await invoiceResponse.json();
       console.log("invoiceResult",invoiceResult)
       if (!invoiceResponse.ok) {
-        throw new Error(invoiceResult.message || 'Failed to fetch invoice data');
+       
+        return;
+      }
+
+      if (!invoiceResult.data || invoiceResult.data.length === 0) {
+       
+        return;
       }
       setInvoiceData(invoiceResult.data);
 
@@ -122,10 +145,11 @@ export const DistributorHomePage = ({ onLogout }) => {
   };
 
   const navigationButtons = [
-    { label: 'Add Customer', path: '/PharmacySearch', color: 'from-teal-500 to-teal-600' },
+    { label: 'Link Customer', path: '/PharmacySearch', color: 'from-teal-500 to-teal-600' },
     { label: 'Send Notice', path: '/SendNotice', color: 'from-indigo-500 to-indigo-600' },
     { label: 'Report Default', path: '/ReportDefault', color: 'from-purple-500 to-purple-600' },
-    { label: 'Update Default Report', path: '/UpdateDefaultReport', color: 'from-pink-500 to-pink-600' },
+    { label: 'Update Payment Details', path: '/UpdateDefaultReport', color: 'from-pink-500 to-pink-600' },
+    { label: 'Add Customer', path: '/Addcustomer', color: 'from-pink-500 to-orange-600' },
   ];
   const getDelayCategory = (days) => {
     if (days <= 0) return 'On Time';
@@ -191,49 +215,51 @@ export const DistributorHomePage = ({ onLogout }) => {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-md">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="relative group">
+        <div className="container mx-auto px-3 py-3 flex justify-between items-center">
+        <div className="relative group w-20 sm:w-30">
             <img 
               src="/medscorelogo.jpeg" 
               alt="Medscore Logo" 
-              className="w-32 h-auto object-contain rounded-lg shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:scale-105"
+              className="w-100 h-auto object-contain rounded-lg shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:scale-100"
             />
             <div className="absolute inset-0 bg-blue-600 opacity-0 group-hover:opacity-10 rounded-lg transition-opacity duration-300"></div>
           </div>
 
           {/* Search Bar */}
-          <div className="flex-1 max-w-xl mx-8">
+          <div className="flex-1 w-full sm:max-w-xl sm:mx-8">
             <div className="relative">
               <input
                 type="text"
                 value={license}
                 onChange={(e) => setLicenseNo(e.target.value)}
-                placeholder="Enter dealer code to search..."
-                className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                placeholder="Enter dealer code..."
+                className="w-full px-5 py-2 pr-15 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
               />
-               {license && (
+              {license && (
                 <button
                   onClick={handleClear}
-                  className="absolute right-12 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                  className="absolute right-12 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
                 >
-                  <X size={20} />
+                  <X size={18} />
                 </button>
               )}
               <button
                 onClick={handleSearch}
                 disabled={loading}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-blue-600 transition-colors duration-200"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 text-gray-500 hover:text-blue-600 transition-colors duration-200"
               >
-                <Search size={20} />
+                <Search size={18} />
               </button>
             </div>
             {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
           </div>
+
+          {/* Logout Button - Smaller on mobile */}
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+            className="flex items-center gap-1 sm:gap-2 bg-red-500 hover:bg-red-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base whitespace-nowrap"
           >
-            <LogOut size={20} />
+            <LogOut size={18} />
             <span>Logout</span>
           </button>
         </div>
@@ -395,7 +421,7 @@ export const DistributorHomePage = ({ onLogout }) => {
         {/* No Results Message */}
         {invoiceData.length === 0 && !loading && !error && license && (
           <div className="bg-blue-50 border border-blue-200 text-blue-700 px-6 py-4 rounded-lg mt-6 text-center shadow-md">
-            No invoice data found for this license number.
+            No invoice data found for this license number(No one Reported as of now).
           </div>
         )}
       </div>

@@ -1,6 +1,7 @@
 import React, { useState,useEffect } from 'react';
 import { AlertCircle, Calendar, DollarSign, FileText, Clock } from 'lucide-react';
 import { useLocation,useNavigate } from 'react-router-dom';
+import { config } from '../config';
 
 const InvoiceFormRD = () => {
     const location=useLocation();
@@ -63,7 +64,7 @@ console.log("pharmaDrugLicense",pharmaDrugLicense)
 
     try {
         // First API call to create invoice
-        const response = await fetch(`https://medscore-api.onrender.com/api/user/InvoiceReportDefault/${customerId}`, {
+        const response = await fetch(`${config.API_HOST}/api/user/InvoiceReportDefault/${customerId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -76,9 +77,9 @@ console.log("pharmaDrugLicense",pharmaDrugLicense)
 
         if (response.ok) {
             // Get all distributor data
-            const getalldistData = await fetch(`https://medscore-api.onrender.com/api/user/getdistdatabyphid/${pharmaId}`);
+            const getalldistData = await fetch(`${config.API_HOST}/api/user/getdistdatabyphid/${pharmaId}`);
             const response = await getalldistData.json();
-            const distributors = response.data; // Assuming the structure has a `data` key
+            const distributors = response.data; 
             console.log("getAllDistData", distributors);
             
 
@@ -103,7 +104,7 @@ MedScore Team`
 
                 const distFullPhoneNumber = `+91${distributor.phone_number.trim()}`;
                 
-                return fetch('https://medscore-api.onrender.com/api/user/sendSMS/', {
+                return fetch(`${config.API_HOST}/api/user/sendSMS/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -114,7 +115,7 @@ MedScore Team`
                     })
                 });
             });
-            const smsResponse = await fetch('https://medscore-api.onrender.com/api/user/sendSMS/', {
+            const smsResponse = await fetch(`${config.API_HOST}/api/user/sendSMS/`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json'

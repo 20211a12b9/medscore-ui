@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { config } from '../config';
 
 export const PharmacyHomepage = ({ onLogout }) => {
   const [licenseNo, setLicenseNo] = useState('');
@@ -19,7 +20,7 @@ export const PharmacyHomepage = ({ onLogout }) => {
     setError(null);
     
     try {
-      const response = await fetch(`https://medscore-api.onrender.com/api/user/getInvoice/${licenseNo}`);
+      const response = await fetch(`${config.API_HOST}/api/user/getInvoice/${licenseNo}`);
       const result = await response.json();
 
       if (!response.ok) {
@@ -57,7 +58,7 @@ export const PharmacyHomepage = ({ onLogout }) => {
         }
 
         const response = await fetch(
-          `https://medscore-api.onrender.com/api/user/getPharamaDatainPharma/${userId}`,
+          `${config.API_HOST}/api/user/getPharamaDatainPharma/${userId}`,
           {
             method: 'GET',
             headers: {
@@ -104,7 +105,7 @@ export const PharmacyHomepage = ({ onLogout }) => {
         }
 
         const response = await fetch(
-          `https://medscore-api.onrender.com/api/user/countNotices/${license}`,
+          `${config.API_HOST}/api/user/countNotices/${license}`,
           {
             method: 'GET',
             headers: {

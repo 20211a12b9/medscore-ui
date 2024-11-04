@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { config } from '../config';
 
 export const PharmacySearch = () => {
   const [licenseNo, setLicenseNo] = useState('');
@@ -14,12 +15,23 @@ export const PharmacySearch = () => {
       setError('Please enter a license number');
       return;
     }
-
+    setPharmacyData('')
+    setPharmaDrugLicId('')
     setLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(`https://medscore-api.onrender.com/api/user/getPharmaData/${licenseNo}`);
+      const response = await fetch(
+        `${config.API_HOST}/api/user/getPharmaData?licenseNo=${licenseNo}`,
+        {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
       const result = await response.json();
 
       if (!response.ok) {
@@ -43,7 +55,7 @@ export const PharmacySearch = () => {
     //   const pharmaId=pharmaDrugliceId
       const customerId = localStorage.getItem('userId');
     console.log("-sss-",customerId)
-      const response = await fetch(`https://medscore-api.onrender.com/api/user/linkPharma/${customerId}`, {
+      const response = await fetch(`${config.API_HOST}/api/user/linkPharma/${customerId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -143,11 +155,7 @@ export const PharmacySearch = () => {
         )}
 
         {/* No Results Message */}
-        {pharmacyData.length === 0 && !loading && !error && licenseNo && (
-          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded">
-            No pharmacy data found for this license number.
-          </div>
-        )}
+        
       </div>
     </div>
   );

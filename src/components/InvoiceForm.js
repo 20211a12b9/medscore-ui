@@ -1,6 +1,7 @@
 import React, { useState ,useEffect} from 'react';
 import { AlertCircle, Calendar, DollarSign, FileText, Clock } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { config } from '../config';
 
 const InvoiceForm = () => {
   const location = useLocation();
@@ -60,7 +61,7 @@ const InvoiceForm = () => {
 
     try {
       // Submit the invoice
-      const response = await fetch(`https://medscore-api.onrender.com/api/user/Invoice/${customerId}`, {
+      const response = await fetch(`${config.API_HOST}/api/user/Invoice/${customerId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -72,7 +73,7 @@ const InvoiceForm = () => {
 
       if (response.ok) {
         // Send SMS notification
-        const smsResponse = await fetch('https://medscore-api.onrender.com/api/user/sendSMS/', {
+        const smsResponse = await fetch(`${config.API_HOST}/api/user/sendSMS/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

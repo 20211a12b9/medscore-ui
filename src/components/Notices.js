@@ -1,5 +1,6 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Loader2, AlertCircle, Search } from 'lucide-react';
+import { config } from '../config';
 
 const Notices = () => {
   const [licenseNo, setLicenseNo] = useState('');
@@ -7,7 +8,8 @@ const Notices = () => {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-const [dl_code,setDl_code]=useState('');
+  const [dl_code, setDl_code] = useState('');
+
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) {
@@ -20,21 +22,26 @@ const [dl_code,setDl_code]=useState('');
   };
 
   const fetchInvoiceData = async () => {
-    
-    const userId =await localStorage.getItem("userId");
-    const license =await localStorage.getItem("dl_code");
-      console.log("userId",userId)
+    const userId = await localStorage.getItem("userId");
+    const license = await localStorage.getItem("dl_code");
+    console.log("userId", userId);
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`https://medscore-api.onrender.com/api/user/getInvoice/${license}`);
+      const response = await fetch(`${config.API_HOST}/api/user/getInvoice?licenseNo=${license}`);
+     
+      if (response.status === 404) {
+        setError('No invoices found in database');
+        setInvoices([]);
+        return;
+      }
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       const result = await response.json();
-      
+      console.log("res", result);
       if (result.success) {
         setInvoices(result.data);
       } else {
@@ -48,17 +55,17 @@ const [dl_code,setDl_code]=useState('');
     }
   };
 
-  useEffect(()=>{
-         fetchInvoiceData();
-        
-  },[])
+  useEffect(() => {
+    fetchInvoiceData();
+  }, []);
+
   const handleSendNotice = async (invoice) => {
     try {
       if (!window.confirm(`Are you sure you want to send notice for Invoice ${invoice.invoice}?`)) {
         return;
       }
-      const userId =await localStorage.getItem("userId");
-      console.log("userId",userId)
+      const userId = await localStorage.getItem("userId");
+      console.log("userId", userId);
       setLoading(true);
       const response = await fetch('/api/notices/send', {
         method: 'POST',
@@ -91,7 +98,9 @@ const [dl_code,setDl_code]=useState('');
       return new Date(dateString).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
-        day: 'numeric'
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
       });
     } catch (err) {
       return 'Invalid date';
@@ -102,7 +111,6 @@ const [dl_code,setDl_code]=useState('');
     <div className="max-w-5xl mx-auto mt-4 bg-white rounded-lg shadow">
       <div className="border-b p-6">
         <h2 className="text-2xl font-bold text-gray-900">Your Notices</h2>
-       
       </div>
 
       <div className="p-6">
@@ -115,69 +123,68 @@ const [dl_code,setDl_code]=useState('');
           </div>
         )}
 
-       
-       
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                    SerialNo 
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                    Invoice 
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                    License Number
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                    Invoice Date
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                    Due Date
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                    Delay Days
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                    Invoice Amount
-                  </th>
-                 
+                  SerialNo 
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                  Notice Issued On 
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                  Invoice 
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                  License Number
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                  Invoice Date
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                  Due Date
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                  Delay Days
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                  Invoice Amount
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {invoices.map((invoice) => (
+                <tr key={invoice._id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {invoice.serialNo}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {formatDate(invoice.createdAt)}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {invoice.invoice}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {invoice.pharmadrugliseanceno}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {formatDate(invoice.invoiceDate)}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {formatDate(invoice.dueDate)}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {invoice.delayDays}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {invoice.invoiceAmount}
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {invoices.map((invoice) => (
-                  <tr key={invoice._id} className="hover:bg-gray-50">
-                     <td className="px-4 py-3 text-sm text-gray-900">
-                      {invoice.serialNo}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {invoice.invoice}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {invoice.pharmadrugliseanceno}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {formatDate(invoice.invoiceDate)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {formatDate(invoice.dueDate)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {invoice.delayDays}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {invoice.invoiceAmount}
-                    </td>
-                   
-                    
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        
-        
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

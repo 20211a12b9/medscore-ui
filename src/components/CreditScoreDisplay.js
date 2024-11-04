@@ -4,6 +4,7 @@ import {
   CartesianGrid, Tooltip, ResponsiveContainer, Cell 
 } from 'recharts';
 import { AlertCircle } from 'lucide-react';
+import { config } from '../config';
 
 const CreditScoreDisplay = () => {
   const [invoiceData, setInvoiceData] = useState([]);
@@ -67,7 +68,21 @@ const CreditScoreDisplay = () => {
   const fetchInvoiceData = async () => {
     try {
       const license = localStorage.getItem("dl_code");
-      const response = await fetch(`https://medscore-api.onrender.com/api/user/getInvoiceRD/${license}`);
+      const response = await fetch(`${config.API_HOST}/api/user/getInvoiceRD?licenseNo=${license}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.status === 404) {
+        // Set score to 1000 for 404 status
+        setScore(1000);
+        setInvoiceData([]); // Set empty invoice data
+        setLoading(false);
+        return; // Exit early
+      }
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -108,7 +123,10 @@ const CreditScoreDisplay = () => {
   };
 
   const processDataForCharts = () => {
-    if (!invoiceData.length) return { pieData: [], barData: [] };
+    if (!invoiceData.length) return { 
+      pieData: [{ name: 'On Time', value: 1 }], // Default data for empty state
+      barData: [] 
+    };
 
     // Delay distribution data
     const delayDistribution = invoiceData.reduce((acc, inv) => {
@@ -252,7 +270,6 @@ const CreditScoreDisplay = () => {
                 <YAxis />
                 <Tooltip 
                   formatter={(value) => {
-                    // Remove leading zeros and format with commas
                     const cleanValue = parseInt(value, 10).toLocaleString('en-IN');
                     return `₹${cleanValue}`;
                   }}

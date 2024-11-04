@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2, AlertCircle, Search, X } from 'lucide-react';
+import { config } from '../config';
 
 const PharmaReport = () => {
   const [licenseNo, setLicenseNo] = useState('');
@@ -36,8 +37,14 @@ const PharmaReport = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`https://medscore-api.onrender.com/api/user/getInvoiceRD/${license}`);
+      const response = await fetch(`${config.API_HOST}/api/user/getInvoiceRD?licenseNo=${license}`);
       console.log("response----",response)
+      if (response.status === 404) {
+        setError('No invoices found in database');
+        setInvoices([]);
+        return;
+      }
+      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -84,7 +91,7 @@ const PharmaReport = () => {
         disputeReasons.find(r => r.value === disputeReason)?.label;
        console.log("finalReason",finalReason)
       const response = await fetch(
-        `https://medscore-api.onrender.com/api/user/disputebypharma/${selectedInvoice.pharmadrugliseanceno}/${selectedInvoice.invoice}/${selectedInvoice.customerId}`,
+        `${config.API_HOST}/api/user/disputebypharma/${selectedInvoice.pharmadrugliseanceno}/${selectedInvoice.invoice}/${selectedInvoice.customerId}`,
         {
           method: 'PUT',
           headers: {
@@ -100,7 +107,7 @@ const PharmaReport = () => {
         throw new Error('Failed to submit dispute');
       }
       const fullPhoneNumber = `+917036222121`;
-       await fetch('https://medscore-api.onrender.com/api/user/sendSMS/', {
+       await fetch(`${config.API_HOST}/api/user/sendSMS/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

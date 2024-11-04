@@ -3,16 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { AlertCircle, Calendar, DollarSign, FileText, Clock } from 'lucide-react';
 import { config } from '../config';
 
-export const Register = ({ onRegistrationSuccess }) => {
+export const Addcustomer = () => {
     const [formData, setFormData] = useState({
         pharmacy_name: '',
         email: '',
         phone_number: '',
         dl_code: '',
-        gstno: '',
         address: '',
-        password: '',
-        confirmPassword: '',
+        password:'123',
         user_type: 'pharmacy',
         expiry_date:''
     });
@@ -28,22 +26,16 @@ export const Register = ({ onRegistrationSuccess }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const { pharmacy_name, email, phone_number, dl_code, gstno, address, password, confirmPassword, user_type,expiry_date } = formData;
+        const { pharmacy_name, email, phone_number, dl_code, address, user_type,expiry_date } = formData;
 
-        const requiredFields = user_type === 'distributor' 
-            ? [pharmacy_name, email, phone_number, dl_code, gstno, address, password]
-            : [pharmacy_name, email, phone_number, dl_code, address, password];
-
-        if (requiredFields.some(field => !field)) {
-            alert("All fields are mandatory!");
+       if(!pharmacy_name || !email || !phone_number || !dl_code || !address )
+       {
+        alert("All fields are mandatory!");
             return;
-        }
+       }
 
-        if (password !== confirmPassword) {
-            alert("Passwords do not match!");
-            return;
-        }
-
+       
+       const dist_pharmacy_name = localStorage.getItem('pharmacy_name');
         try {
             const endpoint = user_type === 'pharmacy' 
                 ? `${config.API_HOST}/api/user/Pharmacyregister`
@@ -58,17 +50,29 @@ export const Register = ({ onRegistrationSuccess }) => {
             });
 
             const data = await response.json();
-
+            const fullPhoneNumber = `+91${formData.phone_number.trim()}`;
             if (response.ok) {
-                console.log('Registration successful:', data);
-                alert("Registration successful!");
-                navigate('/login'); 
-                if (onRegistrationSuccess) {
-                    onRegistrationSuccess();
-                }
+                 const smsResponse=await fetch(`${config.API_HOST}/api/user/sendSMS/`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                      to: fullPhoneNumber,
+                      body: `Hello ${pharmacy_name}, your information has been successfully added to MedScore by distributor ${dist_pharmacy_name}. To access your account, please go to ( MedScore website link ) Select ‘Forgot Password’ and use your drug license number as the username to reset your password and log in.
+                      Best regards,
+                      MedScore`
+                    })
+                  });
+               if(smsResponse)
+               {
+                alert("Customer details added successfully!");
+                navigate('/DistributorHomePage'); 
+               }
+               
             } else {
-                console.error('Registration failed:', data.message);
-                alert(`Registration failed: ${data.message}`);
+                console.error('failed:', data.message);
+                alert(` failed: ${data.message}`);
             }
         } catch (error) {
             console.error('Error:', error);
@@ -89,30 +93,7 @@ export const Register = ({ onRegistrationSuccess }) => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5 bg-white/80 p-6 rounded-xl">
-                    <div className="flex justify-center space-x-6 mb-4">
-                        <label className="flex items-center space-x-2 cursor-pointer">
-                            <input
-                                type="radio"
-                                name="user_type"
-                                value="pharmacy"
-                                checked={formData.user_type === 'pharmacy'}
-                                onChange={handleChange}
-                                className="form-radio text-[#1565C0] w-4 h-4"
-                            />
-                            <span className="text-gray-700 font-medium">Pharmacy</span>
-                        </label>
-                        <label className="flex items-center space-x-2 cursor-pointer">
-                            <input
-                                type="radio"
-                                name="user_type"
-                                value="distributor"
-                                checked={formData.user_type === 'distributor'}
-                                onChange={handleChange}
-                                className="form-radio text-[#1565C0] w-4 h-4"
-                            />
-                            <span className="text-gray-700 font-medium">Distributor</span>
-                        </label>
-                    </div>
+                   
                     
                     <div className="space-y-4">
                         <input
@@ -136,7 +117,7 @@ export const Register = ({ onRegistrationSuccess }) => {
                         <input
                             type="text"
                             name="phone_number"
-                            placeholder="Owner`s Phone Number"
+                            placeholder="Owner Phone Number"
                             value={formData.phone_number}
                             onChange={handleChange}
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
@@ -172,44 +153,16 @@ export const Register = ({ onRegistrationSuccess }) => {
                             required
                         />
                           <div className="space-y-2">
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                <Calendar className="w-4 h-4" />
-                <span>DL Expiry Date</span>
-              </label>
-              <input
-                type="date"
-                name="expiry_date"
-                value={formData.expiry_date}
-                onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
+             
             </div>
-                        <input
-                            type="password"
-                            name="password"
-                            placeholder="Password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
-                            required
-                        />
-                        <input
-                            type="password"
-                            name="confirmPassword"
-                            placeholder="Confirm Password"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
-                            required
-                        />
+                        
                     </div>
 
                     <button
                         type="submit"
                         className="w-full bg-gradient-to-r from-[#1565C0] to-[#1976D2] text-white py-3 px-4 rounded-lg font-semibold shadow-lg hover:from-[#1976D2] hover:to-[#1565C0] focus:outline-none focus:ring-2 focus:ring-[#1565C0] focus:ring-offset-2 transform transition-all hover:scale-[1.02] mt-6"
                     >
-                        Register
+                        Submit
                     </button>
                 </form>
             </div>
@@ -217,4 +170,4 @@ export const Register = ({ onRegistrationSuccess }) => {
     );
 };
 
-export default Register;
+export default Addcustomer;

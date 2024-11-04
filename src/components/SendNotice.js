@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { config } from '../config';
 
 export const SendNotice = () => {
   const [licenseNo, setLicenseNo] = useState('');
@@ -20,7 +21,7 @@ export const SendNotice = () => {
     setError(null);
 
     try {
-      const response = await fetch(`https://medscore-api.onrender.com/api/user/getPharmaData/${licenseNo}`);
+      const response = await fetch(`${config.API_HOST}/api/user/getPharmaData?licenseNo=${licenseNo}`);
       const result = await response.json();
 
       if (!response.ok) {
@@ -41,7 +42,7 @@ export const SendNotice = () => {
         const distId = localStorage.getItem('userId');
         const pharmaId=_id;
         console.log("_id",_id,"distId",distId)
-        const response = await fetch(`https://medscore-api.onrender.com/api/user/checkIfLinked/${pharmaId}/${distId}`);
+        const response = await fetch(`${config.API_HOST}/api/user/checkIfLinked/${pharmaId}/${distId}`);
         const result = await response.json();
   
         if (!response.ok) {
@@ -135,12 +136,7 @@ export const SendNotice = () => {
           </div>
         )}
 
-        {/* No Results Message */}
-        {pharmacyData.length === 0 && !loading && !error && licenseNo && (
-          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded">
-            No pharmacy data found for this license number.
-          </div>
-        )}
+       
       </div>
     </div>
   );
