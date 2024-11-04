@@ -258,7 +258,7 @@ export const Login = () => {
 
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button
-              onClick={() => navigate('/Register')}
+              onClick={() => navigate('/register')}
               type="button"
               style={{
                 flex: 1,

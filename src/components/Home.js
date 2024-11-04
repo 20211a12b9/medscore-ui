@@ -16,7 +16,7 @@ export const Home = () => {
         window.location.href = '/';
     };
     const handleRegister = () => {
-        window.location.href = '/Register';
+      navigate("/register")
     };
 
    
