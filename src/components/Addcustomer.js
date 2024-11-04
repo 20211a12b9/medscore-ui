@@ -59,9 +59,11 @@ export const Addcustomer = () => {
                     },
                     body: JSON.stringify({
                       to: fullPhoneNumber,
-                      body: `Hello ${pharmacy_name}, your information has been successfully added to MedScore by distributor ${dist_pharmacy_name}. To access your account, please go to ( MedScore website link ) Select ‘Forgot Password’ and use your drug license number as the username to reset your password and log in.
-                      Best regards,
-                      MedScore`
+                      body: `Dear ${pharmacy_name},
+Your information has been successfully added to MedScore by distributor ${dist_pharmacy_name}. To access your account, please go to https://medscore-ui.onrender.com
+Select 'Forgot Password' and use your drug license number as the username to reset your password and log in.
+Best regards,
+MedScore`
                     })
                   });
                if(smsResponse)

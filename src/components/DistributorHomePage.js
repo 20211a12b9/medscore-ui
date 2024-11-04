@@ -233,7 +233,7 @@ export const DistributorHomePage = ({ onLogout }) => {
                 value={license}
                 onChange={(e) => setLicenseNo(e.target.value)}
                 placeholder="Enter dealer code..."
-                className="w-full px-5 py-2 pr-15 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
+                className="w-full px-5 py-2 pr-15 ml-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
               />
               {license && (
                 <button
@@ -257,7 +257,7 @@ export const DistributorHomePage = ({ onLogout }) => {
           {/* Logout Button - Smaller on mobile */}
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1 sm:gap-2 bg-red-500 hover:bg-red-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base whitespace-nowrap"
+            className="flex items-center ml-2 gap-1 sm:gap-2 bg-red-500 hover:bg-red-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base whitespace-nowrap"
           >
             <LogOut size={18} />
             <span>Logout</span>
