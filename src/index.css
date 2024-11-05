@@ -1,3 +1,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Remove or replace the line referencing grid.svg */
+/* If you had something like: */
+/* body { background-image: url('/grid.svg'); } */
+
+/* You can replace it with a CSS grid pattern if needed: */
+body {
+  background-color: #f9fafb;
+  background-image: linear-gradient(to right, #e5e7eb 1px, transparent 1px),
+    linear-gradient(to bottom, #e5e7eb 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* Rest of your CSS styles... */

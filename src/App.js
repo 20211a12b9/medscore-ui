@@ -2,6 +2,7 @@ import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import { AppContext } from './AppContext';
+import { LearnMore } from './components/LearnMore';
 
 // Lazy load all components
 const Home = lazy(() => import('./components/Home'));
@@ -40,6 +41,7 @@ const AuthNavigator = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/ForgotPassword" element={<ForgotPassword />} />
         <Route path="/ConfirmReset" element={<ConfirmReset />} />
+        <Route path="/LearnMore" element={<LearnMore />} />
         <Route path="/" element={<Home />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

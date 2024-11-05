@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { config } from '../config';
 
-export const ForgotPassword = () => {
+const ForgotPassword = () => {
   const navigate = useNavigate();
   const [dlCode, setDlCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -156,3 +156,4 @@ export const ForgotPassword = () => {
     </div>
   );
 };
+export default ForgotPassword;

@@ -1,403 +1,218 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { config } from '../config';
+import { ArrowRight, Mail, Phone, MapPin, Star, Shield, Bell, BarChart, Database, Headphones } from 'lucide-react';
 
 export const Home = () => {
     const navigate = useNavigate();
     const isLoggedIn = localStorage.getItem('jwttoken') !== null;
-    console.log("isLoggedIn",isLoggedIn)
+    
     const handleLogout = () => {
-        // Clear auth token and any other user data from localStorage
         localStorage.removeItem('jwttoken');
         localStorage.removeItem('userId');
-        // Other cleanup if needed...
-        
-        // Refresh the page to reflect logged out state
         window.location.href = '/';
     };
+    
     const handleRegister = () => {
-      navigate("/register")
+        navigate("/register");
     };
 
-   
-  return (
-    <>
-      <style>
-        {`
-          /* Custom CSS */
-          .gradient-bg {
-            background: linear-gradient(135deg, #1a365d 0%, #2563eb 100%);
-          }
-          
-          .hero-text {
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-          }
-          
-          .card {
-            transition: transform 0.2s ease-in-out;
-          }
-          
-          .card:hover {
-            transform: translateY(-5px);
-          }
-          
-          .feature-card {
-            transition: all 0.3s ease;
-          }
-          
-          .feature-card:hover {
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-          }
+    const features = [
+        { icon: <BarChart className="w-6 h-6 text-blue-600" />, title: "Comprehensive Dashboard" },
+        { icon: <Star className="w-6 h-6 text-blue-600" />, title: "Custom Reports & Insights" },
+        { icon: <Bell className="w-6 h-6 text-blue-600" />, title: "Real-Time Alerts" },
+        { icon: <Shield className="w-6 h-6 text-blue-600" />, title: "Data Security" },
+        { icon: <Headphones className="w-6 h-6 text-blue-600" />, title: "24/7 Support" },
+        { icon: <Database className="w-6 h-6 text-blue-600" />, title: "API Access" }
+    ];
 
-          .check-icon::before {
-            content: '✓';
-            color: #2563eb;
-            font-size: 1.2rem;
-            margin-right: 8px;
-          }
-          
-          .testimonial-card {
-            position: relative;
-          }
-          
-          .testimonial-card::before {
-            content: '"';
-            position: absolute;
-            top: -20px;
-            left: 20px;
-            font-size: 60px;
-            color: #e5e7eb;
-            font-family: serif;
-          }
-          
-          .custom-shadow {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 
-                        0 2px 4px -1px rgba(0, 0, 0, 0.06);
-          }
-          
-          .btn-primary {
-            background-color: #2563eb;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
-          }
-          
-          .btn-primary:hover {
-            background-color: #1d4ed8;
-            transform: translateY(-1px);
-          }
-          
-          .btn-secondary {
-            border: 2px solid #2563eb;
-            color: #2563eb;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            background: transparent;
-            cursor: pointer;
-          }
-          
-          .btn-secondary:hover {
-            background-color: #2563eb;
-            color: white;
-          }
-          
-          .section-title {
-            position: relative;
-            padding-bottom: 15px;
-          }
-          
-          .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 50px;
-            height: 3px;
-            background-color: #2563eb;
-          }
-
-          .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-          }
-
-          .grid {
-            display: grid;
-            gap: 32px;
-          }
-
-          .grid-cols-2 {
-            grid-template-columns: repeat(2, 1fr);
-          }
-
-          .grid-cols-3 {
-            grid-template-columns: repeat(3, 1fr);
-          }
-
-          /* New header styles */
-          .header {
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-          }
-
-          .header-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-          }
-
-          .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1a365d;
-            text-decoration: none;
-          }
-
-          @media (max-width: 768px) {
-            .grid-cols-2, .grid-cols-3 {
-              grid-template-columns: 1fr;
-            }
-            
-            .container {
-              padding: 0 16px;
-            }
-            
-            .hero-text {
-              font-size: 2rem !important;
-            }
-
-            .header-container {
-              padding: 1rem;
-            }
-          }
-        `}
-      </style>
-
-      <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
-        {/* Header */}
-        <header className="header">
-          <div className="header-container">
-            {/* <a href="/" className="logo">MedScore</a> */}
-            <img 
-  src="/medscorelogo.jpeg" 
-  alt="logo" 
-  className="w-[100px] h-auto object-contain m-1.5 hover:scale-105 transition-transform duration-300"
-/>
-            <div style={{ display: 'flex', gap: '16px' }}>
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+            {/* Enhanced Header */}
+            <header className="sticky top-0 z-50 bg-white/95 shadow-md backdrop-blur supports-[backdrop-filter]:bg-white/60">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between items-center h-16">
+                        <img 
+                            src="/medscorelogo.jpeg" 
+                            alt="logo" 
+                            className="w-24 h-auto object-contain hover:scale-105 transition-all duration-300"
+                        />
+                        <div className="flex gap-4">
                             {isLoggedIn ? (
                                 <button 
-                                    className="btn-secondary" 
                                     onClick={handleLogout}
-                                    style={{ borderColor: '#2563eb', color: '#2563eb' }}
+                                    className="px-6 py-2 text-blue-600 border-2 border-blue-600 rounded-lg font-semibold hover:bg-blue-600 hover:text-white transition-all duration-300"
                                 >
                                     Logout
                                 </button>
                             ) : (
                                 <button 
-                                    className="btn-primary" 
                                     onClick={handleRegister}
+                                    className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all duration-300 shadow-lg hover:shadow-blue-500/30"
                                 >
                                     Register
                                 </button>
                             )}
-                        </div>          </div>
-        </header>
-
-        {/* Hero Section */}
-        <section className="gradient-bg" style={{ padding: '80px 0' }}>
-          <div className="container">
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-              <h1 className="hero-text" style={{ 
-                color: 'white', 
-                fontSize: '3.5rem', 
-                marginBottom: '24px',
-                maxWidth: '800px' 
-              }}>
-                World's First Credit Score Platform for Medical Shops
-              </h1>
-              <p style={{ 
-                color: 'white', 
-                fontSize: '1.25rem', 
-                marginBottom: '32px',
-                maxWidth: '600px' 
-              }}>
-                Revolutionizing credit risk management for the pharmaceutical industry.
-                MedScore gives distributors reliable data to assess credit risks.
-              </p>
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <button className="btn-primary" onClick={() => navigate('/login')}>Get Started</button>
-                <button className="btn-secondary" style={{ borderColor: 'white', color: 'white' }}>
-                  Learn More
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* About Section */}
-        <section style={{ padding: '80px 0' }}>
-          <div className="container">
-            <h2 className="section-title" style={{ 
-              textAlign: 'center', 
-              fontSize: '2.5rem', 
-              marginBottom: '48px',
-              color: '#1a365d'
-            }}>
-              What is MedScore?
-            </h2>
-            <div className="grid grid-cols-2">
-              <div className="card custom-shadow" style={{ 
-                backgroundColor: 'white', 
-                padding: '32px', 
-                borderRadius: '12px' 
-              }}>
-                <h3 style={{ fontSize: '1.5rem', marginBottom: '16px', color: '#1a365d' }}>
-                  For Distributors
-                </h3>
-                <p style={{ color: '#4b5563' }}>
-                  Evaluate the creditworthiness of medical shops to lower the risk of defaults.
-                </p>
-              </div>
-              <div className="card custom-shadow" style={{ 
-                backgroundColor: 'white', 
-                padding: '32px', 
-                borderRadius: '12px' 
-              }}>
-                <h3 style={{ fontSize: '1.5rem', marginBottom: '16px', color: '#1a365d' }}>
-                  For Medical Shops
-                </h3>
-                <p style={{ color: '#4b5563' }}>
-                  Build a transparent credit profile to access better terms and strengthen relationships.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Features Section */}
-        <section style={{ backgroundColor: '#f3f4f6', padding: '80px 0' }}>
-          <div className="container">
-            <h2 className="section-title" style={{ 
-              textAlign: 'center', 
-              fontSize: '2.5rem', 
-              marginBottom: '48px',
-              color: '#1a365d'
-            }}>
-              Features
-            </h2>
-            <div className="grid grid-cols-3">
-              {[
-                "Comprehensive Dashboard",
-                "Custom Reports & Insights",
-                "Real-Time Alerts",
-                "Data Security",
-                "24/7 Support",
-                "API Access"
-              ].map((feature, index) => (
-                <div key={index} className="feature-card check-icon" style={{ 
-                  backgroundColor: 'white',
-                  padding: '24px',
-                  borderRadius: '8px',
-                }}>
-                  <span style={{ color: '#1a365d', fontWeight: '500' }}>{feature}</span>
+                        </div>
+                    </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
+            </header>
 
-        {/* Testimonials Section */}
-        <section style={{ padding: '80px 0' }}>
-          <div className="container">
-            <h2 className="section-title" style={{ 
-              textAlign: 'center', 
-              fontSize: '2.5rem', 
-              marginBottom: '48px',
-              color: '#1a365d'
-            }}>
-              What Our Users Say
-            </h2>
-            <div className="grid grid-cols-2">
-              <div className="testimonial-card custom-shadow" style={{ 
-                backgroundColor: 'white',
-                padding: '32px',
-                borderRadius: '12px'
-              }}>
-                <p style={{ color: '#4b5563', marginBottom: '16px', lineHeight: '1.6' }}>
-                  "MedScore has become an essential tool for our distribution business. 
-                  It helps us identify credit risks early and manage cash flow better than ever."
-                </p>
-                <p style={{ color: '#1a365d', fontWeight: '600' }}>— Rajesh P., Pharmaceutical Distributor</p>
-              </div>
-              <div className="testimonial-card custom-shadow" style={{ 
-                backgroundColor: 'white',
-                padding: '32px',
-                borderRadius: '12px'
-              }}>
-                <p style={{ color: '#4b5563', marginBottom: '16px', lineHeight: '1.6' }}>
-                  "We never realized how important our credit score was to getting better 
-                  terms from distributors. MedScore made it easy to track and improve."
-                </p>
-                <p style={{ color: '#1a365d', fontWeight: '600' }}>— Neha K., Medical Shop Owner</p>
-              </div>
-            </div>
-          </div>
-        </section>
+            {/* Enhanced Hero Section with CSS-only background */}
+            <section className="relative overflow-hidden bg-gradient-to-r from-blue-900 via-blue-800 to-blue-600 py-32">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent)]"></div>
+                <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center">
+                        <h1 className="text-5xl font-bold text-white mb-8 leading-tight">
+                            World's First Credit Score Platform
+                            <span className="block text-blue-200">for Medical Shops</span>
+                        </h1>
+                        <p className="text-xl text-blue-100 mb-12 max-w-2xl mx-auto">
+                            Revolutionizing credit risk management for the pharmaceutical industry.
+                            MedScore gives distributors reliable data to assess credit risks.
+                        </p>
+                        <div className="flex justify-center gap-6">
+                            <button 
+                                onClick={() => navigate('/login')}
+                                className="group px-8 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-all duration-300 shadow-xl hover:shadow-2xl flex items-center"
+                            >
+                                Get Started
+                                <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+                            </button>
+                            <button 
+                                onClick={() => navigate('/LearnMore')}
+                                className="px-8 py-3 border-2 border-white text-white rounded-lg font-semibold hover:bg-white/10 transition-all duration-300"
+                            >
+                                Learn More
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-        {/* Contact Section */}
-        <section style={{ backgroundColor: '#f3f4f6', padding: '80px 0' }}>
-          <div className="container" style={{ maxWidth: '800px' }}>
-            <h2 className="section-title" style={{ 
-              textAlign: 'center', 
-              fontSize: '2.5rem', 
-              marginBottom: '48px',
-              color: '#1a365d'
-            }}>
-              Contact Us
-            </h2>
-            <div className="custom-shadow" style={{ 
-              backgroundColor: 'white',
-              padding: '40px',
-              borderRadius: '12px'
-            }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontWeight: '600', width: '100px' }}>Email:</span>
-                  <a href="mailto:support@medscore.com" style={{ color: '#2563eb', textDecoration: 'none' }}>
-                    support@medscore.in
-                  </a>
+            {/* Enhanced About Section */}
+            <section className="py-24">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <h2 className="text-4xl font-bold text-center text-gray-900 mb-16">
+                        What is <span className="text-blue-600">MedScore</span>?
+                    </h2>
+                    <div className="grid md:grid-cols-2 gap-8">
+                        {[
+                            {
+                                title: "For Distributors",
+                                description: "Evaluate the creditworthiness of medical shops to lower the risk of defaults.",
+                                gradient: "from-blue-500 to-blue-700"
+                            },
+                            {
+                                title: "For Medical Shops",
+                                description: "Build a transparent credit profile to access better terms and strengthen relationships.",
+                                gradient: "from-blue-600 to-blue-800"
+                            }
+                        ].map((card, index) => (
+                            <div key={index} 
+                                className={`group relative overflow-hidden rounded-2xl p-8 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br ${card.gradient}`}
+                            >
+                                <div className="relative z-10">
+                                    <h3 className="text-2xl font-semibold text-white mb-4">{card.title}</h3>
+                                    <p className="text-blue-100">{card.description}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontWeight: '600', width: '100px' }}>Phone:</span>
-                  <a href="tel:+1-800-123-4567" style={{ color: '#2563eb', textDecoration: 'none' }}>
-                    04046025805
-                  </a>
+            </section>
+
+            {/* Enhanced Features Section */}
+            <section className="py-24 bg-blue-50/50">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <h2 className="text-4xl font-bold text-center text-gray-900 mb-16">
+                        Powerful <span className="text-blue-600">Features</span>
+                    </h2>
+                    <div className="grid md:grid-cols-3 gap-8">
+                        {features.map((feature, index) => (
+                            <div key={index} 
+                                className="bg-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+                            >
+                                <div className="mb-4 p-3 bg-blue-50 rounded-lg w-fit">
+                                    {feature.icon}
+                                </div>
+                                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                                    {feature.title}
+                                </h3>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontWeight: '600', width: '100px' }}>Location:</span>
-                  <span>Dilshuknagar,Hyderabad-500059</span>
+            </section>
+
+            {/* Enhanced Testimonials Section */}
+            <section className="py-24">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <h2 className="text-4xl font-bold text-center text-gray-900 mb-16">
+                        What Our <span className="text-blue-600">Users Say</span>
+                    </h2>
+                    <div className="grid md:grid-cols-2 gap-8">
+                        {[
+                            {
+                                text: "MedScore has become an essential tool for our distribution business. It helps us identify credit risks early and manage cash flow better than ever.",
+                                author: "Rajesh P.",
+                                role: "Pharmaceutical Distributor"
+                            },
+                            {
+                                text: "We never realized how important our credit score was to getting better terms from distributors. MedScore made it easy to track and improve.",
+                                author: "Neha K.",
+                                role: "Medical Shop Owner"
+                            }
+                        ].map((testimonial, index) => (
+                            <div key={index} className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300">
+                                <div className="flex gap-2 mb-4">
+                                    {[...Array(5)].map((_, i) => (
+                                        <Star key={i} className="w-5 h-5 fill-current text-yellow-400" />
+                                    ))}
+                                </div>
+                                <p className="text-gray-600 mb-6 italic">"{testimonial.text}"</p>
+                                <div>
+                                    <p className="font-semibold text-gray-900">{testimonial.author}</p>
+                                    <p className="text-blue-600">{testimonial.role}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-    </>
-  );
+            </section>
+
+            {/* Enhanced Contact Section */}
+            <section className="py-24 bg-blue-50/50">
+                <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <h2 className="text-4xl font-bold text-center text-gray-900 mb-16">
+                        Get in <span className="text-blue-600">Touch</span>
+                    </h2>
+                    <div className="bg-white rounded-2xl p-8 shadow-xl">
+                        {[
+                            { icon: <Mail className="w-6 h-6" />, label: "Email", value: "support@medscore.in", href: "mailto:support@medscore.in" },
+                            { icon: <Phone className="w-6 h-6" />, label: "Phone", value: "04046025805", href: "tel:04046025805" },
+                            { icon: <MapPin className="w-6 h-6" />, label: "Location", value: "Dilshuknagar, Hyderabad-500059" }
+                        ].map((contact, index) => (
+                            <div key={index} className="flex items-center gap-4 mb-6 last:mb-0">
+                                <div className="p-3 bg-blue-50 rounded-lg text-blue-600">
+                                    {contact.icon}
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500">{contact.label}</p>
+                                    {contact.href ? (
+                                        <a href={contact.href} className="text-blue-600 hover:text-blue-700 font-medium">
+                                            {contact.value}
+                                        </a>
+                                    ) : (
+                                        <p className="text-gray-900 font-medium">{contact.value}</p>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+        </div>
+    );
 };
 
 export default Home;
