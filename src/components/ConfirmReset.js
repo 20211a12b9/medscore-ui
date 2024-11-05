@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { config } from '../config';
 
-export const ConfirmReset = () => {
+const ConfirmReset = () => {
 
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
@@ -225,4 +225,4 @@ export const ConfirmReset = () => {
       </div>
     );
   };
-  
+  export default ConfirmReset;

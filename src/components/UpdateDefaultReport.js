@@ -106,7 +106,7 @@ const UpdateDefaultReport = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto mt-4 bg-white rounded-lg shadow">
+    <div className="bg-white [background-image:none] min-h-screen p-6  mx-auto">
       <div className="border-b p-6">
         <h2 className="text-2xl font-bold text-gray-900">Update Payment Details</h2>
         <div className="mt-4">

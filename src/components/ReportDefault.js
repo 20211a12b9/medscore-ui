@@ -92,11 +92,11 @@ export const ReportDefault = () => {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="bg-white [background-image:none] min-h-screen p-6  mx-auto">
       <div className="flex flex-col gap-6">
         {/* Search Section */}
         <h2 className="text-2xl font-bold text-gray-900">Search and Report Default</h2>
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white p-6 rounded-lg ">
           <div className="flex gap-4">
             <input
               type="text"

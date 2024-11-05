@@ -245,7 +245,9 @@ const CreditScoreDisplay = () => {
                   outerRadius={100}
                   label={({ name, percent }) => 
                     ` (${(percent * 100).toFixed(0)}%)`
+                      
                   }
+                 
                 >
                   {pieData.map((entry, index) => (
                     <Cell 
