@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { config } from '../config';
+import { CalendarDays, DollarSign, Clock, AlertCircle, IndianRupee } from 'lucide-react';
 
 export const SendNotice = () => {
   const [licenseNo, setLicenseNo] = useState('');
@@ -8,9 +9,35 @@ export const SendNotice = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [linkingStatus, setLinkingStatus] = useState('');
-  const [pharmaDrugliceId,setPharmaDrugLicId]=useState('')
+  const [pharmaDrugliceId,setPharmaDrugLicId]=useState('');
+  const [invoiceHistory, setInvoiceHistory] = useState([]);
   const navigate=useNavigate();
- 
+  useEffect(() => {
+    const fetchInvoiceHistory = async () => {
+      try {
+        const distId = localStorage.getItem('userId');
+        const response = await fetch(`${config.API_HOST}/api/user/getinvoicesbydistId/${distId}`);
+        const result = await response.json();
+        if (result.success) {
+          setInvoiceHistory(result.data);
+        }
+      } catch (err) {
+        console.error('Error fetching invoice history:', err);
+      }
+    };
+
+    fetchInvoiceHistory();
+  }, []);
+
+
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
   const handleSearch = async () => {
     if (!licenseNo.trim()) {
       setError('Please enter a license number');
@@ -48,8 +75,9 @@ export const SendNotice = () => {
         if (!response.ok) {
           throw new Error(result.message || 'Failed to fetch pharmacy data');
         }
+        
         navigate("/InvoiceForm", {
-            state: { pharmaDrugLicense: licenseNumber,phone_number:phone_number,pharmacy_name }
+            state: { pharmaDrugLicense: licenseNumber,phone_number:phone_number,pharmacy_name:pharmacy_name }
           });
       } catch (err) {
         setError(err.message || 'Error fetching pharmacy data');
@@ -135,9 +163,85 @@ export const SendNotice = () => {
             </table>
           </div>
         )}
-
-       
+<div className="mt-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <Clock className="w-6 h-6" />
+            Notice History
+          </h2>
+          
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse table-auto">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="border-b px-6 py-3 text-left text-sm font-semibold text-gray-900">S.No</th>
+                    <th className="border-b px-6 py-3 text-left text-sm font-semibold text-gray-900">Notice IssuedOn</th>
+                    <th className="border-b px-6 py-3 text-left text-sm font-semibold text-gray-900">License No.</th>
+                    <th className="border-b px-6 py-3 text-left text-sm font-semibold text-gray-900">Invoice No.</th>
+                    <th className="border-b px-6 py-3 text-left text-sm font-semibold text-gray-900">Amount</th>
+                    <th className="border-b px-6 py-3 text-left text-sm font-semibold text-gray-900">Invoice Date</th>
+                    <th className="border-b px-6 py-3 text-left text-sm font-semibold text-gray-900">Due Date</th>
+                    <th className="border-b px-6 py-3 text-left text-sm font-semibold text-gray-900">Delay Days</th>
+                    <th className="border-b px-6 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {invoiceHistory.map((invoice) => (
+                    <tr key={invoice.serialNo} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm text-gray-900">{invoice.serialNo}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        <div className="flex items-center gap-1">
+                          <CalendarDays className="w-4 h-4 text-gray-500" />
+                          {formatDate(invoice.createdAt)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{invoice.pharmadrugliseanceno}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{invoice.invoice}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        <div className="flex items-center gap-1">
+                          <IndianRupee className="w-4 h-4 text-gray-500" />
+                          {Number(invoice.invoiceAmount).toLocaleString()}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        <div className="flex items-center gap-1">
+                          <CalendarDays className="w-4 h-4 text-gray-500" />
+                          {formatDate(invoice.invoiceDate)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{formatDate(invoice.dueDate)}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {invoice.delayDays === "0" ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            On Time
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            {invoice.delayDays} days
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        {invoice.reportDefault ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            <AlertCircle className="w-4 h-4 mr-1" />
+                            Defaulted
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Active
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+       </div>
       </div>
+      
     </div>
   );
 };

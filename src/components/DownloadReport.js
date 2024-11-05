@@ -164,7 +164,7 @@ const DownloadReport = () => {
                     {invoice.pharmadrugliseanceno}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-900">
-                    {formatDate(invoice.invoiceData)}
+                    {formatDate(invoice.invoiceDate)}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-900">
                     {formatDate(invoice.dueDate)}

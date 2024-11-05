@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  BarChart, Bar, PieChart, Pie, XAxis, YAxis, 
+  LineChart, Line, PieChart, Pie, XAxis, YAxis, 
   CartesianGrid, Tooltip, ResponsiveContainer, Cell 
 } from 'recharts';
 import { AlertCircle } from 'lucide-react';
@@ -12,76 +12,58 @@ const CreditScoreDisplay = () => {
   const [error, setError] = useState(null);
   const [score, setScore] = useState(0);
 
+  const COLORS = ['#22c55e', '#f97316', '#eab308', '#3b82f6', '#ef4444'];
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  
   const calculateScore = (invoices) => {
-    if (!invoices.length) return 750; // Default score for no payment history
+    if (!invoices?.length) return 1000;
     
-    let totalPoints = 100; // Start with maximum points
-    let weightedDeduction = 0;
-    
-    // Sort invoices by date to give more weight to recent delays
     const sortedInvoices = [...invoices].sort((a, b) => 
       new Date(b.invoiceDate) - new Date(a.invoiceDate)
     );
     
-    sortedInvoices.forEach((invoice, index) => {
+    const weightedScore = sortedInvoices.reduce((acc, invoice, index) => {
       const delayDays = invoice.delayDays;
-      const recency = Math.exp(-index * 0.1); // Exponential decay for older invoices
+      const recency = Math.exp(-index * 0.1);
       
-      // Progressive deduction based on delay severity
-      let deduction = 0;
-      if (delayDays <= 0) {
-        deduction = 0; // On time payment
-      } else if (delayDays <= 7) {
-        deduction = 0; // Minor delay
-      } else if (delayDays <= 14) {
-        deduction = 5; // Moderate delay
-      } else if (delayDays <= 30) {
-        deduction = 10; // Significant delay
-      } else if (delayDays <= 60) {
-        deduction = 30; // Severe delay
-      } else {
-        deduction = 50; // Critical delay
-      }
+      const deduction = 
+        delayDays <= 0 ? 0 :
+        delayDays <= 7 ? 0 :
+        delayDays <= 14 ? 5 :
+        delayDays <= 30 ? 10 :
+        delayDays <= 60 ? 30 : 50;
       
-      // Apply recency weight to deduction
-      weightedDeduction += deduction * recency;
-    });
+      return acc + (deduction * recency);
+    }, 0);
     
-    // Calculate average weighted deduction
-    const averageWeightedDeduction = weightedDeduction / sortedInvoices.length;
+    const averageWeightedDeduction = weightedScore / sortedInvoices.length;
+    const finalPoints = Math.max(0, Math.min(100, 100 - averageWeightedDeduction));
     
-    // Calculate final points (100 - weighted deduction)
-    const finalPoints = Math.max(0, Math.min(100, totalPoints - averageWeightedDeduction));
-    
-    // Convert percentage to 300-900 range with non-linear scaling
-    const minScore = 100;
-    const maxScore = 1000;
-    const scoreRange = maxScore - minScore;
-    
-    // Apply sigmoid-like transformation for more nuanced scoring
     const normalizedScore = 1 / (1 + Math.exp(-0.1 * (finalPoints - 50)));
-    const finalScore = Math.round(minScore + (normalizedScore * scoreRange));
-    
-    return finalScore;
+    return Math.round(100 + (normalizedScore * 900));
   };
 
   const fetchInvoiceData = async () => {
     try {
       const license = localStorage.getItem("dl_code");
-      const response = await fetch(`${config.API_HOST}/api/user/getInvoiceRD?licenseNo=${license}`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
+      if (!license) {
+        throw new Error("License code not found");
+      }
+
+      const response = await fetch(
+        `${config.API_HOST}/api/user/getInvoiceRD?licenseNo=${encodeURIComponent(license)}`,
+        {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
         }
-      });
+      );
       
       if (response.status === 404) {
-        // Set score to 1000 for 404 status
         setScore(1000);
-        setInvoiceData([]); // Set empty invoice data
-        setLoading(false);
-        return; // Exit early
+        setInvoiceData([]);
+        return;
       }
       
       if (!response.ok) {
@@ -89,13 +71,13 @@ const CreditScoreDisplay = () => {
       }
       
       const result = await response.json();
-      if (result.success) {
-        setInvoiceData(result.data);
-        const calculatedScore = calculateScore(result.data);
-        setScore(calculatedScore);
-      } else {
-        throw new Error(result.message || 'Failed to fetch invoice data');
+      if (!result?.success) {
+        throw new Error(result?.message || 'Failed to fetch invoice data');
       }
+
+      setInvoiceData(result.data || []);
+      setScore(calculateScore(result.data));
+      
     } catch (err) {
       setError(err.message);
     } finally {
@@ -116,76 +98,89 @@ const CreditScoreDisplay = () => {
   };
 
   const calculateRotation = (score) => {
-    const minScore = 100;
-    const maxScore = 1000;
-    const degrees = ((score - minScore) / (maxScore - minScore)) * 90;
-    return degrees;
+    return ((score - 100) / 900) * 180 - 90;
   };
 
   const processDataForCharts = () => {
-    if (!invoiceData.length) return { 
-      pieData: [{ name: 'On Time', value: 1 }], // Default data for empty state
-      barData: [] 
-    };
+    if (!invoiceData?.length) {
+      return {
+        pieData: [{ name: 'On Time', value: 1 }],
+        lineData: MONTHS.map(month => ({ month, score: 1000 }))
+      };
+    }
 
-    // Delay distribution data
+    // Process delay distribution for pie chart
     const delayDistribution = invoiceData.reduce((acc, inv) => {
       const category = getDelayCategory(inv.delayDays);
       acc[category] = (acc[category] || 0) + 1;
       return acc;
     }, {});
 
-    const pieData = Object.entries(delayDistribution).map(([name, value]) => ({
-      name,
-      value
-    }));
+    const pieData = Object.entries(delayDistribution)
+      .map(([name, value]) => ({ name, value }));
 
-    // Monthly invoice amounts
-    const monthlyData = invoiceData.reduce((acc, inv) => {
-      const month = new Date(inv.invoiceDate).toLocaleString('default', { month: 'short' });
-      acc[month] = (acc[month] || 0) + inv.invoiceAmount;
-      return acc;
-    }, {});
+    // Process monthly scores with cumulative calculation
+    const sortedInvoices = [...invoiceData].sort((a, b) => 
+      new Date(a.invoiceDate) - new Date(b.invoiceDate)
+    );
 
-    const barData = Object.entries(monthlyData).map(([month, amount]) => ({
-      month,
-      amount
-    }));
+    let cumulativeInvoices = [];
+    const lineData = MONTHS.map(month => {
+      const monthIndex = MONTHS.indexOf(month);
+      const currentYearInvoices = sortedInvoices.filter(inv => {
+        const invDate = new Date(inv.invoiceDate);
+        const invMonth = invDate.getMonth();
+        return invMonth <= monthIndex;
+      });
 
-    return { pieData, barData };
+      cumulativeInvoices = currentYearInvoices;
+      const monthScore = currentYearInvoices.length > 0 
+        ? calculateScore(currentYearInvoices)
+        : 1000; // Default score for months with no data
+
+      return {
+        month,
+        score: monthScore,
+        invoiceCount: currentYearInvoices.length
+      };
+    });
+
+    return { pieData, lineData };
   };
 
-  if (loading) return (
-    <div className="flex justify-center items-center h-64">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+      </div>
+    );
+  }
 
-  if (error) return (
-    <div className="flex items-center gap-2 text-red-500 p-6">
-      <AlertCircle className="h-5 w-5" />
-      <span>{error}</span>
-    </div>
-  );
+  if (error) {
+    return (
+      <div className="flex items-center gap-2 text-red-500 p-6 bg-red-50 rounded-lg">
+        <AlertCircle className="h-5 w-5" />
+        <span className="font-medium">{error}</span>
+      </div>
+    );
+  }
 
-  const { pieData, barData } = processDataForCharts();
-  const COLORS = ['#22c55e', '#f97316', '#eab308', '#3b82f6', '#ef4444', '#8b5cf6', '#ec4899'];
+  const { pieData, lineData } = processDataForCharts();
 
   return (
     <div className="w-full max-w-6xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold mb-6">Invoice Analytics Dashboard</h1>
+      <h1 className="text-2xl font-bold mb-6 text-gray-900">Invoice Analytics Dashboard</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Credit Score Gauge */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold mb-4">Credit Score</h2>
+          <h2 className="text-lg font-semibold mb-4 text-gray-900">Credit Score</h2>
           <div className="relative">
             <svg viewBox="0 0 200 140" className="w-full">
               <defs>
                 <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                   <stop offset="0%" stopColor="#ef4444" />
-                  <stop offset="33%" stopColor="#f97316" />
-                  <stop offset="66%" stopColor="#eab308" />
+                  <stop offset="50%" stopColor="#eab308" />
                   <stop offset="100%" stopColor="#22c55e" />
                 </linearGradient>
               </defs>
@@ -204,26 +199,27 @@ const CreditScoreDisplay = () => {
                 stroke="url(#scoreGradient)"
                 strokeWidth="12"
                 strokeLinecap="round"
+                strokeDasharray="220"
+                strokeDashoffset={(1 - (score - 100) / 900) * 220}
               />
 
-              <circle cx="100" cy="100" r="15" fill="#e5e7eb" />
+              <circle cx="100" cy="100" r="8" fill="#1f2937" />
               <line
                 x1="100"
                 y1="100"
                 x2="100"
                 y2="40"
                 stroke="#1f2937"
-                strokeWidth="4"
+                strokeWidth="3"
                 strokeLinecap="round"
                 transform={`rotate(${calculateRotation(score)}, 100, 100)`}
               />
 
-              <text x="25" y="130" className="text-sm" fill="#6b7280">100</text>
+              <text x="30" y="130" className="text-sm" fill="#6b7280">100</text>
               <text x="165" y="130" className="text-sm" fill="#6b7280">1000</text>
-              
               <text 
                 x="100" 
-                y="120" 
+                y="80" 
                 textAnchor="middle" 
                 className="text-3xl font-bold" 
                 fill="#1f2937"
@@ -236,7 +232,7 @@ const CreditScoreDisplay = () => {
 
         {/* Payment Delay Distribution */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold mb-4">Payment Delay Distribution</h2>
+          <h2 className="text-lg font-semibold mb-4 text-gray-900">Payment Delay Distribution</h2>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -247,10 +243,15 @@ const CreditScoreDisplay = () => {
                   cx="50%"
                   cy="50%"
                   outerRadius={100}
-                  label={({ name, value }) => `${name}: ${value}`}
+                  label={({ name, percent }) => 
+                    ` (${(percent * 100).toFixed(0)}%)`
+                  }
                 >
                   {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={COLORS[index % COLORS.length]} 
+                    />
                   ))}
                 </Pie>
                 <Tooltip />
@@ -259,23 +260,47 @@ const CreditScoreDisplay = () => {
           </div>
         </div>
 
-        {/* Monthly Invoice Amounts */}
-        <div className="bg-white rounded-lg shadow-md p-6 md:col-span-2">
-          <h2 className="text-lg font-semibold mb-4">Monthly Invoice Amounts</h2>
+        {/* Monthly Score Trend */}
+        <div className="bg-white mr-5 rounded-lg shadow-md p-6 md:col-span-2">
+          <h2 className="text-lg font-semibold mb-4 text-gray-900">
+            Monthly Credit Score Trend
+            <span className="text-sm font-normal text-gray-500 ml-2">
+              (Cumulative calculation)
+            </span>
+          </h2>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={barData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip 
-                  formatter={(value) => {
-                    const cleanValue = parseInt(value, 10).toLocaleString('en-IN');
-                    return `₹${cleanValue}`;
-                  }}
+              <LineChart data={lineData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis 
+                  dataKey="month" 
+                  stroke="#6b7280"
+                  tick={{ fill: '#6b7280' }}
                 />
-                <Bar dataKey="amount" fill="#3b82f6" />
-              </BarChart>
+                <YAxis 
+                  domain={[0, 1000]}
+                  ticks={[0, 200, 400, 600, 800, 1000]}
+                  stroke="#6b7280"
+                  tick={{ fill: '#6b7280' }}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'white',
+                    border: '1px solid #e5e7eb'
+                  }}
+                  formatter={(value, name, props) => [
+                    [`Score: ${value}`, `Invoices: ${props.payload.invoiceCount}`]
+                  ]}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="score" 
+                  stroke="#3b82f6" 
+                  strokeWidth={2}
+                  dot={{ fill: '#3b82f6', r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
             </ResponsiveContainer>
           </div>
         </div>

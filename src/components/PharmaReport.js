@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2, AlertCircle, Search, X } from 'lucide-react';
+import { Loader2, AlertCircle, Search, X,User } from 'lucide-react';
 import { config } from '../config';
 
 const PharmaReport = () => {
@@ -13,6 +13,10 @@ const PharmaReport = () => {
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [disputeReason, setDisputeReason] = useState('');
   const [customReason, setCustomReason] = useState('');
+  const [distData, setDistData] = useState(null);
+  const [showDistModal, setShowDistModal] = useState(false);
+  const [distLoading, setDistLoading] = useState(false);
+  const [distError, setDistError] = useState(null);
 
   const disputeReasons = [
     { value: 'payment_cleared', label: 'Payment already cleared' },
@@ -30,7 +34,29 @@ const PharmaReport = () => {
     setLicenseNo(searchQuery);
     await fetchInvoiceData(searchQuery);
   };
-
+  const fetchDistributorData = async (customerId) => {
+    try {
+      setDistLoading(true);
+      setDistError(null);
+      const response = await fetch(`${config.API_HOST}/api/user/getDistData/${customerId}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      if (result.success) {
+        setDistData(result.data);
+        setShowDistModal(true);
+      } else {
+        throw new Error(result.message || 'Failed to fetch distributor data');
+      }
+    } catch (err) {
+      setDistError(err.message);
+    } finally {
+      setDistLoading(false);
+    }
+  };
   const fetchInvoiceData = async () => {
     const userId = await localStorage.getItem("userId");
     const license = await localStorage.getItem("dl_code");
@@ -155,57 +181,68 @@ A forced dispute request has been made for dealer with Drug License No. ${select
   };
 
   return (
-    <div className="max-w-5xl mx-auto mt-4 bg-white rounded-lg shadow">
-      <div className="border-b p-6">
-        <h2 className="text-2xl font-bold text-gray-900">Your Detailed Report</h2>
+    <div className="max-w-7xl mx-auto mt-8 bg-white rounded-xl shadow-lg">
+      <div className="border-b border-gray-100 p-8">
+        <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Your Detailed Report</h2>
       </div>
 
-      <div className="p-6">
+      <div className="p-8">
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div className="flex items-center gap-2 text-red-700">
-              <AlertCircle className="h-4 w-4" />
-              <span>{error}</span>
+          <div className="mb-8 p-4 bg-red-50 border-l-4 border-red-400 rounded-r-lg">
+            <div className="flex items-center gap-3 text-red-700">
+              <AlertCircle className="h-5 w-5" />
+              <span className="font-medium">{error}</span>
             </div>
           </div>
         )}
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
           <table className="w-full">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">SerialNo</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Invoice</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">License Number</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Invoice Date</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Due Date</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Delay Days</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Invoice Amount</th>
-                <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Action</th>
+              <tr className="bg-gray-50">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">SerialNo</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">IssuedOn</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Invoice</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">License Number</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Invoice Date</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Due Date</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Delay Days</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Invoice Amount</th>
+                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {invoices.map((invoice) => (
-                <tr key={invoice._id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-900">{invoice.serialNo}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{invoice.invoice}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{invoice.pharmadrugliseanceno}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{formatDate(invoice.invoiceData)}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{formatDate(invoice.dueDate)}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{invoice.delayDays}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{invoice.invoiceAmount}</td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => handleDisputeClick(invoice)}
-                      disabled={invoice.dispute || invoice.isDisputed}
-                      className={`px-3 py-1.5 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed inline-flex items-center
-                        ${invoice.dispute || invoice.isDisputed
-                          ? 'bg-yellow-500 text-white hover:bg-yellow-600 focus:ring-yellow-500' 
-                          : 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500'
-                        }`}
-                    >
-                      {invoice.dispute || invoice.isDisputed ? 'Disputed' : 'Report Dispute'}
-                    </button>
+                <tr key={invoice._id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 text-sm text-gray-900">{invoice.serialNo}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{formatDate(invoice.createdAt)}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-blue-600">{invoice.invoice}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{invoice.pharmadrugliseanceno}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{formatDate(invoice.invoiceDate)}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{formatDate(invoice.dueDate)}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-red-600">{invoice.delayDays}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">₹{invoice.invoiceAmount}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => handleDisputeClick(invoice)}
+                        disabled={invoice.dispute || invoice.isDisputed}
+                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed inline-flex items-center gap-2
+                          ${invoice.dispute || invoice.isDisputed
+                            ? 'bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-500' 
+                            : 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500'
+                          }`}
+                      >
+                        {invoice.dispute || invoice.isDisputed ? 'Disputed' : 'Report Dispute'}
+                      </button>
+                      <button
+                        onClick={() => fetchDistributorData(invoice.customerId)}
+                        className="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+                      >
+                        <User className="w-4 h-4" />
+                        View Distributor
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -213,39 +250,34 @@ A forced dispute request has been made for dealer with Drug License No. ${select
           </table>
         </div>
 
-        {/* Custom Modal */}
+        {/* Dispute Modal */}
         {isDisputeModalOpen && (
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex min-h-full items-center justify-center p-4">
-              {/* Backdrop */}
-              <div 
-                className="fixed inset-0 bg-black bg-opacity-25" 
-                onClick={() => setIsDisputeModalOpen(false)}
-              />
-
-              {/* Modal Content */}
-              <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-                <div className="absolute right-4 top-4">
+              <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm" onClick={() => setIsDisputeModalOpen(false)} />
+              
+              <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full p-8">
+                <div className="absolute right-6 top-6">
                   <button
                     onClick={() => setIsDisputeModalOpen(false)}
-                    className="text-gray-400 hover:text-gray-500"
+                    className="text-gray-400 hover:text-gray-500 transition-colors"
                   >
-                    <X className="h-5 w-5" />
+                    <X className="h-6 w-6" />
                   </button>
                 </div>
 
-                <div className="mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">Report Dispute</h3>
-                  <p className="mt-1 text-sm text-gray-500">
+                <div className="mb-6">
+                  <h3 className="text-xl font-semibold text-gray-900">Report Dispute</h3>
+                  <p className="mt-2 text-sm text-gray-500">
                     Please select a reason for disputing this invoice
                   </p>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <select
                     value={disputeReason}
                     onChange={(e) => setDisputeReason(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-md text-sm"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">Select reason for dispute</option>
                     {disputeReasons.map((reason) => (
@@ -260,28 +292,83 @@ A forced dispute request has been made for dealer with Drug License No. ${select
                       value={customReason}
                       onChange={(e) => setCustomReason(e.target.value)}
                       placeholder="Enter your reason here..."
-                      className="w-full px-3 py-2 border rounded-md text-sm"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       rows={4}
                     />
                   )}
 
-                  <div className="flex justify-end gap-3 mt-6">
+                  <div className="flex justify-end gap-3 pt-4">
                     <button
                       onClick={() => setIsDisputeModalOpen(false)}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleSubmitDispute}
                       disabled={!disputeReason || (disputeReason === 'custom' && !customReason.trim())}
-                      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Submit Dispute
                     </button>
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Distributor Modal */}
+        {showDistModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-8">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-semibold text-gray-900">Distributor Details</h3>
+                <button
+                  onClick={() => setShowDistModal(false)}
+                  className="text-gray-400 hover:text-gray-500 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {distLoading && (
+                <div className="flex items-center justify-center p-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                </div>
+              )}
+
+              {distError && (
+                <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-400 rounded-r-lg">
+                  <div className="flex items-center gap-3 text-red-700">
+                    <AlertCircle className="h-5 w-5" />
+                    <span className="font-medium">{distError}</span>
+                  </div>
+                </div>
+              )}
+
+              {distData && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Pharmacy Name</label>
+                      <p className="mt-2 text-sm font-medium text-gray-900">{distData.pharmacy_name}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Phone Number</label>
+                      <p className="mt-2 text-sm font-medium text-gray-900">{distData.phone_number}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Email</label>
+                      <p className="mt-2 text-sm font-medium text-gray-900">{distData.email}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">DL Code</label>
+                      <p className="mt-2 text-sm font-medium text-gray-900">{distData.dl_code}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

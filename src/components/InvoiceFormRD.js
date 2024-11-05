@@ -1,11 +1,13 @@
 import React, { useState,useEffect } from 'react';
-import { AlertCircle, Calendar, DollarSign, FileText, Clock } from 'lucide-react';
+import { AlertCircle, Calendar, DollarSign, FileText, Clock, IndianRupee } from 'lucide-react';
 import { useLocation,useNavigate } from 'react-router-dom';
 import { config } from '../config';
 
 const InvoiceFormRD = () => {
     const location=useLocation();
 const {pharmaDrugLicense,phone_number,pharmacy_name,pharmaId}=location.state ||{}
+console.log("phone_number",phone_number,pharmaId,"pharmaId")
+
   const [formData, setFormData] = useState({
     pharmadrugliseanceno:pharmaDrugLicense,
     invoice: '',
@@ -87,9 +89,9 @@ console.log("pharmaDrugLicense",pharmaDrugLicense)
             const smsMessage = {
                 body: ` MedScore Update for ${pharmacy_name},
 
-We are writing to inform you that your MedScore has been adjusted due to a delayed payment of ${formData.delayDays} days .
+We are writing to inform you that your MedScore has been reduced due to a delayed payment of ${formData.delayDays} days .
 
-Thank you for your attention.please visit our website: [medscore.in](http://medscore.in).
+Thank you for your attention.please visit our website:(http://medscore.in).
 
 Best regards,
 MedScore Team`
@@ -103,7 +105,7 @@ MedScore Team`
                 }
 
                 const distFullPhoneNumber = `+91${distributor.phone_number.trim()}`;
-                
+                console.log("distributor.phone_number",distFullPhoneNumber)
                 return fetch(`${config.API_HOST}/api/user/sendSMS/`, {
                     method: 'POST',
                     headers: {
@@ -126,12 +128,12 @@ MedScore Team`
 
 Dear ${pharmacy_name},
 
-We are writing to inform you that your MedScore has been adjusted  due to a delayed payment of 50 days on Invoice No. ${formData.invoice}.
+We are writing to inform you that your MedScore has been adjusted  due to a delayed payment of ${formData.delayDays} days on Invoice No. ${formData.invoice}.
 
 Maintaining a strong MedScore is essential for seamless credit access with distributors. Please click the link below for a detailed report on your updated score:
 
 
-Thank you for your attention to this matter.please visit our website: [medscore.in](http://medscore.in).
+Thank you for your attention to this matter.please visit our website:(http://medscore.in).
 
 Best regards,
 MedScore Team`
@@ -145,7 +147,7 @@ MedScore Team`
             const failedSms = smsResults.filter(result => result?.status === 'rejected').length;
 
             // Set appropriate success message
-            if (successfulSms > 0 && smsResponse) {
+            if (successfulSms > 0 ) {
                 setSuccess(`Invoice created and SMS sent successfully to ${successfulSms} distributors!${
                     failedSms > 0 ? ` (${failedSms} failed)` : ''
                 }`);
@@ -217,7 +219,7 @@ MedScore Team`
             {/* Invoice Amount */}
             <div className="space-y-2">
               <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                <DollarSign className="w-4 h-4" />
+                <IndianRupee className="w-4 h-4" />
                 <span>Invoice Amount</span>
               </label>
               <input
@@ -258,6 +260,7 @@ MedScore Team`
                 name="dueDate"
                 value={formData.dueDate}
                 onChange={handleChange}
+                min={formData.invoiceDate}
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
               />

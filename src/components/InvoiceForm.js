@@ -1,5 +1,5 @@
 import React, { useState ,useEffect} from 'react';
-import { AlertCircle, Calendar, DollarSign, FileText, Clock } from 'lucide-react';
+import { AlertCircle, Calendar, DollarSign, FileText, Clock, IndianRupee } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { config } from '../config';
 
@@ -7,7 +7,7 @@ const InvoiceForm = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { pharmaDrugLicense, phone_number , pharmacy_name } = location.state || {};
-
+console.log("phone_number ",phone_number)
   const [formData, setFormData] = useState({
     pharmadrugliseanceno: pharmaDrugLicense,
     invoice: '',
@@ -18,6 +18,7 @@ const InvoiceForm = () => {
   });
 
   const [error, setError] = useState('');
+
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   useEffect(() => {
@@ -149,7 +150,7 @@ MedScore`
             {/* Invoice Amount */}
             <div className="space-y-2">
               <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                <DollarSign className="w-4 h-4" />
+                <IndianRupee className="w-4 h-4" />
                 <span>Invoice Amount</span>
               </label>
               <input
@@ -190,6 +191,7 @@ MedScore`
                 name="dueDate"
                 value={formData.dueDate}
                 onChange={handleChange}
+                min={formData.invoiceDate}
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
               />
