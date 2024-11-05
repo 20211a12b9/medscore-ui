@@ -88,10 +88,13 @@ console.log("pharmaDrugLicense",pharmaDrugLicense)
             // Prepare SMS message
             const smsMessage = {
                 body: ` MedScore Update for ${pharmacy_name},
+Dear Partner,
 
-We are writing to inform you that your MedScore has been reduced due to a delayed payment of ${formData.delayDays} days .
+Please be advised that ${pharmacy_name} MedScore has been reduced  due to a delayed payment of ${formData.delayDays} days .
 
-Thank you for your attention.please visit our website:(http://medscore.in).
+This adjustment reflects their recent credit performance.Click the link for detailed report (http://medscore.in).
+
+Thank you for your attention.
 
 Best regards,
 MedScore Team`
@@ -117,7 +120,7 @@ MedScore Team`
                     })
                 });
             });
-            const smsResponse = await fetch(`${config.API_HOST}/api/user/sendSMS/`, {
+            await fetch(`${config.API_HOST}/api/user/sendSMS/`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json'
@@ -132,8 +135,9 @@ We are writing to inform you that your MedScore has been adjusted  due to a dela
 
 Maintaining a strong MedScore is essential for seamless credit access with distributors. Please click the link below for a detailed report on your updated score:
 
+(http://medscore.in).
+Thank you for your attention to this matter.
 
-Thank you for your attention to this matter.please visit our website:(http://medscore.in).
 
 Best regards,
 MedScore Team`
