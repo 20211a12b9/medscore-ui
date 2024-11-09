@@ -1,3 +1,3 @@
 export const config = {
-  API_HOST: 'http://localhost:5001'
+  API_HOST: 'https://medscore-api.onrender.com/'
 };
