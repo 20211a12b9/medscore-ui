@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import './App.css';
 import { AppContext } from './AppContext';
 import { LearnMore } from './components/LearnMore';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import TermsConditions from './components/TermsConditions';
 
 // Lazy load all components
 const Home = lazy(() => import('./components/Home'));
@@ -40,6 +42,8 @@ const AuthNavigator = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/ForgotPassword" element={<ForgotPassword />} />
+        <Route path="/PrivacyPolicy" element={<PrivacyPolicy />} />
+        <Route path="/TermsConditions" element={<TermsConditions />} />
         <Route path="/ConfirmReset" element={<ConfirmReset />} />
         <Route path="/LearnMore" element={<LearnMore />} />
         <Route path="/" element={<Home />} />

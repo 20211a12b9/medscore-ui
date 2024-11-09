@@ -132,7 +132,7 @@ export const Login = () => {
           </h1> */}
            <div className="flex flex-col items-center mb-6">
                     <img 
-                        src="/medscorelogo.jpeg" 
+                        src="/medscore.png" 
                         alt="Medscore Logo" 
                         className="w-[180px] h-auto object-contain mx-auto mb-4 drop-shadow-md transform transition-all duration-300 hover:scale-105"
                     />
