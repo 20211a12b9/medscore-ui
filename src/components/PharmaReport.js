@@ -133,18 +133,8 @@ const PharmaReport = () => {
         throw new Error('Failed to submit dispute');
       }
       const fullPhoneNumber = `+917036222121`;
-       await fetch(`${config.API_HOST}/api/user/sendSMS/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          to: fullPhoneNumber,
-          body: `Dear Admin,
-
-A forced dispute request has been made for dealer with Drug License No. ${selectedInvoice.pharmadrugliseanceno}, regarding invoice ${selectedInvoice.invoice}. website: [medscore.in](http://medscore.in).`
-        })
-      });
+      const license = await localStorage.getItem("dl_code");
+       await fetch(`https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=uewziuRKDUWctgdrHdXm5g&senderid=MEDSCR&channel=2&DCS=0&flashsms=0&number=${fullPhoneNumber}&text=Dear Admin,A forced dispute request has been made for dealer with Drug License No. ${license}, regarding invoice ${selectedInvoice}. website: medxbid.in&route=1`,{mode: "no-cors"});
 
       const result = await response.json();
       if (result.success) {

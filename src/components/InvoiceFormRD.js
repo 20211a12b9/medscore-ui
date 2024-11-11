@@ -61,7 +61,7 @@ console.log("pharmaDrugLicense",pharmaDrugLicense)
 
     // Replace with your actual API endpoint and customer ID
     const customerId = localStorage.getItem('userId');
-    const fullPhoneNumber = `+91${phone_number.trim()}`;
+    const fullPhoneNumber = `91${phone_number.trim()}`;
     console.log("customerId : ", customerId);
 
     try {
@@ -77,102 +77,60 @@ console.log("pharmaDrugLicense",pharmaDrugLicense)
         const data = await response.json();
         console.log(data);
 
-        if (response.ok) {
-            // Get all distributor data
-            const getalldistData = await fetch(`${config.API_HOST}/api/user/getdistdatabyphid/${pharmaId}`);
-            const response = await getalldistData.json();
-            const distributors = response.data; 
-            console.log("getAllDistData", distributors);
-            
-
-            // Prepare SMS message
-            const smsMessage = {
-                body: ` MedScore Update for ${pharmacy_name},
-Dear Partner,
-
-Please be advised that ${pharmacy_name} MedScore has been reduced  due to a delayed payment of ${formData.delayDays} days .
-
-This adjustment reflects their recent credit performance.Click the link for detailed report (http://medscore.in).
-
-Thank you for your attention.
-
-Best regards,
-MedScore Team`
-            };
-
-            // Send SMS to all distributors
-            const smsPromises = distributors.map(async (distributor) => {
-                if (!distributor.phone_number) {
-                    console.warn(`No phone number found for distributor: ${distributor.id}`);
-                    return null;
-                }
-
-                const distFullPhoneNumber = `+91${distributor.phone_number.trim()}`;
-                console.log("distributor.phone_number",distFullPhoneNumber)
-                return fetch(`${config.API_HOST}/api/user/sendSMS/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        to: distFullPhoneNumber,
-                        ...smsMessage
-                    })
-                });
-            });
-            await fetch(`${config.API_HOST}/api/user/sendSMS/`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                  to: fullPhoneNumber,
-                  body: ` Important Update: MedScore Reduced Due to Payment Delay
-
-Dear ${pharmacy_name},
-
-We are writing to inform you that your MedScore has been adjusted  due to a delayed payment of ${formData.delayDays} days on Invoice No. ${formData.invoice}.
-
-Maintaining a strong MedScore is essential for seamless credit access with distributors. Please click the link below for a detailed report on your updated score:
-
-(http://medscore.in).
-Thank you for your attention to this matter.
-
-
-Best regards,
-MedScore Team`
-                })
+        try {
+          if (response.ok) {
+              // Get all distributor data
+              const getalldistData = await fetch(`${config.API_HOST}/api/user/getdistdatabyphid/${pharmaId}`);
+              const responseData = await getalldistData.json(); // Added 'await' here
+              const distributors = responseData.data; 
+              console.log("getAllDistData", distributors);
+      
+              // Send SMS to all distributors
+              await Promise.all(distributors.map(async (distributor) => {
+                  if (!distributor.phone_number) {
+                      console.warn(`No phone number found for distributor: ${distributor.id}`);
+                      return;
+                  }
+      
+                  const distFullPhoneNumber = `91${distributor.phone_number.trim()}`;
+                  console.log("distributor.phone_number", distFullPhoneNumber);
+                  
+                  try {
+                      await fetch(`https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=uewziuRKDUWctgdrHdXm5g&senderid=MEDSCR&channel=2&DCS=0&flashsms=0&number=${distFullPhoneNumber}&text=MedScore Update for ${pharmacy_name} Dear Partner,Please be advised that ${pharmacy_name} MedScore has been reduced due to a ${formData.delayDays}-day delay in payment.This adjustment reflects their recent credit performance. Click the link for detailed report medscore.in.Thank you for your attention.Best regards,MedScore Team&route=1`,{mode: "no-cors"});
+                  } catch (error) {
+                      console.error("Failed to send SMS to distributor:", distributor.id, error);
+                  }
+              }));
+      
+              // Send SMS to pharmacy
+              try {
+                  await fetch(`https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=uewziuRKDUWctgdrHdXm5g&senderid=MEDSCR&channel=2&DCS=0&flashsms=0&number=${fullPhoneNumber}&text=Important Update: MedScore Reduced Due to Payment Delay Dear ${pharmacy_name},We are writing to inform you that your MedScore has been reduced due to a delayed payment of ${formData.delayDays} days on Invoice No. ${formData.invoice}.Maintaining a strong MedScore is essential for seamless credit access with distributors. Please click the link below for a detailed report on your updated score: medscore.in\n\nThank you for your attention to this matter.Best regards,MedScore Team&route=1`,{mode: "no-cors"});
+              } catch (error) {
+                  console.error("Failed to send SMS to pharmacy:", error);
+              }
+      
+              // Reset form data
+              setFormData({
+                  invoice: '',
+                  invoiceAmount: '',
+                  invoiceDate: '',
+                  dueDate: '',
+                  delayDays: '',
+                  reason: ''
               });
-            // Wait for all SMS to be sent
-            const smsResults = await Promise.allSettled(smsPromises);
-            
-            // Check results
-            const successfulSms = smsResults.filter(result => result?.status === 'fulfilled').length;
-            const failedSms = smsResults.filter(result => result?.status === 'rejected').length;
-
-            // Set appropriate success message
-            if (successfulSms > 0 ) {
-                setSuccess(`Invoice created and SMS sent successfully to ${successfulSms} distributors!${
-                    failedSms > 0 ? ` (${failedSms} failed)` : ''
-                }`);
-                
-                setFormData({
-                    invoice: '',
-                    invoiceAmount: '',
-                    invoiceDate: '',
-                    dueDate: '',
-                    delayDays: '',
-                    reason:''
-                });
-                
-                // Navigate to the next screen
-                navigate("/ReportDefault");
-            } else {
-                setError('Failed to send SMS to any distributors');
-            }
-        } else {
-            setError(data.message || 'Failed to create invoice');
-        }
+      
+              // Navigate to the next screen
+              navigate("/ReportDefault");
+      
+          } else {
+              setError(data.message || 'Failed to create invoice');
+          }
+      } catch (error) {
+          console.error("An error occurred:", error);
+          setError('An unexpected error occurred. Please try again later.');
+      }
+      
+      
     } catch (err) {
         setError(`Error: ${err.message || 'Failed to process request'}`);
     } finally {

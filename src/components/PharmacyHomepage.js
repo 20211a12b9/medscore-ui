@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LogOut } from 'lucide-react';
+import { LogOut,User,Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { config } from '../config';
 
@@ -9,6 +9,15 @@ export const PharmacyHomepage = ({ onLogout }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [noticeCount, setNoticeCount] = useState('');
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
+  const toggleProfileMenu = () => {
+    setIsProfileMenuOpen(!isProfileMenuOpen);
+  };
+  const handleProfileClick = () => {
+    onNavigate('/PharmaProfile');
+    setIsProfileMenuOpen(false);
+  };
   const onNavigate = useNavigate();
 
   const handleSearch = async () => {
@@ -105,7 +114,7 @@ export const PharmacyHomepage = ({ onLogout }) => {
         }
 
         const response = await fetch(
-          `${config.API_HOST}/api/user/countNotices/${license}`,
+          `${config.API_HOST}/api/user/countNotices?licenseNo=${license}`,
           {
             method: 'GET',
             headers: {
@@ -142,32 +151,55 @@ export const PharmacyHomepage = ({ onLogout }) => {
     { label: 'View Detail Report', path: '/PharmaReport', color: 'from-teal-500 to-teal-600' },
     { label: 'Download Detail Report', path: '/DownloadReport', color: 'from-indigo-500 to-indigo-600' },
     { label: 'Notices', path: '/Notices', color: 'from-red-500 to-indigo-600', notificationCount: noticeCount }
+   
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header with Logo and Logout */}
-      <header className="bg-white shadow-md">
-        <div className="container mx-auto px-4 py-2 flex justify-between items-center">
-          <div className="flex items-center">
-            <div className="relative group">
-              <img 
-                src="/medscorelogo.jpeg" 
-                alt="Medscore Logo" 
-                className="w-32 h-auto object-contain rounded-lg shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-blue-600 opacity-0 group-hover:opacity-10 rounded-lg transition-opacity duration-300"></div>
-            </div>
-            {/* <h1 className="hidden md:block ml-4 text-2xl font-bold bg-gradient-to-r from-blue-600 to-teal-500 text-transparent bg-clip-text">
-              MedScore
-            </h1> */}
+      <header className="bg-white shadow-md relative">
+        <div className="container mx-auto px-3 py-3 flex justify-between items-center">
+             {/* Menu Button */}
+             <button
+            onClick={toggleProfileMenu}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 ml-2"
+          >
+            <Menu size={30} className="text-gray-600" />
+          </button>
+          {/* Logo */}
+          <div className="relative group w-20 sm:w-30">
+            <img 
+              src="/medscore.png" 
+              alt="Medscore Logo" 
+              className="w-100 h-auto object-contain rounded-lg shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:scale-100"
+            />
+            <div className="absolute inset-0 bg-blue-600 opacity-0 group-hover:opacity-10 rounded-lg transition-opacity duration-300"></div>
           </div>
+
+
+          {/* Profile Menu Dropdown */}
+          {isProfileMenuOpen && (
+            <div className="absolute top-full right-0 mt-2 w-48 bg-[#74b4d5] rounded-lg shadow-lg py-1 z-50">
+              <button
+                onClick={handleProfileClick}
+                className="flex items-center w-full px-4 py-2 text-sm text-black hover:bg-gray-100"
+              >
+                <User size={16} className="mr-2" />
+                View Profile
+              </button>
+              {/* Add more menu items here if needed */}
+            </div>
+          )}
+
+          {/* Search Bar */}
           
+
+          {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+            className="flex items-center ml-2 gap-1 sm:gap-2 bg-red-500 hover:bg-red-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base whitespace-nowrap"
           >
-            <LogOut size={20} />
+            <LogOut size={18} />
             <span>Logout</span>
           </button>
         </div>

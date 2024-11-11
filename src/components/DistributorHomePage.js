@@ -1,5 +1,5 @@
 import React, { useState,useEffect } from 'react';
-import { LogOut, Search,X } from 'lucide-react';
+import { LogOut, Search,X ,Menu, User} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { 
   BarChart, Bar, PieChart, Pie, XAxis, YAxis, 
@@ -15,8 +15,16 @@ export const DistributorHomePage = ({ onLogout }) => {
   const [error, setError] = useState(null);
   const [noticeCount, setNoticeCount] = useState(null);
   const [score, setScore] = useState(0);
+  const [pharmacyData,setPharmacyData]=useState(0);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
- 
+  const toggleProfileMenu = () => {
+    setIsProfileMenuOpen(!isProfileMenuOpen);
+  };
+  const handleProfileClick = () => {
+    onNavigate('/DistributorProfile');
+    setIsProfileMenuOpen(false);
+  };
   const onNavigate=useNavigate()
   const handleSearch = async () => {
     setInvoiceData('')
@@ -59,7 +67,24 @@ export const DistributorHomePage = ({ onLogout }) => {
         return;
       }
       setInvoiceData(invoiceResult.data);
+      const response = await fetch(
+        `${config.API_HOST}/api/user/getPharmaData?licenseNo=${license}`,
+        {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      const result = await response.json();
 
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to fetch pharmacy data');
+      }
+      console.log("---amam00",result.data[0])
+      setPharmacyData(result.data);
       const calculatedScore = calculateScore(invoiceResult.data);
         setScore(calculatedScore);
      
@@ -99,12 +124,45 @@ export const DistributorHomePage = ({ onLogout }) => {
     { label: 'Report Default', path: '/ReportDefault', color: 'from-purple-500 to-purple-600' },
     { label: 'Update Payment Details', path: '/UpdateDefaultReport', color: 'from-pink-500 to-pink-600' },
     { label: 'Add Customer', path: '/Addcustomer', color: 'from-pink-500 to-orange-600' },
+   
   ];
  
 
   const COLORS = ['#22c55e', '#f97316', '#eab308', '#3b82f6', '#ef4444'];
   const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   
+  const getCreditScoreStatus = (score) => {
+    if (score >= 900) {
+      return {
+        status: 'Excellent',
+        color: '#22c55e'
+      };
+    } else if (score >= 800) {
+      return {
+        status: 'Good',
+        color: '#eab308'
+      };
+    } else if (score >= 700) {
+      return {
+        status: 'Fair',
+        color: '#f97316'
+      };
+     
+    } 
+    else if (score>=600)
+      {
+        return {
+          status: 'Need Improvement',
+          color: '#ef4444'
+        };
+      }else {
+      return {
+        status: 'Poor',
+        color: '#ef4444'
+      };
+    }
+  };
+
   const calculateScore = (invoices) => {
     if (!invoices?.length) return 1000;
     
@@ -254,30 +312,68 @@ export const DistributorHomePage = ({ onLogout }) => {
   }
 
   const { pieData, lineData } = processDataForCharts();
-
+  const { status, color } = getCreditScoreStatus(score);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-md">
+      <header className="bg-white shadow-md relative">
         <div className="container mx-auto px-3 py-3 flex justify-between items-center">
-        <div className="relative group w-20 sm:w-30">
+             {/* Menu Button */}
+             <button
+            onClick={toggleProfileMenu}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 ml-2"
+          >
+            <Menu size={30} className="text-gray-600" />
+          </button>
+          {/* Logo */}
+          <div className="relative group w-20 sm:w-30">
             <img 
-              src="/medscorelogo.jpeg" 
+              src="/medscore.png" 
               alt="Medscore Logo" 
               className="w-100 h-auto object-contain rounded-lg shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:scale-100"
             />
             <div className="absolute inset-0 bg-blue-600 opacity-0 group-hover:opacity-10 rounded-lg transition-opacity duration-300"></div>
           </div>
 
+
+          {/* Profile Menu Dropdown */}
+          {isProfileMenuOpen && (
+            <div className="absolute top-full right-0 mt-2 w-48 bg-[#74b4d5] rounded-lg shadow-lg py-1 z-50">
+              <button
+                onClick={handleProfileClick}
+                className="flex items-center w-full px-4 py-2 text-sm text-black hover:bg-gray-100"
+              >
+                <User size={16} className="mr-2" />
+                View Profile
+              </button>
+              {/* Add more menu items here if needed */}
+            </div>
+          )}
+
           {/* Search Bar */}
-          <div className="flex-1 w-full sm:max-w-xl sm:mx-8">
+          
+
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="flex items-center ml-2 gap-1 sm:gap-2 bg-red-500 hover:bg-red-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base whitespace-nowrap"
+          >
+            <LogOut size={18} />
+            <span>Logout</span>
+          </button>
+        </div>
+      </header>
+
+      <div className="container mx-auto px-4 py-8">
+        {/* search */}
+      <div className="flex-1 w-full sm:max-w-xl sm:mx-8 mb-5">
             <div className="relative">
               <input
                 type="text"
                 value={license}
                 onChange={(e) => setLicenseNo(e.target.value)}
                 placeholder="Enter dealer code..."
-                className="w-full px-5 py-2 pr-15 ml-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
+                className="w-full px-5 py-2 pr-15 ml-1 border border-black rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
               />
               {license && (
                 <button
@@ -297,19 +393,6 @@ export const DistributorHomePage = ({ onLogout }) => {
             </div>
             {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
           </div>
-
-          {/* Logout Button - Smaller on mobile */}
-          <button
-            onClick={handleLogout}
-            className="flex items-center ml-2 gap-1 sm:gap-2 bg-red-500 hover:bg-red-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base whitespace-nowrap"
-          >
-            <LogOut size={18} />
-            <span>Logout</span>
-          </button>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-8">
         {/* Hero Section */}
         <section className="bg-gradient-to-r from-blue-600 to-blue-400 text-white text-center py-16 rounded-2xl shadow-xl mb-10 transform hover:scale-[1.02] transition-transform duration-300">
           <h1 className="text-5xl font-bold mb-6">World's First Credit Score Platform for Medical Shops</h1>
@@ -346,14 +429,51 @@ export const DistributorHomePage = ({ onLogout }) => {
         {/* Invoice Data Table */}
         {invoiceData.length > 0 && (
          <div className="w-full max-w-6xl mx-auto p-6 space-y-6">
-         <h1 className="text-2xl font-bold mb-6 text-gray-900">Invoice Analytics Dashboard</h1>
+         <h1 className="text-2xl font-bold mb-6 text-gray-900">Credit Analytics Dashboard</h1>
          
+         <div class="bg-[#91C4E1] rounded-lg shadow-md px-6 py-8">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="flex items-center">
+      <h1 class="text-lg font-bold text-[#121441]">Pharmacy Name:</h1>
+      <span class="text-lg font-semibold text-red-500 ml-2">
+        {pharmacyData[0].pharmacy_name}
+      </span>
+    </div>
+    <div class="flex items-center">
+      <h1 class="text-lg font-bold text-[#121441]">Drug License No:</h1>
+      <span class="text-lg font-semibold text-red-500 ml-2">
+        {pharmacyData[0].dl_code}
+      </span>
+    </div>
+    <div class="flex items-center">
+      <h1 class="text-lg font-bold text-[#121441]">Contact Details:</h1>
+      <span class="text-lg font-semibold text-red-500 ml-2">
+        {pharmacyData[0].phone_number}
+      </span>
+    </div>
+  </div>
+</div>
+<button 
+                onClick={() => onNavigate('/ReportOfPharama', {
+                  state: { license: pharmacyData[0].dl_code, }
+                })}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+
+              >
+                Click to get Detailed Report
+
+              </button>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
            {/* Credit Score Gauge */}
+          
            <div className="bg-white rounded-lg shadow-md p-6">
              <h2 className="text-lg font-semibold mb-4 text-gray-900">Credit Score</h2>
              <div className="relative">
                <svg viewBox="0 0 200 140" className="w-full">
+              
+               <text x="104" y="120" textAnchor="middle" className="text-xs font-mono">
+               <tspan fill={color}>{status}</tspan>
+               </text>
                  <defs>
                    <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                      <stop offset="0%" stopColor="#ef4444" />
@@ -403,7 +523,9 @@ export const DistributorHomePage = ({ onLogout }) => {
                  >
                    {score}
                  </text>
+                 
                </svg>
+               
              </div>
            </div>
    

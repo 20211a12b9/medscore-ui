@@ -58,14 +58,14 @@ export const Register = ({ onRegistrationSuccess }) => {
             });
 
             const data = await response.json();
-
+            const fullPhoneNumber = `91${formData.phone_number.trim()}`;
             if (response.ok) {
+                await fetch(`https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=uewziuRKDUWctgdrHdXm5g&senderid=MEDSCR&channel=2&DCS=0&flashsms=0&number=${fullPhoneNumber}&text=Welcome to MedScore – Your Account is Ready! Dear ${formData.pharmacy_name}, Welcome to MedScore! Your account has been successfully created. User ID: ${formData.dl_code} Log in to start exploring our credit risk solutions designed specifically for the pharmaceutical industry. For security, please change your password upon first login. Thank you for joining MedScore. Best Regards, The MedScore Team&route=1`,{mode: "no-cors"});
+
                 console.log('Registration successful:', data);
                 alert("Registration successful!");
                 navigate('/login'); 
-                if (onRegistrationSuccess) {
-                    onRegistrationSuccess();
-                }
+               
             } else {
                 console.error('Registration failed:', data.message);
                 alert(`Registration failed: ${data.message}`);

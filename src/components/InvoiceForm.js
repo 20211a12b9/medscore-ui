@@ -58,61 +58,27 @@ console.log("phone_number ",phone_number)
     setLoading(true);
 
     const customerId = localStorage.getItem('userId');
-    const fullPhoneNumber = `+91${phone_number.trim()}`;
+    const fullPhoneNumber = `91${phone_number.trim()}`;
 
     try {
-      // Submit the invoice
       const response = await fetch(`${config.API_HOST}/api/user/Invoice/${customerId}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
 
       const data = await response.json();
-
+      const dist_pharmacy_name = localStorage.getItem('pharmacy_name');
       if (response.ok) {
-        // Send SMS notification
-        const smsResponse = await fetch(`${config.API_HOST}/api/user/sendSMS/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            to: fullPhoneNumber,
-            body: ` Urgent Demand Notice for Pending Payment - Invoice No. ${formData.invoice}
+       await fetch(`https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=uewziuRKDUWctgdrHdXm5g&senderid=MEDSCR&channel=2&DCS=0&flashsms=0&number=${fullPhoneNumber}&text=Payment Reminder - Invoice No. ${formData.invoice} Dear ${pharmacy_name}, This is a reminder from MedScore, on behalf of ${dist_pharmacy_name}, regarding your pending payment for Invoice No. ${formData.invoice}, dated ${formData.invoiceDate}, which was due on ${formData.dueDate}. The payment is currently overdue by ${formData.delayDays} days. To maintain a strong MedScore rating and ensure continued access to credit, please complete the payment at your earliest convenience. If payment has already been processed, kindly disregard this notice. Thank you for your prompt attention. Best regards, MedScore&route=1`,{mode: "no-cors"});
 
-Dear ${pharmacy_name}, 
-
-This is a reminder from MedScore on behalf of Ayan Medineeds regarding your outstanding payment associated with Invoice No. ${formData.invoice}, dated ${formData.invoiceDate}, with a due date of ${formData.dueDate}. The payment is now delayed by ${formData.delayDays} days.
-
-Please settle the pending amount immediately to avoid a potential credit default on MedScore, which could impact your MedScore rating. A lower MedScore may reduce your chances of obtaining future credit from other distributors and could have lasting effects on your creditworthiness.
-
-Kindly disregard this notice if the payment has already been made.
-
-Thank you for your immediate attention to this matter.please visit our website: [medscore.in](http://medscore.in).
-
-Best regards,
-MedScore`
-          })
-        });
-
-        // Check if SMS was sent successfully
-        if (smsResponse.ok) {
+        if (response.ok) {
           setSuccess('Invoice created and SMS sent successfully!');
-          setFormData({
-            invoice: '',
-            invoiceAmount: '',
-            invoiceDate: '',
-            dueDate: '',
-            delayDays: ''
-          });
-          // Navigate to the next screen
+          setFormData({ invoice: '', invoiceAmount: '', invoiceDate: '', dueDate: '', delayDays: '' });
           navigate("/SendNotice");
         } else {
-          const smsData = await smsResponse.json();
-          setError('Invoice created, but failed to send SMS: ' + smsData.message);
+         
+          setError('Invoice created, but failed to send SMS: ' + ( 'Unknown error'));
         }
       } else {
         setError(data.message || 'Failed to create invoice');
@@ -123,6 +89,7 @@ MedScore`
       setLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">

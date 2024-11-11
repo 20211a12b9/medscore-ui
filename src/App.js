@@ -5,6 +5,8 @@ import { AppContext } from './AppContext';
 import { LearnMore } from './components/LearnMore';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsConditions from './components/TermsConditions';
+import DistributorProfile from './components/DistributorProfile';
+import PharmaProfile from './components/PharmaProfile';
 
 // Lazy load all components
 const Home = lazy(() => import('./components/Home'));
@@ -79,6 +81,9 @@ const DistributorRoutes = () => {
         <Route path="/SMSForm" element={<SMSForm />} />
         <Route path="/ReportOfPharama" element={<ReportOfPharama />} />
         <Route path="/Addcustomer" element={<Addcustomer />} />
+        <Route path="/DistributorProfile" element={<DistributorProfile />} />
+        <Route path="/ForgotPassword" element={<ForgotPassword />} />
+        <Route path="/ConfirmReset" element={<ConfirmReset />} />
         <Route path="/" element={<Navigate to="DistributorHomePage" replace />} />
         <Route path="*" element={<Navigate to="DistributorHomePage" replace />} />
       </Routes>
@@ -95,6 +100,9 @@ const PharmacyRoutes = () => {
         <Route path="/PharmaReport" element={<PharmaReport />} />
         <Route path="/DownloadReport" element={<DownloadReport />} />
         <Route path="/Notices" element={<Notices />} />
+        <Route path="/ForgotPassword" element={<ForgotPassword />} />
+        <Route path="/ConfirmReset" element={<ConfirmReset />} />
+        <Route path="/PharmaProfile" element={<PharmaProfile />} />
         <Route path="/" element={<Navigate to="PharmacyHomepage" replace />} />
         <Route path="*" element={<Navigate to="PharmacyHomepage" replace />} />
       </Routes>

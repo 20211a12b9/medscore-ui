@@ -14,7 +14,30 @@ const CreditScoreDisplay = () => {
 
   const COLORS = ['#22c55e', '#f97316', '#eab308', '#3b82f6', '#ef4444'];
   const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  
+  const getCreditScoreStatus = (score) => {
+    if (score >= 800) {
+      return {
+        status: 'Excellent',
+        color: '#22c55e'
+      };
+    } else if (score >= 700) {
+      return {
+        status: 'Good',
+        color: '#eab308'
+      };
+    } else if (score >= 600) {
+      return {
+        status: 'Fair',
+        color: '#f97316'
+      };
+    } else {
+      return {
+        status: 'Poor',
+        color: '#ef4444'
+      };
+    }
+  };
+
   const calculateScore = (invoices) => {
     if (!invoices?.length) return 1000;
     
@@ -166,7 +189,7 @@ const CreditScoreDisplay = () => {
   }
 
   const { pieData, lineData } = processDataForCharts();
-
+  const { status, color } = getCreditScoreStatus(score);
   return (
     <div className="w-full max-w-6xl mx-auto p-6 space-y-6">
       <h1 className="text-2xl font-bold mb-6 text-gray-900">Invoice Analytics Dashboard</h1>
@@ -177,6 +200,9 @@ const CreditScoreDisplay = () => {
           <h2 className="text-lg font-semibold mb-4 text-gray-900">Credit Score</h2>
           <div className="relative">
             <svg viewBox="0 0 200 140" className="w-full">
+            <text x="104" y="120" textAnchor="middle" className="text-xs font-mono">
+               <tspan fill={color}>{status}</tspan>
+               </text>
               <defs>
                 <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                   <stop offset="0%" stopColor="#ef4444" />

@@ -280,6 +280,7 @@ export const Login = () => {
   <button
     onClick={() => navigate('/ForgotPassword')}
     type="button"
+    required
     style={{
       background: 'none',
       border: 'none',

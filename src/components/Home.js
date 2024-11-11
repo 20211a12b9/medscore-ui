@@ -271,7 +271,7 @@ export const Home = () => {
             <h3 className="text-xl font-bold mb-3 text-[#121441]">Follow Us</h3>
             <div className="flex gap-2 ml-28">
               <a
-                href="https://www.instagram.com/medscore/"
+                href="https://www.instagram.com/medscore.in/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-blue-500 transition-colors"
@@ -287,7 +287,7 @@ export const Home = () => {
                 <X className="w-7 h-7" />
               </a>
               <a
-                href="https://www.facebook.com/medscore"
+                href="https://www.facebook.com/Medscore.in/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-blue-500 transition-colors"

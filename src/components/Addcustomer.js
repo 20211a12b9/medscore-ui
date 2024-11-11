@@ -41,7 +41,7 @@ export const Addcustomer = () => {
                 ? `${config.API_HOST}/api/user/Pharmacyregister`
                 : `${config.API_HOST}/api/user/Distributorregister`;
 
-            const response = await fetch(endpoint, {
+            const response = await fetch(`${config.API_HOST}/api/user/Pharmacyregister`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -50,28 +50,13 @@ export const Addcustomer = () => {
             });
 
             const data = await response.json();
-            const fullPhoneNumber = `+91${formData.phone_number.trim()}`;
+            const fullPhoneNumber = `91${formData.phone_number.trim()}`;
             if (response.ok) {
-                 const smsResponse=await fetch(`${config.API_HOST}/api/user/sendSMS/`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                      to: fullPhoneNumber,
-                      body: `Dear ${pharmacy_name},
-Your information has been successfully added to MedScore by distributor ${dist_pharmacy_name}. To access your account, please go to https://medscore-ui.onrender.com
-Select 'Forgot Password' and use your drug license number as the username to reset your password and log in.
-Best regards,
-MedScore`
-                    })
-                  });
-               if(smsResponse)
-               {
-                alert("Customer details added successfully!");
-                navigate('/DistributorHomePage'); 
-               }
                
+                 await fetch(`https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=uewziuRKDUWctgdrHdXm5g&senderid=MEDSCR&channel=2&DCS=0&flashsms=0&number=${fullPhoneNumber}&text=Hello  ${formData.pharmacy_name}, your information has been successfully added to MedScore by distributor ${dist_pharmacy_name} . To access your account, please go to medscore.in Select ‘Forgot Password’ and use your drug license number as the username to reset your password and log in. Best regards, MedScore&route=1`,{mode: "no-cors"});
+
+                alert("Customer details added successfully!");
+                navigate('/DistributorHomePage');
             } else {
                 console.error('failed:', data.message);
                 alert(` failed: ${data.message}`);
