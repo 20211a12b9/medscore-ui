@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate, Navigate, replace } from 'react-router-dom';
 import { AppContext } from '../AppContext';
 import { config } from '../config';
-
+import { Eye, EyeOff } from 'lucide-react';
 export const Login = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -12,7 +12,7 @@ export const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { setIsLoggedIn } = useContext(AppContext);
-
+  const [showPassword, setShowPassword] = useState(false);
   // Check if user is already logged in
   useEffect(() => {
     const token = localStorage.getItem('jwttoken');
@@ -37,10 +37,19 @@ export const Login = () => {
     }
   }, [navigate]);
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const {name,value}=e.target;
+    if (name === 'dl_code') {
+      setFormData({
+          ...formData,
+          [name]: value.trim().toUpperCase(),
+      });
+  } 
+  else {
+      setFormData({
+          ...formData,
+          [name]: value,
+      });
+  }
     if (error) setError('');
   };
 
@@ -68,15 +77,7 @@ export const Login = () => {
         localStorage.setItem('pharmacy_name', data.pharmacy_name);
         setIsLoggedIn(true);
         
-        // Navigate with replace to prevent back navigation to login
-        // if (data.usertype === "Pharma") {
-        //   navigate('/PharmacyApp', { replace: true });
-        // } else if (data.usertype === "Dist") {
-        //   navigate('/PharmacyDashboard', { replace: true });
-        // } else if(data.usertype === "Admin");
-        // {
-        //   navigate('/AdminHomeScreen', { replace: true });
-        // }
+     
       } else {
         setError(data.message || 'Login failed. Please check your credentials.');
       }
@@ -188,24 +189,24 @@ export const Login = () => {
             <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#4b5563' }} htmlFor="password">
               Password
             </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="Enter your password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.5rem',
-                fontSize: '1rem',
-                color: '#4b5563',
-                transition: 'all 0.2s',
-              }}
-            />
+            <div className="relative">
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            name="password"
+                            placeholder="Password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            className="w-full p-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
+                            required
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                        >
+                            {!showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
+                    </div>
           </div>
 
           <button

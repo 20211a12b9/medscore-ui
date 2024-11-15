@@ -96,7 +96,7 @@ console.log("pharmaDrugLicense",pharmaDrugLicense)
                   console.log("distributor.phone_number", distFullPhoneNumber);
                   
                   try {
-                      await fetch(`https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=uewziuRKDUWctgdrHdXm5g&senderid=MEDSCR&channel=2&DCS=0&flashsms=0&number=${distFullPhoneNumber}&text=MedScore Update for ${pharmacy_name} Dear Partner,Please be advised that ${pharmacy_name} MedScore has been reduced due to a ${formData.delayDays}-day delay in payment.This adjustment reflects their recent credit performance. Click the link for detailed report medscore.in.Thank you for your attention.Best regards,MedScore Team&route=1`,{mode: "no-cors"});
+                      await fetch(`https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=uewziuRKDUWctgdrHdXm5g&senderid=MEDSCR&channel=2&DCS=0&flashsms=0&number=${distFullPhoneNumber}&text=MedScore Update for ${pharmacy_name} Dear Partner, Please be advised that ${pharmacy_name}'s MedScore has been reduced due to a ${formData.delayDays}-day delay in payment. This adjustment reflects their recent credit performance. Click the link for detailed report medscore.in. Thank you for your attention. Best regards, MedScore Team&route=1`,{mode: "no-cors"});
                   } catch (error) {
                       console.error("Failed to send SMS to distributor:", distributor.id, error);
                   }
@@ -104,7 +104,7 @@ console.log("pharmaDrugLicense",pharmaDrugLicense)
       
               // Send SMS to pharmacy
               try {
-                  await fetch(`https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=uewziuRKDUWctgdrHdXm5g&senderid=MEDSCR&channel=2&DCS=0&flashsms=0&number=${fullPhoneNumber}&text=Important Update: MedScore Reduced Due to Payment Delay Dear ${pharmacy_name},We are writing to inform you that your MedScore has been reduced due to a delayed payment of ${formData.delayDays} days on Invoice No. ${formData.invoice}.Maintaining a strong MedScore is essential for seamless credit access with distributors. Please click the link below for a detailed report on your updated score: medscore.in\n\nThank you for your attention to this matter.Best regards,MedScore Team&route=1`,{mode: "no-cors"});
+                  await fetch(`https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=uewziuRKDUWctgdrHdXm5g&senderid=MEDSCR&channel=2&DCS=0&flashsms=0&number=${fullPhoneNumber}&text=Important Update: MedScore Reduced Due to Payment Delay Dear ${pharmacy_name},We are writing to inform you that your MedScore has been reduced due to a delayed payment of ${formData.delayDays} days on Invoice No. ${formData.invoice}. Maintaining a strong MedScore is essential for seamless credit access with distributors. Please click the link below for a detailed report on your updated score: medscore.in Thank you for your attention to this matter.Best regards,MedScore Team&route=1`,{mode: "no-cors"});
               } catch (error) {
                   console.error("Failed to send SMS to pharmacy:", error);
               }

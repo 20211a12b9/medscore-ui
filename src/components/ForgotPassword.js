@@ -13,14 +13,15 @@ const ForgotPassword = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-
+   
     try {
+      const dl_code2=dlCode.trim().toUpperCase();
       const response = await fetch(`${config.API_HOST}/api/user/resetpassword`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ dl_code: dlCode })
+        body: JSON.stringify({ dl_code: dl_code2 })
       });
 
       const data = await response.json();

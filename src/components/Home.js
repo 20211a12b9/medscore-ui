@@ -38,12 +38,12 @@ export const Home = () => {
   };
 
   const features = [
-    { icon: <BarChart className="w-6 h-6 text-[#91C4E1]" />, title: 'Comprehensive Dashboard' },
-    { icon: <Star className="w-6 h-6 text-[#91C4E1]" />, title: 'Custom Reports & Insights' },
-    { icon: <Bell className="w-6 h-6 text-[#91C4E1]" />, title: 'Real-Time Alerts' },
-    { icon: <Shield className="w-6 h-6 text-[#91C4E1]" />, title: 'Data Security' },
-    { icon: <Headphones className="w-6 h-6 text-[#91C4E1]" />, title: '24/7 Support' },
-    { icon: <Database className="w-6 h-6 text-[#91C4E1]" />, title: 'API Access' }
+    { icon: <BarChart className="w-6 h-6 text-[#121441]" />, title: 'Comprehensive Dashboard' },
+    { icon: <Star className="w-6 h-6 text-[#121441]" />, title: 'Custom Reports & Insights' },
+    { icon: <Bell className="w-6 h-6 text-[#121441]" />, title: 'Real-Time Alerts' },
+    { icon: <Shield className="w-6 h-6 text-[#121441]" />, title: 'Data Security' },
+    { icon: <Headphones className="w-6 h-6 text-[#121441]" />, title: '24/7 Support' },
+    { icon: <Database className="w-6 h-6 text-[#121441]" />, title: 'API Access' }
   ];
 
   const scrollToSection = (id) => {
@@ -80,15 +80,15 @@ export const Home = () => {
       </header>
 
       {/* Enhanced Hero Section with CSS-only background */}
-      <section className="relative overflow-hidden bg-[#74b4d5] py-32">
+      <section className="relative overflow-hidden bg-gradient-to-r from-[#8dc0df] via-[#6eaece] to-[#517296] text-[#121441] text-center py-16 rounded-2xl shadow-xl mb-10 transform hover:scale-[1.02] transition-transform duration-300">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent)]"></div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-5xl font-bold text-[#121441] mb-8 leading-tight">
+            <h1 className="text-5xl font-bold text-[#121441 mb-8 leading-tight">
               World's First Credit Score Platform
               <span className="block text-[#121441]">for Medical Shops</span>
             </h1>
-            <p className="text-xl text-[#282c56] mb-12 max-w-2xl mx-auto">
+            <p className="text-xl text-[#282c56] mb-12 max-w-2xl mx-auto italic font-bold">
               Revolutionizing credit risk management for the pharmaceutical industry.
               MedScore gives distributors reliable data to assess credit risks.
             </p>
@@ -107,11 +107,12 @@ export const Home = () => {
       {/* Enhanced About Section */}
       <section id="distributors" className="py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
-          <h2 className="text-4xl font-bold text-center text-gray-900 mb-8">
-            What is <span className="text-[#74b4d5]">MedScore</span>?
-          </h2>
-          <div className="bg-[#91C4E1] p-8 rounded-lg shadow-md ">
-            <p>
+        <h2 className="text-4xl font-bold text-center mb-8 bg-gradient-to-b from-[#8dc0df]  to-[#121441] bg-clip-text text-transparent">
+            What is MedScore?
+        </h2>
+
+          <div className="relative overflow-hidden bg-gradient-to-r from-[#8dc0df] via-[#6eaece] to-[#517296] text-[#121441] text-center py-8 rounded-2xl shadow-xl mb-10 transform hover:scale-[1.02] transition-transform duration-300">
+            <p className="italic font-bold">
               MedScore is the world's first credit score platform dedicated to the medical and
               pharmaceutical industry. We provide a transparent, data-driven solution for assessing
               creditworthiness, empowering both distributors and medical shops to build strong,
@@ -124,13 +125,13 @@ export const Home = () => {
                 title: 'For Distributors',
                 description:
                   'Evaluate the creditworthiness of medical shops to lower the risk of defaults.',
-                gradient: 'from-sky-300 to-indigo-900'
+                gradient: ' bg-gradient-to-r from-[#8dc0df] via-[#6eaece] to-[#517296] transform hover:scale-[1.02] transition-transform duration-300'
               },
               {
                 title: 'For Medical Shops',
                 description:
                   'Build a transparent credit profile to access better terms and strengthen relationships.',
-                gradient: 'from-sky-300 to-indigo-900'
+                gradient: ' bg-gradient-to-r from-[#8dc0df] via-[#6eaece] to-[#517296] transform hover:scale-[1.02] transition-transform duration-300'
               }
             ].map((card, index) => (
               <Card
@@ -138,8 +139,8 @@ export const Home = () => {
                 className={`group relative overflow-hidden rounded-2xl p-8 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br ${card.gradient}`}
               >
                 <div className="relative z-10">
-                  <h3 className="text-2xl font-semibold text-white mb-4">{card.title}</h3>
-                  <p className="text-blue-100">{card.description}</p>
+                  <h3 className="text-2xl font-bold text-[#121441] mb-4">{card.title}</h3>
+                  <p className="text-[#282c56] italic font-bold">{card.description}</p>
                 </div>
               </Card>
             ))}
@@ -150,8 +151,8 @@ export const Home = () => {
       {/* Enhanced Features Section */}
       <section id="features" className="py-24 bg-blue-50/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-center text-gray-900 mb-16">
-            Powerful <span className="text-[#74b4d5]">Features</span>
+          <h2 className="text-4xl font-bold text-center mb-8 bg-gradient-to-b from-[#8dc0df]  to-[#121441] bg-clip-text text-transparent">
+            Powerful Features
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {features.map((feature, index) => (
@@ -172,28 +173,28 @@ export const Home = () => {
       {/* Why Choose MedScore? */}
       <section id="why-choose" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-center text-gray-900 mb-16">
-            Why Choose <span className="text-[#74b4d5]">MedScore</span>?
+          <h2 className="text-4xl font-bold text-center mb-8 bg-gradient-to-b from-[#8dc0df]  to-[#121441] bg-clip-text text-transparent">
+            Why Choose MedScore?
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="flex flex-col items-center text-center">
-              <Shield className="w-12 h-12 text-[#91C4E1] mb-4" />
+            <div className="flex flex-col items-center text-center ">
+              <Shield className="w-12 h-12 text-[#121441] mb-4 shadow-2xl mb-10 transform hover:scale-[1.11] transition-transform duration-300" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Data Security</h3>
-              <p className="text-gray-600">
+              <p className="text-[#282c56] italic font-semibold">
                 Advanced security protocols to ensure the safety and privacy of your information.
               </p>
             </div>
             <div className="flex flex-col items-center text-center">
-              <Headphones className="w-12 h-12 text-[#91C4E1] mb-4" />
+              <Headphones className="w-12 h-12 text-[#121441] mb-4 shadow-2xl mb-10 transform hover:scale-[1.11] transition-transform duration-300" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">24/7 Support</h3>
-              <p className="text-gray-600">
+              <p className="text-[#282c56] italic font-semibold">
                 Dedicated support team available around the clock to assist you.
               </p>
             </div>
             <div className="flex flex-col items-center text-center">
-              <BarChart className="w-12 h-12 text-[#91C4E1] mb-4" />
+              <BarChart className="w-12 h-12 text-[#121441] mb-4 shadow-2xl mb-10 transform hover:scale-[1.11] transition-transform duration-300" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Reliable Insights</h3>
-              <p className="text-gray-600">
+              <p className="text-[#282c56] italic font-semibold">
                 Robust, data-backed credit scores tailored for the pharmaceutical industry.
               </p>
             </div>
@@ -202,9 +203,9 @@ export const Home = () => {
       </section>
       <section id="about" className="py-16 bg-gray-50">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center text-[#91C4E1] mb-2">About Us</h2>
+          <h2 className="text-4xl font-bold text-center mb-8 bg-gradient-to-b from-[#8dc0df]  to-[#121441] bg-clip-text text-transparent">About Us</h2>
           <div className="bg-white p-8 rounded-lg shadow-md">
-          <p>
+          <p className='text-[#282c56] italic font-bold'>
               Welcome to MedScore, the world's first centralized Credit Risk Assessment & Management
               platform tailored for the pharmaceutical industry. We're revolutionizing credit-based
               transactions by providing pharmaceutical distributors with a reliable, data-driven
@@ -228,8 +229,8 @@ export const Home = () => {
       {/* Enhanced Testimonials Section */}
       <section className="py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-center text-gray-900 mb-16">
-            What Our <span className="text-[#91C4E1]">Users Say</span>
+          <h2 className="text-4xl font-bold text-center mb-8 bg-gradient-to-b from-[#8dc0df]  to-[#121441] bg-clip-text text-transparent">
+            What Our Users Say
           </h2>
           <div className="grid md:grid-cols-2 gap-8 ">
             {[
@@ -256,7 +257,7 @@ export const Home = () => {
                 <p className="text-gray-600 mb-6 italic">"{testimonial.text}"</p>
                 <div>
                   <p className="font-semibold text-gray-900">{testimonial.author}</p>
-                  <p className="text-blue-600">{testimonial.role}</p>
+                  <p className="text-[#282c56] italic font-semibold">{testimonial.role}</p>
                 </div>
               </Card>
             ))}
@@ -279,7 +280,7 @@ export const Home = () => {
                 <Instagram className="w-7 h-7" />
               </a>
               <a
-                href="https://twitter.com/medscore"
+                href="https://x.com/Medscore_in"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-blue-500 transition-colors"
@@ -307,14 +308,14 @@ export const Home = () => {
           <div>
             <h3 className="text-xl font-bold mb-4 text-[#121441]">Contact Us</h3>
             <div id="contactUs" className="flex flex-col gap-2">
-              <a href="mailto:support@medscore.in" className="hover:text-blue-500 transition-colors">
+              <a href="mailto:support@medscore.in" className="hover:text-[#121441] transition-colors font-bold">
                 <Mail className="w-5 h-5 inline-block mr-2" /> support@medscore.in
               </a>
-              <a href="tel:04046025805" className="hover:text-blue-500 transition-colors">
+              <a href="tel:04046025805" className="hover:text-[#121441] transition-colors font-bold">
                 <Phone className="w-5 h-5 inline-block mr-2" /> 04046025805
               </a>
-              <div>
-                <MapPin className="w-5 h-5 inline-block mr-2" /> Dilshuknagar, Hyderabad-500059
+              <div className='hover:text-[#121441] transition-colors font-bold'>
+                <MapPin className="w-5 h-5 inline-block mr-2 " /> Dilshuknagar, Hyderabad-500059
               </div>
             </div>
           </div>
@@ -324,31 +325,31 @@ export const Home = () => {
             <div className="flex flex-col space-y-2">
               <button
                 onClick={() => scrollToSection('#')}
-                className="hover:text-blue-500 transition-colors "
+                className="hover:text-[#121441] transition-colors font-bold"
               >
                 Home
               </button>
               <button
                 onClick={() => scrollToSection('features')}
-                className="hover:text-blue-500 transition-colors "
+                className="hover:text-[#121441] transition-colors font-bold"
               >
                 Features
               </button>
               <button
                 onClick={() => scrollToSection('about')}
-                className="hover:text-blue-500 transition-colors "
+                className="hover:text-[#121441] transition-colors font-bold"
               >
                 About Us
               </button>
              
               <button
                 onClick={() => scrollToSection('distributors')}
-                className="hover:text-blue-500 transition-colors "
+                className="hover:text-[#121441] transition-colors font-bold"
               ></button>
              
               <button 
                 onClick={() => scrollToSection('distributors')}
-                className="hover:text-blue-500 transition-colors "
+                className="hover:text-[#121441] transition-colors font-bold"
               >
                 For Distributors
               </button>
@@ -357,27 +358,27 @@ export const Home = () => {
           <div className="flex flex-col space-y-2">
           <button 
                 onClick={() => navigate('/Blogs')}
-                className="hover:text-blue-500 transition-colors "
+                className="hover:text-[#121441] transition-colors font-bold"
               >
                 Blogs
 
               </button>
               <button 
       onClick={() => navigate('/PrivacyPolicy')}
-      className="hover:text-blue-500 transition-colors"
+      className="hover:text-[#121441] transition-colors font-bold"
     >
       Privacy Policy
     </button>
               <button 
                 onClick={() => scrollToSection('distributors')}
-                className="hover:text-blue-500 transition-colors "
+                className="hover:text-[#121441] transition-colors font-bold"
               >
                 For Medical Shops
               </button>
             
               <button 
                 onClick={() => navigate('/TermsConditions')}
-                className="hover:text-blue-500 transition-colors "
+                className="hover:text-[#121441] transition-colors font-bold"
               >
                 Terms & Conditions
 
@@ -389,7 +390,7 @@ export const Home = () => {
         </div>
        
  
-<div className="mt-8 pt-8 border-t border-gray-700 text-center">
+<div className="mt-8 pt-8 border-t border-gray-700 text-center font-bold">
   <p className="text-[#121441]">© 2024 MedScore. All rights reserved.</p>
 </div>
 

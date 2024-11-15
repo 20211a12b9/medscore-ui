@@ -23,8 +23,9 @@ export const AdminHomeScreen = () => {
   // Rest of your existing functions...
   const handleSearch = async (e) => {
     e.preventDefault();
-    await fetchInvoiceData(licenseNo);
-  };
+    const formattedLicenseNo = licenseNo.trim().toUpperCase();
+    await fetchInvoiceData(formattedLicenseNo);
+};
 
   const fetchInvoiceData = async (licenseNo) => {
     console.log("licenseNo", licenseNo);

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, Calendar, DollarSign, FileText, Clock } from 'lucide-react';
 import { config } from '../config';
-
+import { Eye, EyeOff } from 'lucide-react';
 export const Register = ({ onRegistrationSuccess }) => {
     const [formData, setFormData] = useState({
         pharmacy_name: '',
@@ -16,18 +16,41 @@ export const Register = ({ onRegistrationSuccess }) => {
         user_type: 'pharmacy',
         expiry_date:''
     });
-
+    const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate(); 
 
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
+        const { name, value } = e.target;
+        
+        // Special handling for pharmacy_name and dl_code
+        if (name === 'pharmacy_name') {
+            const words = value.trim().split(' ');
+            const capitalizedWords = words.map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            );
+            setFormData({
+                ...formData,
+                [name]: capitalizedWords.join(' '),
+            });
+        } 
+        else if (name === 'dl_code') {
+            setFormData({
+                ...formData,
+                [name]: value.trim().toUpperCase(),
+            });
+        } 
+        else {
+            setFormData({
+                ...formData,
+                [name]: value,
+            });
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
         const { pharmacy_name, email, phone_number, dl_code, gstno, address, password, confirmPassword, user_type,expiry_date } = formData;
 
         const requiredFields = user_type === 'distributor' 
@@ -35,11 +58,13 @@ export const Register = ({ onRegistrationSuccess }) => {
             : [pharmacy_name, email, phone_number, dl_code, address, password];
 
         if (requiredFields.some(field => !field)) {
+            setIsLoading(false);
             alert("All fields are mandatory!");
             return;
         }
 
         if (password !== confirmPassword) {
+            setIsLoading(false);
             alert("Passwords do not match!");
             return;
         }
@@ -58,6 +83,7 @@ export const Register = ({ onRegistrationSuccess }) => {
             });
 
             const data = await response.json();
+            setIsLoading(false);
             const fullPhoneNumber = `91${formData.phone_number.trim()}`;
             if (response.ok) {
                 await fetch(`https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=uewziuRKDUWctgdrHdXm5g&senderid=MEDSCR&channel=2&DCS=0&flashsms=0&number=${fullPhoneNumber}&text=Welcome to MedScore – Your Account is Ready! Dear ${formData.pharmacy_name}, Welcome to MedScore! Your account has been successfully created. User ID: ${formData.dl_code} Log in to start exploring our credit risk solutions designed specifically for the pharmaceutical industry. For security, please change your password upon first login. Thank you for joining MedScore. Best Regards, The MedScore Team&route=1`,{mode: "no-cors"});
@@ -71,6 +97,7 @@ export const Register = ({ onRegistrationSuccess }) => {
                 alert(`Registration failed: ${data.message}`);
             }
         } catch (error) {
+            setIsLoading(false);
             console.error('Error:', error);
             alert("An error occurred. Please try again.");
         }
@@ -185,31 +212,59 @@ export const Register = ({ onRegistrationSuccess }) => {
                 required
               />
             </div>
+            <div className="relative">
                         <input
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             name="password"
                             placeholder="Password"
                             value={formData.password}
                             onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
+                            className="w-full p-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
                             required
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                        >
+                            {!showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
+                    </div>
+
+                    <div className="relative">
                         <input
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             name="confirmPassword"
                             placeholder="Confirm Password"
                             value={formData.confirmPassword}
                             onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
+                            className="w-full p-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
                             required
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                        >
+                            {!showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
+                    </div>
+                        
                     </div>
 
                     <button
                         type="submit"
                         className="w-full bg-gradient-to-r from-[#1565C0] to-[#1976D2] text-white py-3 px-4 rounded-lg font-semibold shadow-lg hover:from-[#1976D2] hover:to-[#1565C0] focus:outline-none focus:ring-2 focus:ring-[#1565C0] focus:ring-offset-2 transform transition-all hover:scale-[1.02] mt-6"
                     >
-                        Register
+                        {isLoading ? (
+                <div className="flex items-center justify-center">
+                    <div className="w-5 h-5 border-t-2 border-b-2 border-white rounded-full animate-spin mr-2"></div>
+                    Registering...
+                </div>
+            ) : (
+                'Register'
+            )}
+                       
                     </button>
                 </form>
             </div>

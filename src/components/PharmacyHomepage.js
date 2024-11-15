@@ -207,12 +207,17 @@ export const PharmacyHomepage = ({ onLogout }) => {
 
       <div className="container mx-auto px-4 py-8">
         {/* Hero Section */}
-        <section className="bg-gradient-to-r from-blue-600 to-blue-400 text-white text-center py-16 rounded-2xl shadow-xl mb-10 transform hover:scale-[1.02] transition-transform duration-300">
-          <h1 className="text-5xl font-bold mb-6">World's First Credit Score Platform for Medical Shops</h1>
-          <p className="text-xl mb-8 max-w-3xl mx-auto">
+        <section className="bg-gradient-to-r from-[#8dc0df] via-[#6eaece] to-[#517296] text-[#121441] text-center py-16 rounded-2xl shadow-xl mb-10 transform hover:scale-[1.02] transition-transform duration-300">
+          <h1 className="text-5xl font-bold mb-6 text-[#121441]">World's First Credit Score Platform for Medical Shops</h1>
+          <p className="text-xl mb-8 max-w-3xl mx-auto italic font-bold">
             Revolutionizing credit risk management for the pharmaceutical industry. MedScore gives distributors reliable
             data to assess credit risks.
           </p>
+          {/* {noticeCount !== null && (
+            <p className="text-lg">
+              Total Notices: <span className="font-bold">{noticeCount}</span>
+            </p>
+          )} */}
         </section>
 
         {/* Navigation Buttons */}

@@ -32,7 +32,8 @@ const [dl_code,setDl_code]=useState('');
       setLoading(true);
       setError(null);
       const distId = localStorage.getItem('userId');
-      const response = await fetch(`${config.API_HOST}/api/user/getInvoiceRDforDist/${distId}?licenseNo=${license}`);
+      const license2=license.trim().toupperCase();
+      const response = await fetch(`${config.API_HOST}/api/user/getInvoiceRDforDist/${distId}?licenseNo=${license2}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

@@ -18,10 +18,31 @@ export const Addcustomer = () => {
     const navigate = useNavigate(); 
 
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
+        const { name, value } = e.target;
+        
+        // Special handling for pharmacy_name and dl_code
+        if (name === 'pharmacy_name') {
+            const words = value.trim().split(' ');
+            const capitalizedWords = words.map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            );
+            setFormData({
+                ...formData,
+                [name]: capitalizedWords.join(' '),
+            });
+        } 
+        else if (name === 'dl_code') {
+            setFormData({
+                ...formData,
+                [name]: value.trim().toUpperCase(),
+            });
+        } 
+        else {
+            setFormData({
+                ...formData,
+                [name]: value,
+            });
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -53,7 +74,7 @@ export const Addcustomer = () => {
             const fullPhoneNumber = `91${formData.phone_number.trim()}`;
             if (response.ok) {
                
-                 await fetch(`https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=uewziuRKDUWctgdrHdXm5g&senderid=MEDSCR&channel=2&DCS=0&flashsms=0&number=${fullPhoneNumber}&text=Hello  ${formData.pharmacy_name}, your information has been successfully added to MedScore by distributor ${dist_pharmacy_name} . To access your account, please go to medscore.in Select ‘Forgot Password’ and use your drug license number as the username to reset your password and log in. Best regards, MedScore&route=1`,{mode: "no-cors"});
+                 await fetch(`https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=uewziuRKDUWctgdrHdXm5g&senderid=MEDSCR&channel=2&DCS=0&flashsms=0&number=${fullPhoneNumber}&text=Hello  ${formData.pharmacy_name}, your information has been successfully added to MedScore by distributor ${''} . To access your account, please go to medscore.in Select ‘Forgot Password’ and use your drug license number as the username to reset your password and log in. Best regards, MedScore&route=1`,{mode: "no-cors"});
 
                 alert("Customer details added successfully!");
                 navigate('/DistributorHomePage');

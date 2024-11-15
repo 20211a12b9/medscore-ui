@@ -7,6 +7,7 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsConditions from './components/TermsConditions';
 import DistributorProfile from './components/DistributorProfile';
 import PharmaProfile from './components/PharmaProfile';
+import FileUpload from './components/FileUpload';
 
 // Lazy load all components
 const Home = lazy(() => import('./components/Home'));
@@ -84,6 +85,7 @@ const DistributorRoutes = () => {
         <Route path="/DistributorProfile" element={<DistributorProfile />} />
         <Route path="/ForgotPassword" element={<ForgotPassword />} />
         <Route path="/ConfirmReset" element={<ConfirmReset />} />
+        <Route path="/FileUpload" element={<FileUpload />} />
         <Route path="/" element={<Navigate to="DistributorHomePage" replace />} />
         <Route path="*" element={<Navigate to="DistributorHomePage" replace />} />
       </Routes>

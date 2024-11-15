@@ -50,7 +50,8 @@ export const ReportDefault = () => {
     setError(null);
 
     try {
-      const response = await fetch(`${config.API_HOST}/api/user/getPharmaData?licenseNo=${licenseNo}`);
+      const license2=licenseNo.trim().toUpperCase();
+      const response = await fetch(`${config.API_HOST}/api/user/getPharmaData?licenseNo=${license2}`);
       const result = await response.json();
 
       if (!response.ok) {

@@ -22,8 +22,9 @@ const navigate=useNavigate()
     setError(null);
 
     try {
+      const license2=licenseNo.trim().toUpperCase();
       const response = await fetch(
-        `${config.API_HOST}/api/user/getPharmaData?licenseNo=${licenseNo}`,
+        `${config.API_HOST}/api/user/getPharmaData?licenseNo=${license2}`,
         {
           method: 'GET',
           headers: {

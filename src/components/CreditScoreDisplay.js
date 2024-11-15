@@ -40,30 +40,70 @@ const CreditScoreDisplay = () => {
 
   const calculateScore = (invoices) => {
     if (!invoices?.length) return 1000;
-    
+  
     const sortedInvoices = [...invoices].sort((a, b) => 
       new Date(b.invoiceDate) - new Date(a.invoiceDate)
     );
-    
-    const weightedScore = sortedInvoices.reduce((acc, invoice, index) => {
+  
+    // Base score starts at 1000
+    let baseScore = 1000;
+  
+    // 1. Payment History Component (50% of score deduction)
+    const paymentHistoryDeductions = sortedInvoices.reduce((acc, invoice, index) => {
       const delayDays = invoice.delayDays;
-      const recency = Math.exp(-index * 0.1);
-      
-      const deduction = 
-        delayDays <= 0 ? 0 :
-        delayDays <= 7 ? 0 :
-        delayDays <= 14 ? 5 :
-        delayDays <= 30 ? 10 :
-        delayDays <= 60 ? 30 : 50;
-      
-      return acc + (deduction * recency);
+      const recency = Math.exp(-index * 0.1); // More recent invoices have higher weight
+  
+      // Progressive deduction based on delay severity
+      let deduction = 0;
+      if (delayDays <= 0) {
+        deduction = 0; // On-time payment, no deduction
+      } else if (delayDays <= 7) {
+        deduction = 5 * recency; // Minor delay
+      } else if (delayDays <= 15) {
+        deduction = 15 * recency; // Moderate delay
+      } else if (delayDays <= 30) {
+        deduction = 30 * recency; // Significant delay
+      } else if (delayDays <= 60) {
+        deduction = 50 * recency; // Severe delay
+      } else {
+        deduction = 500 * recency; // Critical delay
+      }
+  
+      return acc + deduction;
     }, 0);
+  
+    // 2. Payment Consistency Component (25% of score deduction)
+    const delayVariance = sortedInvoices.reduce((acc, invoice) => {
+      return acc + Math.pow(invoice.delayDays, 2);
+    }, 0) / sortedInvoices.length;
     
-    const averageWeightedDeduction = weightedScore / sortedInvoices.length;
-    const finalPoints = Math.max(0, Math.min(100, 100 - averageWeightedDeduction));
-    
-    const normalizedScore = 1 / (1 + Math.exp(-0.1 * (finalPoints - 50)));
-    return Math.round(100 + (normalizedScore * 900));
+    const consistencyDeduction = Math.min(125, Math.sqrt(delayVariance) * 2);
+  
+    // 3. Recent Payment Behavior (15% of score deduction)
+    const recentInvoices = sortedInvoices.slice(0, Math.min(3, sortedInvoices.length));
+    const recentBehaviorDeduction = recentInvoices.reduce((acc, invoice) => {
+      return acc + (invoice.delayDays > 0 ? 25 : 0);
+    }, 0);
+  
+    // 4. Payment Trend Component (10% of score deduction)
+    let trendDeduction = 0;
+    if (sortedInvoices.length >= 3) {
+      const recent = sortedInvoices.slice(0, 3).reduce((acc, inv) => acc + inv.delayDays, 0) / 3;
+      const older = sortedInvoices.slice(-3).reduce((acc, inv) => acc + inv.delayDays, 0) / 3;
+      if (recent > older) {
+        trendDeduction = Math.min(50, (recent - older) * 2); // Worsening trend
+      }
+    }
+  
+    // Calculate final score
+    const totalDeduction = Math.min(900, 
+      paymentHistoryDeductions * 0.5 + // 50% weight
+      consistencyDeduction * 0.25 + // 25% weight
+      recentBehaviorDeduction * 0.15 + // 15% weight
+      trendDeduction * 0.1 // 10% weight
+    );
+  
+    return Math.round(baseScore - totalDeduction);
   };
 
   const fetchInvoiceData = async () => {
@@ -189,7 +229,7 @@ const CreditScoreDisplay = () => {
   }
 
   const { pieData, lineData } = processDataForCharts();
-  const { status, color } = getCreditScoreStatus(score);
+  const { category, color,riskLevel } = getCreditScoreStatus(score);
   return (
     <div className="w-full max-w-6xl mx-auto p-6 space-y-6">
       <h1 className="text-2xl font-bold mb-6 text-gray-900">Invoice Analytics Dashboard</h1>
@@ -200,8 +240,13 @@ const CreditScoreDisplay = () => {
           <h2 className="text-lg font-semibold mb-4 text-gray-900">Credit Score</h2>
           <div className="relative">
             <svg viewBox="0 0 200 140" className="w-full">
-            <text x="104" y="120" textAnchor="middle" className="text-xs font-mono">
-               <tspan fill={color}>{status}</tspan>
+             <text x="104" y="117" textAnchor="middle" className="text-xs font-mono">
+               <tspan fill={'blue'}>{category}</tspan>
+              
+               </text>
+               <text x="104" y="130" textAnchor="middle" className="text-xs font-mono">
+              
+               <tspan fill={color}>{riskLevel}</tspan>
                </text>
               <defs>
                 <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">

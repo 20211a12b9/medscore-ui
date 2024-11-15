@@ -1,5 +1,5 @@
 import React, { useState,useEffect } from 'react';
-import { LogOut, Search,X ,Menu, User} from 'lucide-react';
+import { LogOut, Search,X ,Menu, User,IndianRupee} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { 
   BarChart, Bar, PieChart, Pie, XAxis, YAxis, 
@@ -17,6 +17,7 @@ export const DistributorHomePage = ({ onLogout }) => {
   const [score, setScore] = useState(0);
   const [pharmacyData,setPharmacyData]=useState(0);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [oustandingTotal,setOutStandingTotal]=useState(0);
 
   const toggleProfileMenu = () => {
     setIsProfileMenuOpen(!isProfileMenuOpen);
@@ -35,11 +36,12 @@ export const DistributorHomePage = ({ onLogout }) => {
     }
     setLoading(true);
     setError(null);
+    const license2=license.trim().toUpperCase();
     try {
       // Fetch invoice data
       const distId = localStorage.getItem('userId');
       const invoiceResponse = await fetch(
-        `${config.API_HOST}/api/user/getInvoiceRDforDist/${distId}?licenseNo=${license}`,
+        `${config.API_HOST}/api/user/getInvoiceRDforDist/${distId}?licenseNo=${license2}`,
         {
           method: 'GET',
           headers: {
@@ -68,7 +70,7 @@ export const DistributorHomePage = ({ onLogout }) => {
       }
       setInvoiceData(invoiceResult.data);
       const response = await fetch(
-        `${config.API_HOST}/api/user/getPharmaData?licenseNo=${license}`,
+        `${config.API_HOST}/api/user/getPharmaData?licenseNo=${license2}`,
         {
           method: 'GET',
           headers: {
@@ -87,7 +89,30 @@ export const DistributorHomePage = ({ onLogout }) => {
       setPharmacyData(result.data);
       const calculatedScore = calculateScore(invoiceResult.data);
         setScore(calculatedScore);
-     
+        const dresponse = await fetch(
+          `${config.API_HOST}/api/user/getUploadedData?licenseNo=${license2}`,
+          {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        const dresult = await dresponse.json();
+        console.log(Number(dresult[0].Total).toLocaleString('en-IN', { 
+          maximumFractionDigits: 2,
+          minimumFractionDigits: 2,
+          style: 'currency',
+          currency: 'INR'
+      }), "result");
+        setOutStandingTotal(Number(dresult[0].Total).toLocaleString('en-IN', { 
+          maximumFractionDigits: 2,
+          minimumFractionDigits: 2,
+          style: 'currency',
+          currency: 'INR'
+      }), "result")
     } catch (err) {
       setError(err.message || 'Error fetching data');
     } finally {
@@ -119,12 +144,12 @@ export const DistributorHomePage = ({ onLogout }) => {
   };
 
   const navigationButtons = [
-    { label: 'Link Customer', path: '/PharmacySearch', color: 'from-teal-500 to-teal-600' },
-    { label: 'Send Notice', path: '/SendNotice', color: 'from-indigo-500 to-indigo-600' },
-    { label: 'Report Default', path: '/ReportDefault', color: 'from-purple-500 to-purple-600' },
-    { label: 'Update Payment Details', path: '/UpdateDefaultReport', color: 'from-pink-500 to-pink-600' },
-    { label: 'Add Customer', path: '/Addcustomer', color: 'from-pink-500 to-orange-600' },
-   
+    { label: 'Link Customer', path: '/PharmacySearch', color: 'bg-gradient-to-r from-[#517296] via-[#6eaece] to-[#8dc0df]'},
+    { label: 'Send Notice', path: '/SendNotice', color: 'from-orange-900 to-orange-500' },
+    { label: 'Report Default', path: '/ReportDefault', color: 'from-red-900 to-red-500' },
+    { label: 'Update Payment Details', path: '/UpdateDefaultReport', color: 'from-green-900 to-green-500' },
+    { label: 'Add Customer', path: '/Addcustomer', color: 'bg-gradient-to-r from-[#517296] via-[#6eaece] to-[#8dc0df]' },
+    { label: 'Upload Your Outstanding File', path: '/FileUpload', color: 'from-yellow-900 to-yellow-600' },
   ];
  
 
@@ -134,61 +159,107 @@ export const DistributorHomePage = ({ onLogout }) => {
   const getCreditScoreStatus = (score) => {
     if (score >= 900) {
       return {
-        status: 'Excellent',
-        color: '#22c55e'
+        category: 'Excellent',
+        description: 'Extremely reliable payer with excellent payment history',
+        color: '#22c55e',
+        riskLevel: 'Very Low Risk'
       };
     } else if (score >= 800) {
       return {
-        status: 'Good',
-        color: '#eab308'
+        category: 'Good',
+        description: 'Very reliable payer with strong payment history',
+        color: '#3b82f6',
+        riskLevel: 'Low Risk'
       };
     } else if (score >= 700) {
       return {
-        status: 'Fair',
-        color: '#f97316'
+        category: 'Fair',
+        description: 'Generally reliable payer with occasional delays',
+        color: '#eab308',
+        riskLevel: 'Medium Risk'
       };
-     
-    } 
-    else if (score>=600)
-      {
-        return {
-          status: 'Need Improvement',
-          color: '#ef4444'
-        };
-      }else {
+    } else if (score >= 600) {
       return {
-        status: 'Poor',
-        color: '#ef4444'
+        category: 'Need Improvement',
+        description: 'Somewhat reliable payer with frequent delays',
+        color: '#f97316',
+        riskLevel: 'High Risk'
+      };
+    } else {
+      return {
+        category: 'Poor',
+        description: 'Unreliable payer with significant payment issues',
+        color: '#ef4444',
+        riskLevel: 'Very High Risk'
       };
     }
   };
-
   const calculateScore = (invoices) => {
     if (!invoices?.length) return 1000;
-    
+  
     const sortedInvoices = [...invoices].sort((a, b) => 
       new Date(b.invoiceDate) - new Date(a.invoiceDate)
     );
-    
-    const weightedScore = sortedInvoices.reduce((acc, invoice, index) => {
+  
+    // Base score starts at 1000
+    let baseScore = 1000;
+  
+    // 1. Payment History Component (50% of score deduction)
+    const paymentHistoryDeductions = sortedInvoices.reduce((acc, invoice, index) => {
       const delayDays = invoice.delayDays;
-      const recency = Math.exp(-index * 0.1);
-      
-      const deduction = 
-        delayDays <= 0 ? 0 :
-        delayDays <= 7 ? 0 :
-        delayDays <= 14 ? 5 :
-        delayDays <= 30 ? 10 :
-        delayDays <= 60 ? 30 : 50;
-      
-      return acc + (deduction * recency);
+      const recency = Math.exp(-index * 0.1); // More recent invoices have higher weight
+  
+      // Progressive deduction based on delay severity
+      let deduction = 0;
+      if (delayDays <= 0) {
+        deduction = 0; // On-time payment, no deduction
+      } else if (delayDays <= 7) {
+        deduction = 5 * recency; // Minor delay
+      } else if (delayDays <= 15) {
+        deduction = 15 * recency; // Moderate delay
+      } else if (delayDays <= 30) {
+        deduction = 30 * recency; // Significant delay
+      } else if (delayDays <= 60) {
+        deduction = 50 * recency; // Severe delay
+      } else {
+        deduction = 500 * recency; // Critical delay
+      }
+  
+      return acc + deduction;
     }, 0);
+  
+    // 2. Payment Consistency Component (25% of score deduction)
+    const delayVariance = sortedInvoices.reduce((acc, invoice) => {
+      return acc + Math.pow(invoice.delayDays, 2);
+    }, 0) / sortedInvoices.length;
     
-    const averageWeightedDeduction = weightedScore / sortedInvoices.length;
-    const finalPoints = Math.max(0, Math.min(100, 100 - averageWeightedDeduction));
-    
-    const normalizedScore = 1 / (1 + Math.exp(-0.1 * (finalPoints - 50)));
-    return Math.round(100 + (normalizedScore * 900));
+    const consistencyDeduction = Math.min(125, Math.sqrt(delayVariance) * 2);
+  
+    // 3. Recent Payment Behavior (15% of score deduction)
+    const recentInvoices = sortedInvoices.slice(0, Math.min(3, sortedInvoices.length));
+    const recentBehaviorDeduction = recentInvoices.reduce((acc, invoice) => {
+      return acc + (invoice.delayDays > 0 ? 25 : 0);
+    }, 0);
+  
+    // 4. Payment Trend Component (10% of score deduction)
+    let trendDeduction = 0;
+    if (sortedInvoices.length >= 3) {
+      const recent = sortedInvoices.slice(0, 3).reduce((acc, inv) => acc + inv.delayDays, 0) / 3;
+      const older = sortedInvoices.slice(-3).reduce((acc, inv) => acc + inv.delayDays, 0) / 3;
+      if (recent > older) {
+        trendDeduction = Math.min(50, (recent - older) * 2); // Worsening trend
+      }
+    }
+  
+    // Calculate final score
+    const totalDeduction = Math.min(900, 
+      paymentHistoryDeductions * 0.5 + // 50% weight
+      consistencyDeduction * 0.25 + // 25% weight
+      recentBehaviorDeduction * 0.15 + // 15% weight
+      trendDeduction * 0.1 // 10% weight
+    );
+  
+    return Math.round(baseScore - totalDeduction);
   };
 
   const fetchInvoiceData = async () => {
@@ -312,7 +383,7 @@ export const DistributorHomePage = ({ onLogout }) => {
   }
 
   const { pieData, lineData } = processDataForCharts();
-  const { status, color } = getCreditScoreStatus(score);
+  const { category, color,riskLevel } = getCreditScoreStatus(score);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -394,9 +465,9 @@ export const DistributorHomePage = ({ onLogout }) => {
             {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
           </div>
         {/* Hero Section */}
-        <section className="bg-gradient-to-r from-blue-600 to-blue-400 text-white text-center py-16 rounded-2xl shadow-xl mb-10 transform hover:scale-[1.02] transition-transform duration-300">
-          <h1 className="text-5xl font-bold mb-6">World's First Credit Score Platform for Medical Shops</h1>
-          <p className="text-xl mb-8 max-w-3xl mx-auto">
+        <section className="bg-gradient-to-r from-[#8dc0df] via-[#6eaece] to-[#517296] text-[#121441] text-center py-16 rounded-2xl shadow-xl mb-10 transform hover:scale-[1.02] transition-transform duration-300">
+          <h1 className="text-5xl font-bold mb-6 text-[#121441]">World's First Credit Score Platform for Medical Shops</h1>
+          <p className="text-xl mb-8 max-w-3xl mx-auto italic font-bold">
             Revolutionizing credit risk management for the pharmaceutical industry. MedScore gives distributors reliable
             data to assess credit risks.
           </p>
@@ -413,7 +484,7 @@ export const DistributorHomePage = ({ onLogout }) => {
             <button
               key={index}
               onClick={() => onNavigate(btn.path)}
-              className={`bg-gradient-to-r ${btn.color} text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-sm md:text-base`}
+              className={`bg-gradient-to-r ${btn.color} text-white font-bold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-sm md:text-base`}
             >
               {btn.label}
             </button>
@@ -463,16 +534,26 @@ export const DistributorHomePage = ({ onLogout }) => {
                 Click to get Detailed Report
 
               </button>
+             <div>
+             
+             <h1 className="text-4xl font-bold text-center mb-8 bg-gradient-to-b from-[#8dc0df] to-[#121441] bg-clip-text text-transparent">
+  Total Market Outstanding: {oustandingTotal}
+</h1>
+              </div>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
            {/* Credit Score Gauge */}
           
            <div className="bg-white rounded-lg shadow-md p-6">
-             <h2 className="text-lg font-semibold mb-4 text-gray-900">Credit Score</h2>
+             <h2 className="text-lg font-semibold mb-4 text-gray-900">MedScore</h2>
              <div className="relative">
                <svg viewBox="0 0 200 140" className="w-full">
+               <text x="104" y="117" textAnchor="middle" className="text-xs font-mono">
+               <tspan fill={'blue'}>{category}</tspan>
               
-               <text x="104" y="120" textAnchor="middle" className="text-xs font-mono">
-               <tspan fill={color}>{status}</tspan>
+               </text>
+               <text x="104" y="130" textAnchor="middle" className="text-xs font-mono">
+              
+               <tspan fill={color}>{riskLevel}</tspan>
                </text>
                  <defs>
                    <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
