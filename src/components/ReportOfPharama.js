@@ -32,7 +32,7 @@ const [dl_code,setDl_code]=useState('');
       setLoading(true);
       setError(null);
       const distId = localStorage.getItem('userId');
-      const license2=license.trim().toupperCase();
+      const license2=license.trim().toUpperCase();
       const response = await fetch(`${config.API_HOST}/api/user/getInvoiceRDforDist/${distId}?licenseNo=${license2}`);
       
       if (!response.ok) {
@@ -127,27 +127,31 @@ const [dl_code,setDl_code]=useState('');
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">
                     SerialNo 
                   </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                  {/* <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
                     Invoice 
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
                     License Number
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                  </th> */}
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">
                     Invoice Date
                   </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">
                     Due Date
                   </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">
                     Delay Days
                   </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">
                     Invoice Amount
                   </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                    Reason/Remark
+                  </th>
+                 
                  
                 </tr>
               </thead>
@@ -157,12 +161,12 @@ const [dl_code,setDl_code]=useState('');
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {invoice.serialNo}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
+                    {/* <td className="px-4 py-3 text-sm text-gray-900">
                       {invoice.invoice}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {invoice.pharmadrugliseanceno}
-                    </td>
+                    </td> */}
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {formatDate(invoice.invoiceData)}
                     </td>
@@ -175,7 +179,9 @@ const [dl_code,setDl_code]=useState('');
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {invoice.invoiceAmount}
                     </td>
-                   
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {invoice.reason}
+                    </td>
                   </tr>
                 ))}
               </tbody>

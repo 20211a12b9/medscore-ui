@@ -12,7 +12,7 @@ export const Addcustomer = () => {
         address: '',
         password:'123',
         user_type: 'pharmacy',
-        expiry_date:''
+        expiry_date:'',
     });
 
     const navigate = useNavigate(); 
@@ -22,19 +22,15 @@ export const Addcustomer = () => {
         
         // Special handling for pharmacy_name and dl_code
         if (name === 'pharmacy_name') {
-            const words = value.trim().split(' ');
-            const capitalizedWords = words.map(word => 
-                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-            );
             setFormData({
                 ...formData,
-                [name]: capitalizedWords.join(' '),
+                [name]: value.toUpperCase(),
             });
         } 
         else if (name === 'dl_code') {
             setFormData({
                 ...formData,
-                [name]: value.trim().toUpperCase(),
+                [name]: value.toUpperCase(),
             });
         } 
         else {
@@ -49,7 +45,7 @@ export const Addcustomer = () => {
         e.preventDefault();
         const { pharmacy_name, email, phone_number, dl_code, address, user_type,expiry_date } = formData;
 
-       if(!pharmacy_name || !email || !phone_number || !dl_code || !address )
+       if(!pharmacy_name  || !phone_number || !dl_code || !address )
        {
         alert("All fields are mandatory!");
             return;
@@ -90,7 +86,7 @@ export const Addcustomer = () => {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-[#E3F2FD] to-[#BBDEFB] p-4">
-            <div className="w-full max-w-md bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 transform transition-all hover:scale-[1.01]">
+            <div className="w-full max-w-md bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-12 transform transition-all hover:scale-[1.01]">
                 <div className="flex flex-col items-center mb-6">
                     <img 
                         src="/medscorelogo.jpeg" 
@@ -113,6 +109,7 @@ export const Addcustomer = () => {
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
                             required
                         />
+                         <small className="absolute text-xs text-gray-500 mt-1">* Will be automatically capitalized</small>
                         <input
                             type="email"
                             name="email"
@@ -120,7 +117,7 @@ export const Addcustomer = () => {
                             value={formData.email}
                             onChange={handleChange}
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
-                            required
+                           
                         />
                         <input
                             type="text"
@@ -140,6 +137,7 @@ export const Addcustomer = () => {
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
                             required
                         />
+                         <small className="absolute text-xs text-gray-500 mt-1">* Will be automatically capitalized</small>
                         {formData.user_type === 'distributor' && (
                             <input
                                 type="text"

@@ -161,7 +161,7 @@ export const PharmacyHomepage = ({ onLogout }) => {
         <div className="container mx-auto px-3 py-3 flex justify-between items-center">
              {/* Menu Button */}
              <button
-            onClick={toggleProfileMenu}
+            onClick={handleProfileClick}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 ml-2"
           >
             <Menu size={30} className="text-gray-600" />

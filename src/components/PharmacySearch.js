@@ -108,14 +108,14 @@ const navigate=useNavigate()
   <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
     <div className="flex items-center justify-between">
       <span>{error}</span>
-      {error.includes('/Addcustomer') && (
+     
         <button
           onClick={() => navigate('/Addcustomer')}
           className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
         >
           Add Customer
         </button>
-      )}
+  
     </div>
   </div>
 )}

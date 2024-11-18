@@ -296,7 +296,7 @@ export const Home = () => {
                 <Facebook className="w-7 h-7" />
               </a>
               <a
-                href="https://www.facebook.com/medscore"
+                href="https://www.linkedin.com/company/medscore-in/?viewAsMember=true"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-blue-500 transition-colors"

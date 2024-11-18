@@ -14,7 +14,13 @@ export const Register = ({ onRegistrationSuccess }) => {
         password: '',
         confirmPassword: '',
         user_type: 'pharmacy',
-        expiry_date:''
+        expiry_date:'',
+        distributor_types: {
+            pharma_ethical: false,
+            generic_general: false,
+            surgicals: false,
+            pcd: false
+        }
     });
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -25,19 +31,15 @@ export const Register = ({ onRegistrationSuccess }) => {
         
         // Special handling for pharmacy_name and dl_code
         if (name === 'pharmacy_name') {
-            const words = value.trim().split(' ');
-            const capitalizedWords = words.map(word => 
-                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-            );
             setFormData({
                 ...formData,
-                [name]: capitalizedWords.join(' '),
+                [name]: value.toUpperCase(),
             });
         } 
         else if (name === 'dl_code') {
             setFormData({
                 ...formData,
-                [name]: value.trim().toUpperCase(),
+                [name]: value.toUpperCase(),
             });
         } 
         else {
@@ -47,15 +49,23 @@ export const Register = ({ onRegistrationSuccess }) => {
             });
         }
     };
-
+    const handleDistributorTypeChange = (type) => {
+        setFormData({
+            ...formData,
+            distributor_types: {
+                ...formData.distributor_types,
+                [type]: !formData.distributor_types[type]
+            }
+        });
+    };
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        const { pharmacy_name, email, phone_number, dl_code, gstno, address, password, confirmPassword, user_type,expiry_date } = formData;
+        const { pharmacy_name, email, phone_number, dl_code, gstno, address, password, confirmPassword, user_type,expiry_date,distributor_types } = formData;
 
         const requiredFields = user_type === 'distributor' 
-            ? [pharmacy_name, email, phone_number, dl_code, gstno, address, password]
-            : [pharmacy_name, email, phone_number, dl_code, address, password];
+            ? [pharmacy_name, phone_number, dl_code, gstno, address, password]
+            : [pharmacy_name, phone_number, dl_code, address, password];
 
         if (requiredFields.some(field => !field)) {
             setIsLoading(false);
@@ -68,7 +78,11 @@ export const Register = ({ onRegistrationSuccess }) => {
             alert("Passwords do not match!");
             return;
         }
-
+        if (user_type === 'distributor' && !Object.values(distributor_types).some(value => value)) {
+            setIsLoading(false);
+            alert("Please select at least one distributor type!");
+            return;
+        }
         try {
             const endpoint = user_type === 'pharmacy' 
                 ? `${config.API_HOST}/api/user/Pharmacyregister`
@@ -105,7 +119,7 @@ export const Register = ({ onRegistrationSuccess }) => {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-[#E3F2FD] to-[#BBDEFB] p-4">
-            <div className="w-full max-w-md bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 transform transition-all hover:scale-[1.01]">
+            <div className="w-full max-w-md bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-14 transform transition-all hover:scale-[1.01]">
                 <div className="flex flex-col items-center mb-6">
                     <img 
                         src="/medscore.png" 
@@ -142,15 +156,63 @@ export const Register = ({ onRegistrationSuccess }) => {
                     </div>
                     
                     <div className="space-y-4">
-                        <input
-                            type="text"
-                            name="pharmacy_name"
-                            placeholder={formData.user_type === 'pharmacy' ? "Pharmacy Name" : "Distributor Name"}
-                            value={formData.pharmacy_name}
-                            onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
-                            required
-                        />
+                    <div className="relative">
+            <input
+                type="text"
+                name="pharmacy_name"
+                placeholder={formData.user_type === 'pharmacy' ? "Pharmacy Name" : "Distributor Name"}
+                value={formData.pharmacy_name}
+                onChange={handleChange}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
+                required
+            />
+            <small className="absolute text-xs text-gray-500 mt-1">* Will be automatically capitalized</small>
+        </div>
+        {formData.user_type === 'distributor' && (
+                            <div className="space-y-3 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Distributor Type 
+                                </label>
+                                <div className="space-y-2">
+                                    <label className="flex items-center space-x-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.distributor_types.pharma_ethical}
+                                            onChange={() => handleDistributorTypeChange('pharma_ethical')}
+                                            className="rounded text-[#1565C0] focus:ring-[#1565C0]"
+                                        />
+                                        <span className="text-sm text-gray-700">Pharma - Ethical</span>
+                                    </label>
+                                    <label className="flex items-center space-x-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.distributor_types.generic_general}
+                                            onChange={() => handleDistributorTypeChange('generic_general')}
+                                            className="rounded text-[#1565C0] focus:ring-[#1565C0]"
+                                        />
+                                        <span className="text-sm text-gray-700">Generic, General</span>
+                                    </label>
+                                    <label className="flex items-center space-x-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.distributor_types.surgicals}
+                                            onChange={() => handleDistributorTypeChange('surgicals')}
+                                            className="rounded text-[#1565C0] focus:ring-[#1565C0]"
+                                        />
+                                        <span className="text-sm text-gray-700">Surgicals</span>
+                                    </label>
+                                    <label className="flex items-center space-x-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.distributor_types.pcd}
+                                            onChange={() => handleDistributorTypeChange('pcd')}
+                                            className="rounded text-[#1565C0] focus:ring-[#1565C0]"
+                                        />
+                                        <span className="text-sm text-gray-700">PCD</span>
+                                    </label>
+                                </div>
+                            </div>
+                        )}
                         <input
                             type="email"
                             name="email"
@@ -158,7 +220,7 @@ export const Register = ({ onRegistrationSuccess }) => {
                             value={formData.email}
                             onChange={handleChange}
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
-                            required
+                           
                         />
                         <input
                             type="text"
@@ -178,6 +240,7 @@ export const Register = ({ onRegistrationSuccess }) => {
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
                             required
                         />
+                         <small className="absolute text-xs text-gray-500 mt-1">* Will be automatically capitalized</small>
                         {formData.user_type === 'distributor' && (
                             <input
                                 type="text"

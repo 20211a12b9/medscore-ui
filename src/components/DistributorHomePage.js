@@ -58,17 +58,98 @@ export const DistributorHomePage = ({ onLogout }) => {
         throw new Error('Server error. Please try again later.');
       }
       const invoiceResult = await invoiceResponse.json();
+     
       console.log("invoiceResult",invoiceResult)
       if (!invoiceResponse.ok) {
+        // Set score to 1000 when no data
+        const response = await fetch(
+        `${config.API_HOST}/api/user/getPharmaData?licenseNo=${license2}`,
+        {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      const result = await response.json();
+
+      if (!response.ok) {
+        const dresponse = await fetch(
+          `${config.API_HOST}/api/user/getUploadedData?licenseNo=${license2}`,
+          {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        const dresult = await dresponse.json();
+      
        
+        setOutStandingTotal(Number(dresult[0].Total).toLocaleString('en-IN', { 
+          maximumFractionDigits: 2,
+          minimumFractionDigits: 2,
+          style: 'currency',
+          currency: 'INR'
+      }), "result")
+        throw new Error(result.message || 'Failed to fetch pharmacy data');
+      }
+      console.log("---amam00",result.data[0])
+      const dresponse = await fetch(
+        `${config.API_HOST}/api/user/getUploadedData?licenseNo=${license2}`,
+        {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      const dresult = await dresponse.json();
+    
+     
+      setOutStandingTotal(Number(dresult[0].Total).toLocaleString('en-IN', { 
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 2,
+        style: 'currency',
+        currency: 'INR'
+    }), "result")
+      setPharmacyData(result.data);
+        setScore(1000);
+        setInvoiceData([]);
         return;
       }
 
       if (!invoiceResult.data || invoiceResult.data.length === 0) {
-       
+        // Set score to 1000 when no data
+        const response = await fetch(
+          `${config.API_HOST}/api/user/getPharmaData?licenseNo=${license2}`,
+          {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        const result = await response.json();
+  
+        if (!response.ok) {
+          throw new Error(result.message || 'Failed to fetch pharmacy data');
+        }
+        console.log("---amam00",result.data[0])
+        setPharmacyData(result.data);
+          setScore(1000);
+          setInvoiceData([]);
+        
         return;
       }
-      setInvoiceData(invoiceResult.data);
       const response = await fetch(
         `${config.API_HOST}/api/user/getPharmaData?licenseNo=${license2}`,
         {
@@ -83,10 +164,18 @@ export const DistributorHomePage = ({ onLogout }) => {
       const result = await response.json();
 
       if (!response.ok) {
+        
         throw new Error(result.message || 'Failed to fetch pharmacy data');
       }
       console.log("---amam00",result.data[0])
       setPharmacyData(result.data);
+        
+        
+      setInvoiceData(invoiceResult.data);
+      const calculatedScore2 = calculateScore(invoiceResult.data);
+      setScore(calculatedScore2);
+      setInvoiceData(invoiceResult.data);
+      
       const calculatedScore = calculateScore(invoiceResult.data);
         setScore(calculatedScore);
         const dresponse = await fetch(
@@ -101,12 +190,8 @@ export const DistributorHomePage = ({ onLogout }) => {
         );
         
         const dresult = await dresponse.json();
-        console.log(Number(dresult[0].Total).toLocaleString('en-IN', { 
-          maximumFractionDigits: 2,
-          minimumFractionDigits: 2,
-          style: 'currency',
-          currency: 'INR'
-      }), "result");
+      
+       
         setOutStandingTotal(Number(dresult[0].Total).toLocaleString('en-IN', { 
           maximumFractionDigits: 2,
           minimumFractionDigits: 2,
@@ -262,47 +347,7 @@ export const DistributorHomePage = ({ onLogout }) => {
     return Math.round(baseScore - totalDeduction);
   };
 
-  const fetchInvoiceData = async () => {
-    try {
-      const license = localStorage.getItem("dl_code");
-      if (!license) {
-        throw new Error("License code not found");
-      }
-
-      const response = await fetch(
-        `${config.API_HOST}/api/user/getInvoiceRD?licenseNo=${encodeURIComponent(license)}`,
-        {
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      
-      if (response.status === 404) {
-        setScore(1000);
-        setInvoiceData([]);
-        return;
-      }
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const result = await response.json();
-      if (!result?.success) {
-        throw new Error(result?.message || 'Failed to fetch invoice data');
-      }
-
-      setInvoiceData(result.data || []);
-      setScore(calculateScore(result.data));
-      
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  
 
  
 
@@ -320,11 +365,19 @@ export const DistributorHomePage = ({ onLogout }) => {
 
   const processDataForCharts = () => {
     if (!invoiceData?.length) {
+      // Return maximum values when no invoice data
       return {
-        pieData: [{ name: 'On Time', value: 1 }],
-        lineData: MONTHS.map(month => ({ month, score: 1000 }))
+        pieData: [
+          { name: 'On Time', value: 100 }  // Show 100% on-time payments
+        ],
+        lineData: MONTHS.map(month => ({ 
+          month, 
+          score: 1000,  // Maximum score for each month
+          invoiceCount: 0 
+        }))
       };
     }
+    
 
     // Process delay distribution for pie chart
     const delayDistribution = invoiceData.reduce((acc, inv) => {
@@ -333,10 +386,10 @@ export const DistributorHomePage = ({ onLogout }) => {
       return acc;
     }, {});
 
+    
     const pieData = Object.entries(delayDistribution)
       .map(([name, value]) => ({ name, value }));
 
-    // Process monthly scores with cumulative calculation
     const sortedInvoices = [...invoiceData].sort((a, b) => 
       new Date(a.invoiceDate) - new Date(b.invoiceDate)
     );
@@ -353,7 +406,7 @@ export const DistributorHomePage = ({ onLogout }) => {
       cumulativeInvoices = currentYearInvoices;
       const monthScore = currentYearInvoices.length > 0 
         ? calculateScore(currentYearInvoices)
-        : 1000; // Default score for months with no data
+        : 1000;
 
       return {
         month,
@@ -391,7 +444,7 @@ export const DistributorHomePage = ({ onLogout }) => {
         <div className="container mx-auto px-3 py-3 flex justify-between items-center">
              {/* Menu Button */}
              <button
-            onClick={toggleProfileMenu}
+            onClick={handleProfileClick}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 ml-2"
           >
             <Menu size={30} className="text-gray-600" />
@@ -498,12 +551,12 @@ export const DistributorHomePage = ({ onLogout }) => {
         )}
 
         {/* Invoice Data Table */}
-        {invoiceData.length > 0 && (
+        {score >0 && (
          <div className="w-full max-w-6xl mx-auto p-6 space-y-6">
          <h1 className="text-2xl font-bold mb-6 text-gray-900">Credit Analytics Dashboard</h1>
          
          <div class="bg-[#91C4E1] rounded-lg shadow-md px-6 py-8">
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
     <div class="flex items-center">
       <h1 class="text-lg font-bold text-[#121441]">Pharmacy Name:</h1>
       <span class="text-lg font-semibold text-red-500 ml-2">
@@ -520,6 +573,12 @@ export const DistributorHomePage = ({ onLogout }) => {
       <h1 class="text-lg font-bold text-[#121441]">Contact Details:</h1>
       <span class="text-lg font-semibold text-red-500 ml-2">
         {pharmacyData[0].phone_number}
+      </span>
+    </div>
+    <div class="flex items-center">
+      <h1 class="text-lg font-bold text-[#121441]">Expiry Date:</h1>
+      <span class="text-lg font-semibold text-red-500 ml-2">
+        {pharmacyData[0].expiry_date}
       </span>
     </div>
   </div>
