@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2, AlertCircle, Search, User, X, LogOut } from 'lucide-react';
 import { config } from '../config';
+import { useNavigate } from 'react-router-dom';
 
 export const AdminHomeScreen = () => {
   const [licenseNo, setLicenseNo] = useState('');
@@ -13,13 +14,14 @@ export const AdminHomeScreen = () => {
   const [distLoading, setDistLoading] = useState(false);
   const [distError, setDistError] = useState(null);
 
-  const handleLogout = () => {
+  const navigate=useNavigate();
+    const handleLogout = () => {
     // Add your logout logic here
     // For example: clear localStorage, redirect to login page, etc.
     localStorage.clear();
     window.location.href = '/login';
   };
-
+  
   // Rest of your existing functions...
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -137,14 +139,22 @@ export const AdminHomeScreen = () => {
   <div className="flex-grow text-center">
     <h1 className="text-2xl font-bold text-blue-900 color-blue">Admin Dashboard</h1>
   </div>
-  
+ <div className='flex flex-row space-x-7 ml-10' >
+ <button
+    onClick={()=>navigate('/CreateBlog')}
+    className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+  >
+    <LogOut className="w-4 h-4 mr-2" />
+    Create Blog
+  </button>
   <button
     onClick={handleLogout}
-    className="flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+    className="flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-green-600 transition-colors"
   >
     <LogOut className="w-4 h-4 mr-2" />
     Logout
   </button>
+ </div>
 </div>
 
 

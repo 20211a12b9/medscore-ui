@@ -1,5 +1,5 @@
 import React, { useState,useEffect } from 'react';
-import { AlertCircle, Calendar, DollarSign, FileText, Clock, IndianRupee } from 'lucide-react';
+import { AlertCircle, Calendar, FileText, Clock, IndianRupee } from 'lucide-react';
 import { useLocation,useNavigate } from 'react-router-dom';
 import { config } from '../config';
 
@@ -21,6 +21,92 @@ const navigate=useNavigate();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const checkScheduledActions = async () => {
+    try {
+        const scheduleInfoListStr = localStorage.getItem('scheduleInfoList');
+        if (!scheduleInfoListStr) {
+            console.log('No scheduled actions found');
+            return;
+        }
+
+        const scheduleInfoList = JSON.parse(scheduleInfoListStr);
+        const currentTime = new Date().getTime();
+        const updatedScheduleList = [];
+        
+        // Process each schedule info
+        for (const scheduleInfo of scheduleInfoList) {
+            // Skip if already processed
+            if (scheduleInfo.processed) {
+                continue;
+            }
+
+            // Check if 24 hours have passed for this submission
+            if (currentTime - scheduleInfo.timestamp >= 24 * 60 * 60 * 1000) {
+                try {
+                    const disputeResponse = await fetch(
+                        `${config.API_HOST}/api/user/checkifdisputedtrue/${scheduleInfo.pharmacyId}?pharmadrugliseanceno=${scheduleInfo.drugLicenseNo}&invoice=${scheduleInfo.invoice}`
+                    );
+                    const disputeData = await disputeResponse.json();
+
+                    if (!disputeData.disputed) {
+                        const getalldistData = await fetch(`${config.API_HOST}/api/user/getdistdatabyphid/${scheduleInfo.pharmacyId}`);
+                        const responseData = await getalldistData.json();
+                        const distributors = responseData.data;
+
+                        await Promise.all(distributors.map(async (distributor) => {
+                            if (!distributor.phone_number) {
+                                console.warn(`No phone number found for distributor: ${distributor.id}`);
+                                return;
+                            }
+
+                            const distFullPhoneNumber = `91${distributor.phone_number.trim()}`;
+                            try {
+                                await fetch(
+                                    `https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=uewziuRKDUWctgdrHdXm5g&senderid=MEDSCR&channel=2&DCS=0&flashsms=0&number=${distFullPhoneNumber}&text=MedScore Update for ${scheduleInfo.pharmacyName} Dear Partner, Please be advised that ${scheduleInfo.pharmacyName}'s MedScore has been reduced due to a ${scheduleInfo.delayDays}-day delay in payment. This adjustment reflects their recent credit performance. Click the link for detailed report medscore.in. Thank you for your attention. Best regards, MedScore Team&route=1`,
+                                    { mode: "no-cors" }
+                                );
+                                console.log(`SMS sent successfully to distributor: ${distributor.id} for invoice: ${scheduleInfo.invoice}`);
+                            } catch (error) {
+                                console.error(`Failed to send SMS to distributor: ${distributor.id} for invoice: ${scheduleInfo.invoice}`, error);
+                            }
+                        }));
+                    } else {
+                        console.log(`Dispute raised for invoice: ${scheduleInfo.invoice} - no messages sent to distributors`);
+                    }
+                    
+                    // Mark this schedule as processed
+                    scheduleInfo.processed = true;
+                } catch (error) {
+                    console.error(`Error processing schedule for invoice: ${scheduleInfo.invoice}`, error);
+                }
+            }
+            
+            // Keep unprocessed schedules in the list
+            if (!scheduleInfo.processed) {
+                updatedScheduleList.push(scheduleInfo);
+            }
+        }
+
+        // Update localStorage with remaining unprocessed schedules
+        if (updatedScheduleList.length > 0) {
+            localStorage.setItem('scheduleInfoList', JSON.stringify(updatedScheduleList));
+        } else {
+            localStorage.removeItem('scheduleInfoList');
+        }
+
+    } catch (error) {
+        console.error('Error checking scheduled actions:', error);
+    }
+};
+
+useEffect(() => {
+    // Start checking for all schedules periodically
+    const intervalId = setInterval(checkScheduledActions, 60 * 60 * 1000); // Check every hour
+    checkScheduledActions(); // Initial check
+
+    return () => clearInterval(intervalId);
+}, []);
 
   useEffect(() => {
     if (formData.dueDate) {
@@ -58,7 +144,7 @@ console.log("pharmaDrugLicense",pharmaDrugLicense)
     setError('');
     setSuccess('');
     setLoading(true);
-
+    
     // Replace with your actual API endpoint and customer ID
     const customerId = localStorage.getItem('userId');
     const fullPhoneNumber = `91${phone_number.trim()}`;
@@ -79,28 +165,51 @@ console.log("pharmaDrugLicense",pharmaDrugLicense)
 
         try {
           if (response.ok) {
-              // Get all distributor data
-              const getalldistData = await fetch(`${config.API_HOST}/api/user/getdistdatabyphid/${pharmaId}`);
-              const responseData = await getalldistData.json(); // Added 'await' here
-              const distributors = responseData.data; 
-              console.log("getAllDistData", distributors);
+           
+            const newScheduleInfo = {
+              id: Date.now(), // Unique identifier for each submission
+              timestamp: new Date().getTime(),
+              pharmacyId: pharmaId,
+              pharmacyName: pharmacy_name,
+              phoneNumber: fullPhoneNumber,
+              drugLicenseNo: formData.pharmadrugliseanceno,
+              invoice: formData.invoice,
+              delayDays: formData.delayDays,
+              processed: false
+          };
+
+          // Get existing schedule list or create new one
+          const existingListStr = localStorage.getItem('scheduleInfoList');
+          const scheduleList = existingListStr ? JSON.parse(existingListStr) : [];
+          
+          // Add new schedule to list
+          scheduleList.push(newScheduleInfo);
+          
+          // Save updated list
+          localStorage.setItem('scheduleInfoList', JSON.stringify(scheduleList));
+
+
+              // const getalldistData = await fetch(`${config.API_HOST}/api/user/getdistdatabyphid/${pharmaId}`);
+              // const responseData = await getalldistData.json(); // Added 'await' here
+              // const distributors = responseData.data; 
+              // console.log("getAllDistData", distributors);
       
-              // Send SMS to all distributors
-              await Promise.all(distributors.map(async (distributor) => {
-                  if (!distributor.phone_number) {
-                      console.warn(`No phone number found for distributor: ${distributor.id}`);
-                      return;
-                  }
+              // // Send SMS to all distributors
+              // await Promise.all(distributors.map(async (distributor) => {
+              //     if (!distributor.phone_number) {
+              //         console.warn(`No phone number found for distributor: ${distributor.id}`);
+              //         return;
+              //     }
       
-                  const distFullPhoneNumber = `91${distributor.phone_number.trim()}`;
-                  console.log("distributor.phone_number", distFullPhoneNumber);
+              //     const distFullPhoneNumber = `91${distributor.phone_number.trim()}`;
+              //     console.log("distributor.phone_number", distFullPhoneNumber);
                   
-                  try {
-                      await fetch(`https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=uewziuRKDUWctgdrHdXm5g&senderid=MEDSCR&channel=2&DCS=0&flashsms=0&number=${distFullPhoneNumber}&text=MedScore Update for ${pharmacy_name} Dear Partner, Please be advised that ${pharmacy_name}'s MedScore has been reduced due to a ${formData.delayDays}-day delay in payment. This adjustment reflects their recent credit performance. Click the link for detailed report medscore.in. Thank you for your attention. Best regards, MedScore Team&route=1`,{mode: "no-cors"});
-                  } catch (error) {
-                      console.error("Failed to send SMS to distributor:", distributor.id, error);
-                  }
-              }));
+              //     try {
+              //         await fetch(`https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=uewziuRKDUWctgdrHdXm5g&senderid=MEDSCR&channel=2&DCS=0&flashsms=0&number=${distFullPhoneNumber}&text=MedScore Update for ${pharmacy_name} Dear Partner, Please be advised that ${pharmacy_name}'s MedScore has been reduced due to a ${formData.delayDays}-day delay in payment. This adjustment reflects their recent credit performance. Click the link for detailed report medscore.in. Thank you for your attention. Best regards, MedScore Team&route=1`,{mode: "no-cors"});
+              //     } catch (error) {
+              //         console.error("Failed to send SMS to distributor:", distributor.id, error);
+              //     }
+              // }));
       
               // Send SMS to pharmacy
               try {

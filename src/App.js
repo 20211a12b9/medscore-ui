@@ -8,6 +8,10 @@ import TermsConditions from './components/TermsConditions';
 import DistributorProfile from './components/DistributorProfile';
 import PharmaProfile from './components/PharmaProfile';
 import FileUpload from './components/FileUpload';
+import { initializeAnalytics ,trackPageView} from './utils/analytics';
+import CreateBlog from './components/CreateBlog';
+import BlogList from './components/BlogList';
+import BlogDetail from './components/BlogDetail';
 
 // Lazy load all components
 const Home = lazy(() => import('./components/Home'));
@@ -49,6 +53,8 @@ const AuthNavigator = () => {
         <Route path="/TermsConditions" element={<TermsConditions />} />
         <Route path="/ConfirmReset" element={<ConfirmReset />} />
         <Route path="/LearnMore" element={<LearnMore />} />
+        <Route path="/BlogList" element={<BlogList />} />
+        <Route path="/blog/:blogId" element={<BlogDetail />} />
         <Route path="/" element={<Home />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
@@ -61,6 +67,7 @@ const AdminRoutes = () => {
     <Suspense fallback={<LoadingFallback />}>
       <Routes>
         <Route path="AdminHomeScreen" element={<AdminHomeScreen />} />
+        <Route path="/CreateBlog" element={<CreateBlog />} />
         <Route path="/" element={<Navigate to="/AdminHomeScreen" replace />} />
         <Route path="*" element={<Navigate to="/AdminHomeScreen" replace />} />
       </Routes>
@@ -116,6 +123,10 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState("");
 
+  useEffect(() => {
+    // Initialize Analytics
+    initializeAnalytics();
+  }, []);
   useEffect(() => {
     const checkTokenAndRole = () => {
       const token = localStorage.getItem("jwttoken");

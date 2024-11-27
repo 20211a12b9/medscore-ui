@@ -85,8 +85,8 @@ export const Home = () => {
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-5xl font-bold text-[#121441 mb-8 leading-tight">
-              World's First Credit Score Platform
-              <span className="block text-[#121441]">for Medical Shops</span>
+              World's First Credit Risk Platform
+              <span className="block text-[#121441]">for Pharma & Healthcare Distribution</span>
             </h1>
             <p className="text-xl text-[#282c56] mb-12 max-w-2xl mx-auto italic font-bold">
               Revolutionizing credit risk management for the pharmaceutical industry.
@@ -311,11 +311,12 @@ export const Home = () => {
               <a href="mailto:support@medscore.in" className="hover:text-[#121441] transition-colors font-bold">
                 <Mail className="w-5 h-5 inline-block mr-2" /> support@medscore.in
               </a>
-              <a href="tel:04046025805" className="hover:text-[#121441] transition-colors font-bold">
-                <Phone className="w-5 h-5 inline-block mr-2" /> 04046025805
+              <a href="tel:9347070310" className="hover:text-[#121441] transition-colors font-bold">
+                <Phone className="w-5 h-5 inline-block mr-2" /> 9347070310
               </a>
               <div className='hover:text-[#121441] transition-colors font-bold'>
-                <MapPin className="w-5 h-5 inline-block mr-2 " /> Dilshuknagar, Hyderabad-500059
+                <MapPin className="w-7 h-7 inline-block mr-2 " /> Incubated by AIC Aleap We Hub ( supported by AIM,NITI AAYOG,GOI ) 
+                Head Office : Hyderabad - Telangana, India .
               </div>
             </div>
           </div>
@@ -357,7 +358,7 @@ export const Home = () => {
           </div>
           <div className="flex flex-col space-y-2">
           <button 
-                onClick={() => navigate('/Blogs')}
+                onClick={() => navigate('/BlogList')}
                 className="hover:text-[#121441] transition-colors font-bold"
               >
                 Blogs
