@@ -2,6 +2,7 @@ import React, { useState ,useEffect} from 'react';
 import { AlertCircle, Calendar, DollarSign, FileText, Clock, IndianRupee } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { config } from '../config';
+import { Navbar } from './Navbar';
 
 const InvoiceForm = () => {
   const location = useLocation();
@@ -92,9 +93,13 @@ console.log("phone_number ",phone_number)
 
 
   return (
+    
     <div className="min-h-screen bg-gray-50 p-8">
+      <div className="fixed top-0 left-0 w-full z-50">
+        <Navbar/>
+      </div>
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-6 mt-16">
           <h2 className="text-2xl font-bold text-center mb-6">Create Invoice</h2>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Invoice Number */}

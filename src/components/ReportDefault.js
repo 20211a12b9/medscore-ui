@@ -1,7 +1,8 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState,useEffect, useCallback ,useMemo} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { config } from '../config';
 import { CalendarDays, DollarSign, Clock, AlertCircle, IndianRupee } from 'lucide-react';
+import { Navbar } from './Navbar';
 
 export const ReportDefault = () => {
   const [licenseNo, setLicenseNo] = useState('');
@@ -39,33 +40,83 @@ export const ReportDefault = () => {
       day: 'numeric'
     });
   };
- 
-  const handleSearch = async () => {
-    if (!licenseNo.trim()) {
-      setError('Please enter a license number');
+  const debounce = useMemo(() => {
+    return (func, delay) => {
+      let timeoutId;
+      return (...args) => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          
+        }
+        timeoutId = setTimeout(() => {
+          func(...args);
+        }, delay);
+      };
+    };
+  }, []);
+
+  const fetchPharmacyData = useCallback(async (searchTerm) => {
+    if (!searchTerm.trim()) {
+      setPharmacyData([]);
+      setError(null);
       return;
     }
 
+    setPharmacyData('');
+    setPharmaDrugLicId('');
     setLoading(true);
     setError(null);
 
     try {
-      const license2=licenseNo.trim().toUpperCase();
-      const response = await fetch(`${config.API_HOST}/api/user/getPharmaData?licenseNo=${license2}`);
+      const license2 = searchTerm.trim().toUpperCase();
+      const response = await fetch(
+        `${config.API_HOST}/api/user/getPharmaData?licenseNo=${license2}`,
+        {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+          }
+        }
+      );
+      
       const result = await response.json();
 
       if (!response.ok) {
         throw new Error(result.message || 'Failed to fetch pharmacy data');
       }
-      console.log("---amam00",result.data)
-      setPharmaDrugLicId(result.data[0].dl_code)
-      setPharmacyData(result.data);
+
+      if (result.data && result.data.length > 0) {
+        setPharmaDrugLicId(result.data[0].dl_code);
+        setPharmacyData(result.data);
+      } else {
+        setPharmacyData([]);
+        setError('No pharmacy found');
+      }
     } catch (err) {
       setError(err.message || 'Error fetching pharmacy data');
+      setPharmacyData([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Create a debounced version of fetchPharmacyData
+  const debouncedFetchPharmacyData = useCallback(
+    debounce(fetchPharmacyData, 500), // 500ms delay
+    [fetchPharmacyData]
+  );
+
+  // Use effect to trigger search when license number changes
+  useEffect(() => {
+    if (licenseNo.trim()) {
+      debouncedFetchPharmacyData(licenseNo);
+    }
+    else{
+      setPharmacyData([]);
+      setError(null);
+    }
+  }, [licenseNo, debouncedFetchPharmacyData]);
 
 
   const handleLink =async (licenseNumber,phone_number,pharmacy_name,_id) => {
@@ -94,7 +145,10 @@ export const ReportDefault = () => {
 
   return (
     <div className="bg-white [background-image:none] min-h-screen p-6  mx-auto">
-      <div className="flex flex-col gap-6">
+      <div className="fixed top-0 left-0 w-full z-50">
+  <Navbar />
+</div>
+      <div className="flex flex-col gap-6 mt-14">
         {/* Search Section */}
         <h2 className="text-2xl font-bold text-gray-900">Search and Report Default</h2>
         <div className="bg-white p-6 rounded-lg ">
@@ -106,13 +160,13 @@ export const ReportDefault = () => {
               onChange={(e) => setLicenseNo(e.target.value)}
               className="flex-1 border rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <button 
+            {/* <button 
               onClick={handleSearch}
               disabled={loading}
               className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Searching...' : 'Search'}
-            </button>
+            </button> */}
           </div>
         </div>
 

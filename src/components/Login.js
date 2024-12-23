@@ -95,74 +95,29 @@ export const Login = () => {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1rem',
-        background: 'linear-gradient(to right, #ebf8ff, #f0f4ff)',
-      }}
-    >
-      {/* Rest of your JSX remains the same */}
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '400px',
-          backgroundColor: 'white',
-          borderRadius: '1.5rem',
-          boxShadow: '0 10px 15px rgba(0, 0, 0, 0.1)',
-          padding: '2rem',
-          transform: 'scale(1)',
-          transition: 'transform 0.2s',
-        }}
-      >
-        <div style={{ marginBottom: '2.5rem', textAlign: 'center' }}>
-          {/* <h1
-            style={{
-              fontSize: '2rem',
-              fontWeight: '800',
-              background: 'linear-gradient(to right, #2563eb, #3b82f6)',
-              WebkitBackgroundClip: 'text',
-              color: 'transparent',
-              marginBottom: '1rem',
-            }}
-          >
-            Medscore
-          </h1> */}
-           <div className="flex flex-col items-center mb-6">
-                    <img 
-                        src="/medscore.png" 
-                        alt="Medscore Logo" 
-                        className="w-[180px] h-auto object-contain mx-auto mb-4 drop-shadow-md transform transition-all duration-300 hover:scale-105"
-                    />
-                    <p className="text-[#1565C0] text-sm font-medium mt-2">Credit Simplified, Amplified</p>
-                </div>
-          <h2 style={{ fontSize: '1.25rem', color: '#4b5563', fontWeight: '500' }}>
-            Login to your account
-          </h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 px-4 py-6">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 transform transition-all duration-300 hover:scale-[1.02]">
+        <div className="mb-8 text-center">
+          <div className="flex flex-col items-center mb-6">
+            <img 
+              src="/medscore.png" 
+              alt="Medscore Logo" 
+              className="w-48 h-auto object-contain mx-auto mb-4 drop-shadow-md transform transition-all duration-300 hover:scale-105"
+            />
+            <p className="text-[#1565C0] text-sm font-medium">Credit Simplified, Amplified</p>
+          </div>
+          <h2 className="text-xl text-gray-600 font-medium">Login to your account</h2>
         </div>
 
         {error && (
-          <div
-            style={{
-              padding: '0.75rem',
-              marginBottom: '1rem',
-              backgroundColor: '#fee2e2',
-              color: '#dc2626',
-              borderRadius: '0.5rem',
-              fontSize: '0.875rem',
-              textAlign: 'center',
-            }}
-          >
+          <div className="bg-red-100 text-red-600 text-sm p-3 rounded-lg text-center mb-4">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ gap: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#4b5563' }} htmlFor="dl_code">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label htmlFor="dl_code" className="block text-sm font-semibold text-gray-700 mb-2">
               Drug License Code
             </label>
             <input
@@ -173,127 +128,72 @@ export const Login = () => {
               value={formData.dl_code}
               onChange={handleChange}
               required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.5rem',
-                fontSize: '1rem',
-                color: '#4b5563',
-                transition: 'all 0.2s',
-              }}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
             />
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#4b5563' }} htmlFor="password">
+          <div>
+            <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
               Password
             </label>
             <div className="relative">
-                        <input
-                            type={showPassword ? "text" : "password"}
-                            name="password"
-                            placeholder="Password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            className="w-full p-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
-                            required
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                        >
-                            {!showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                        </button>
-                    </div>
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            style={{
-              width: '100%',
-              backgroundColor: loading ? '#93c5fd' : '#2563eb',
-              backgroundImage: loading ? 'none' : 'linear-gradient(to right, #2563eb, #3b82f6)',
-              color: 'white',
-              padding: '0.75rem',
-              borderRadius: '0.5rem',
-              fontWeight: '600',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              transition: 'transform 0.2s',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
+            className={`w-full py-3 rounded-lg text-white font-semibold transition-all duration-300 ${
+              loading 
+                ? 'bg-blue-300 cursor-not-allowed' 
+                : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-md hover:shadow-lg'
+            }`}
           >
             {loading ? 'Logging in...' : 'Login'}
           </button>
 
-          <div style={{ position: 'relative', margin: '1.5rem 0' }}>
-            <div
-              style={{
-                position: 'absolute',
-                inset: '0',
-                display: 'flex',
-                alignItems: 'center',
-              }}
-            >
-              <div style={{ width: '100%', borderTop: '1px solid #e5e7eb' }}></div>
-            </div>
-            <div
-              style={{
-                position: 'relative',
-                display: 'flex',
-                justifyContent: 'center',
-                fontSize: '0.875rem',
-                color: '#6b7280',
-                backgroundColor: 'white',
-                padding: '0 1rem',
-              }}
-            >
-              Don't have an account?
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '1rem' }}>
+          <div className="flex items-center justify-between mt-4">
             <button
-              onClick={() => navigate('/register')}
               type="button"
-              style={{
-                flex: 1,
-                backgroundColor: 'white',
-                color: '#2563eb',
-                padding: '0.75rem',
-                borderRadius: '0.5rem',
-                fontWeight: '600',
-                border: '1px solid #bfdbfe',
-                cursor: 'pointer',
-                transition: 'background-color 0.2s',
-                fontSize: '0.875rem',
-              }}
+              onClick={() => navigate('/register')}
+              className="text-blue-600 hover:underline text-sm"
             >
-              Register 
+              Create an Account
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/ForgotPassword')}
+              className="text-blue-600 hover:underline text-sm"
+            >
+              Forgot Password?
             </button>
           </div>
-          <div style={{ textAlign: 'right', marginTop: '-1rem', marginBottom: '1rem' }}>
-  <button
-    onClick={() => navigate('/ForgotPassword')}
-    type="button"
-    required
-    style={{
-      background: 'none',
-      border: 'none',
-      color: '#2563eb',
-      fontSize: '0.875rem',
-      cursor: 'pointer',
-      textDecoration: 'underline',
-    }}
-  >
-    Forgot Password?
-  </button>
-</div>
+
+          <div className="text-center mt-4">
+            <button
+              onClick={() => navigate('/')}
+              type="button"
+              className="text-white bg-slate-500 hover:bg-slate-600 px-4 py-2 rounded-lg transition-colors"
+            >
+              Back to Home
+            </button>
+          </div>
         </form>
       </div>
     </div>

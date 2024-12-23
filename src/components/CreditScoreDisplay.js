@@ -5,6 +5,7 @@ import {
 } from 'recharts';
 import { AlertCircle } from 'lucide-react';
 import { config } from '../config';
+import { PharmaNavbar } from './PharmaNavbar';
 
 const CreditScoreDisplay = () => {
   const [invoiceData, setInvoiceData] = useState([]);
@@ -118,7 +119,7 @@ const CreditScoreDisplay = () => {
         {
           headers: {
             'Accept': 'application/json',
-            'Content-Type': 'application/json'
+            // 'Content-Type': 'application/json'
           }
         }
       );
@@ -232,6 +233,9 @@ const CreditScoreDisplay = () => {
   const { category, color,riskLevel } = getCreditScoreStatus(score);
   return (
     <div className="w-full max-w-6xl mx-auto p-6 space-y-6">
+      <div className="fixed top-0 left-0 w-full z-50">
+        <PharmaNavbar/>
+      </div>
       <h1 className="text-2xl font-bold mb-6 text-gray-900">Invoice Analytics Dashboard</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

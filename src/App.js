@@ -12,6 +12,10 @@ import { initializeAnalytics ,trackPageView} from './utils/analytics';
 import CreateBlog from './components/CreateBlog';
 import BlogList from './components/BlogList';
 import BlogDetail from './components/BlogDetail';
+import { Navbar } from './components/Navbar';
+import { PharmaNavbar } from './components/PharmaNavbar';
+import { HomeNavbar } from './components/HomeNavbar';
+import UploadDistCentalData from './components/UploadDistCentalData';
 
 // Lazy load all components
 const Home = lazy(() => import('./components/Home'));
@@ -55,6 +59,7 @@ const AuthNavigator = () => {
         <Route path="/LearnMore" element={<LearnMore />} />
         <Route path="/BlogList" element={<BlogList />} />
         <Route path="/blog/:blogId" element={<BlogDetail />} />
+        <Route path="/HomeNavbar" element={<HomeNavbar />} />
         <Route path="/" element={<Home />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
@@ -68,6 +73,7 @@ const AdminRoutes = () => {
       <Routes>
         <Route path="AdminHomeScreen" element={<AdminHomeScreen />} />
         <Route path="/CreateBlog" element={<CreateBlog />} />
+        <Route path="/UploadDistCentalData" element={<UploadDistCentalData />} />
         <Route path="/" element={<Navigate to="/AdminHomeScreen" replace />} />
         <Route path="*" element={<Navigate to="/AdminHomeScreen" replace />} />
       </Routes>
@@ -93,6 +99,7 @@ const DistributorRoutes = () => {
         <Route path="/ForgotPassword" element={<ForgotPassword />} />
         <Route path="/ConfirmReset" element={<ConfirmReset />} />
         <Route path="/FileUpload" element={<FileUpload />} />
+        <Route path="/Navbar" element={<Navbar/>} />
         <Route path="/" element={<Navigate to="DistributorHomePage" replace />} />
         <Route path="*" element={<Navigate to="DistributorHomePage" replace />} />
       </Routes>
@@ -112,6 +119,7 @@ const PharmacyRoutes = () => {
         <Route path="/ForgotPassword" element={<ForgotPassword />} />
         <Route path="/ConfirmReset" element={<ConfirmReset />} />
         <Route path="/PharmaProfile" element={<PharmaProfile />} />
+        <Route path="/PharmaNavbar" element={<PharmaNavbar />} />
         <Route path="/" element={<Navigate to="PharmacyHomepage" replace />} />
         <Route path="*" element={<Navigate to="PharmacyHomepage" replace />} />
       </Routes>

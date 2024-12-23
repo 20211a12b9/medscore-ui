@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2, AlertCircle, Search, X,User } from 'lucide-react';
 import { config } from '../config';
+import { PharmaNavbar } from './PharmaNavbar';
 
 const PharmaReport = () => {
   const [licenseNo, setLicenseNo] = useState('');
@@ -121,7 +122,8 @@ const PharmaReport = () => {
         {
           method: 'PUT',
           headers: {
-            'Content-Type': 'application/json' // Add this header
+            'Accept': 'application/json',
+            // 'Content-Type': 'application/json' // Add this header
           },
           body: JSON.stringify({ // Convert to JSON string and fix the object structure
             reasonforDispute: finalReason
@@ -172,6 +174,9 @@ const PharmaReport = () => {
 
   return (
     <div className="max-w-7xl mx-auto mt-8 bg-white rounded-xl shadow-lg">
+      <div className="fixed top-0 left-0 w-full z-50">
+        <PharmaNavbar/>
+      </div>
       <div className="border-b border-gray-100 p-8">
         <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Your Detailed Report</h2>
       </div>

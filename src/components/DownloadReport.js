@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2, AlertCircle, Download } from 'lucide-react';
 import { config } from '../config';
+import { PharmaNavbar } from './PharmaNavbar';
 
 const DownloadReport = () => {
   const [licenseNo, setLicenseNo] = useState('');
@@ -101,8 +102,11 @@ const DownloadReport = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto mt-4 bg-white rounded-lg shadow">
-      <div className="border-b p-6">
+    <div className="max-w-5xl mx-auto mt-20 bg-white rounded-lg shadow">
+      <div className="fixed top-0 left-0 w-full z-50">
+        <PharmaNavbar/>
+      </div>
+      <div className="border-b p-6 ">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold text-gray-900">Your Detailed Report</h2>
           <button

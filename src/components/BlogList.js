@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { config } from '../config';
 import { useNavigate } from 'react-router-dom';
 import { Clock, User, Image as ImageIcon } from 'lucide-react';
+import { HomeNavbar } from './HomeNavbar';
 
 const BlogList = () => {
     const [blogs, setBlogs] = useState([]);
@@ -60,7 +61,10 @@ const BlogList = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50 py-16 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-7xl mx-auto">
+            <div className="fixed top-0 left-0 w-full z-50">
+        <HomeNavbar/>
+      </div>
+            <div className="max-w-7xl mx-auto mt-10">
                 <div className="text-center mb-12">
                     <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-3">
                         Explore Our Blogs

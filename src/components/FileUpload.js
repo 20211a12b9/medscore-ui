@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Upload, File, CheckCircle, AlertCircle } from 'lucide-react';
 import { config } from '../config';
+import { Navbar } from './Navbar';
 
 const FileUpload = () => {
   const [file, setFile] = useState(null);
@@ -46,10 +47,13 @@ const FileUpload = () => {
 
   return (
     <div className="w-full max-w-md mx-auto bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="p-4 border-b border-gray-200">
+      <div className="fixed top-0 left-0 w-full z-50">
+        <Navbar/>
+      </div>
+      <div className="p-4 border-b border-gray-200 mt-16">
         <h2 className="text-lg font-semibold flex items-center gap-2">
           <Upload className="w-5 h-5" />
-          Outstanding File Upload
+          Upload Outstanding File
         </h2>
       </div>
       

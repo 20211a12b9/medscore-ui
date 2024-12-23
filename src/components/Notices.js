@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2, AlertCircle, Search } from 'lucide-react';
 import { config } from '../config';
+import { Navbar } from './Navbar';
 
 const Notices = () => {
   const [licenseNo, setLicenseNo] = useState('');
@@ -109,8 +110,11 @@ const Notices = () => {
 
   return (
     <div className="max-w-5xl mx-auto mt-4 bg-white rounded-lg shadow">
+      <div className="fixed top-0 left-0 w-full z-50">
+        <Navbar/>
+      </div>
       <div className="border-b p-6">
-        <h2 className="text-2xl font-bold text-gray-900">Your Notices</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Your Reminders</h2>
       </div>
 
       <div className="p-6">
@@ -131,7 +135,7 @@ const Notices = () => {
                   SerialNo 
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                  Notice Issued On 
+                Reminder Issued On 
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
                   Invoice 

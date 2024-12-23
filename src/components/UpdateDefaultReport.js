@@ -1,48 +1,50 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Loader2, AlertCircle, Search } from 'lucide-react';
 import { config } from '../config';
+import { Navbar } from './Navbar';
 
 const UpdateDefaultReport = () => {
   const [licenseNo, setLicenseNo] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) {
-      setError('Please enter a license number');
-      return;
-    }
-    
-    setLicenseNo(searchQuery);
-    await fetchInvoiceData(searchQuery);
+  // Debounce implementation
+  const debounce = (func, delay) => {
+    let timeoutId;
+    return (...args) => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      timeoutId = setTimeout(() => {
+        func(...args);
+      }, delay);
+    };
   };
 
+  // Fetch invoice data
   const fetchInvoiceData = async (license) => {
     if (!license) return;
-    
+
     try {
       setLoading(true);
       setError(null);
+
       const response = await fetch(
         `${config.API_HOST}/api/user/getInvoiceRDforDistUpdate?licenseNo=${license}`,
         {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
-            'Content-Type': 'application/json'
           }
         }
       );
-            
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const result = await response.json();
-      console.log("result",result)
       if (result.success) {
         setInvoices(result.data);
       } else {
@@ -56,6 +58,18 @@ const UpdateDefaultReport = () => {
     }
   };
 
+  // Debounced version of fetchInvoiceData
+  const debouncedFetchInvoiceData = useCallback(debounce(fetchInvoiceData, 500), []);
+
+  // Trigger fetch when licenseNo changes
+  useEffect(() => {
+    if (licenseNo.trim()) {
+      debouncedFetchInvoiceData(licenseNo);
+    } else {
+      setInvoices([]);
+    }
+  }, [licenseNo, debouncedFetchInvoiceData]);
+
   const handleSendNotice = async (invoice) => {
     try {
       if (!window.confirm(`Are you sure you want to mark this invoice as received?`)) {
@@ -63,13 +77,11 @@ const UpdateDefaultReport = () => {
       }
 
       setLoading(true);
-      
-      // Call the updateDefault endpoint
+
       const response = await fetch(
         `${config.API_HOST}/api/user/updateReportDefault/${invoice.pharmadrugliseanceno}/${invoice.invoice}/${invoice.customerId}`,
         {
           method: 'PUT',
-          
         }
       );
 
@@ -78,11 +90,10 @@ const UpdateDefaultReport = () => {
       }
 
       const result = await response.json();
-      
+
       if (result.success) {
         alert(result.message);
-        // Refresh the invoice data to show updated status
-        await fetchInvoiceData(licenseNo);
+        await fetchInvoiceData(licenseNo); // Refresh the list
       } else {
         throw new Error(result.message || 'Failed to update report status');
       }
@@ -98,7 +109,7 @@ const UpdateDefaultReport = () => {
       return new Date(dateString).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
-        day: 'numeric'
+        day: 'numeric',
       });
     } catch (err) {
       return 'Invalid date';
@@ -106,30 +117,23 @@ const UpdateDefaultReport = () => {
   };
 
   return (
-    <div className="bg-white [background-image:none] min-h-screen p-6  mx-auto">
-      <div className="border-b p-6">
+    <div className="bg-white [background-image:none] min-h-screen p-6 mx-auto">
+      <div className="fixed top-0 left-0 w-full z-50">
+        <Navbar />
+      </div>
+    
+      <div className="border-b p-6 mt-10">
         <h2 className="text-2xl font-bold text-gray-900">Update Payment Details</h2>
-        <div className="mt-4">
-          <form onSubmit={handleSearch} className="flex gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Enter License Number..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center"
-            >
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Search
-            </button>
-          </form>
+        <div className="bg-white p-6 rounded-lg shadow">
+          <div className="flex gap-4">
+            <input
+              type="text"
+              placeholder="Enter Pharmacy Drug License Number"
+              value={licenseNo}
+              onChange={(e) => setLicenseNo(e.target.value)}
+              className="flex-1 border rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
         </div>
       </div>
 

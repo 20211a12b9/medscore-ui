@@ -36,3 +36,28 @@
     transform: rotate(360deg);
   }
 }
+@keyframes slowBounce {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(20px);
+  }
+}
+
+.animate-slow-left-right {
+  animation: slowBounce 3s infinite ease-in-out; /* Slower animation */
+}
+
+@keyframes slowTopBottom {
+  0%, 100% {
+    transform: translateY(0); /* Original position */
+  }
+  50% {
+    transform: translateY(20px); /* Move down 20px */
+  }
+}
+
+.animate-slow-top-bottom {
+  animation: slowTopBottom 3s infinite ease-in-out; /* Slow animation */
+}

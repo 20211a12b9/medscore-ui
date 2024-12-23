@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LogOut,User,Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { config } from '../config';
+import { PharmaNavbar } from './PharmaNavbar';
 
 export const PharmacyHomepage = ({ onLogout }) => {
   const [licenseNo, setLicenseNo] = useState('');
@@ -71,7 +72,8 @@ export const PharmacyHomepage = ({ onLogout }) => {
           {
             method: 'GET',
             headers: {
-              'Content-Type': 'application/json'
+              'Accept': 'application/json',
+              // 'Content-Type': 'application/json'
             }
           }
         );
@@ -118,7 +120,8 @@ export const PharmacyHomepage = ({ onLogout }) => {
           {
             method: 'GET',
             headers: {
-              'Content-Type': 'application/json'
+              'Accept': 'application/json',
+              // 'Content-Type': 'application/json'
             }
           }
         );
@@ -150,60 +153,14 @@ export const PharmacyHomepage = ({ onLogout }) => {
     { label: 'View Only Score', path: '/CreditScoreDisplay', color: 'from-blue-500 to-blue-600' },
     { label: 'View Detail Report', path: '/PharmaReport', color: 'from-teal-500 to-teal-600' },
     { label: 'Download Detail Report', path: '/DownloadReport', color: 'from-indigo-500 to-indigo-600' },
-    { label: 'Notices', path: '/Notices', color: 'from-red-500 to-indigo-600', notificationCount: noticeCount }
+    { label: 'Reminders', path: '/Notices', color: 'from-red-500 to-indigo-600', notificationCount: noticeCount }
    
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header with Logo and Logout */}
-      <header className="bg-white shadow-md relative">
-        <div className="container mx-auto px-3 py-3 flex justify-between items-center">
-             {/* Menu Button */}
-             <button
-            onClick={handleProfileClick}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 ml-2"
-          >
-            <Menu size={30} className="text-gray-600" />
-          </button>
-          {/* Logo */}
-          <div className="relative group w-20 sm:w-30">
-            <img 
-              src="/medscore.png" 
-              alt="Medscore Logo" 
-              className="w-100 h-auto object-contain rounded-lg shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:scale-100"
-            />
-            <div className="absolute inset-0 bg-blue-600 opacity-0 group-hover:opacity-10 rounded-lg transition-opacity duration-300"></div>
-          </div>
-
-
-          {/* Profile Menu Dropdown */}
-          {isProfileMenuOpen && (
-            <div className="absolute top-full right-0 mt-2 w-48 bg-[#74b4d5] rounded-lg shadow-lg py-1 z-50">
-              <button
-                onClick={handleProfileClick}
-                className="flex items-center w-full px-4 py-2 text-sm text-black hover:bg-gray-100"
-              >
-                <User size={16} className="mr-2" />
-                View Profile
-              </button>
-              {/* Add more menu items here if needed */}
-            </div>
-          )}
-
-          {/* Search Bar */}
-          
-
-          {/* Logout Button */}
-          <button
-            onClick={handleLogout}
-            className="flex items-center ml-2 gap-1 sm:gap-2 bg-red-500 hover:bg-red-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base whitespace-nowrap"
-          >
-            <LogOut size={18} />
-            <span>Logout</span>
-          </button>
-        </div>
-      </header>
+      <PharmaNavbar />
 
       <div className="container mx-auto px-4 py-8">
         {/* Hero Section */}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useCallback,useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, Calendar, DollarSign, FileText, Clock } from 'lucide-react';
 import { config } from '../config';
@@ -22,14 +22,139 @@ export const Register = ({ onRegistrationSuccess }) => {
             pcd: false
         }
     });
+    const [license, setLicenseNo] = useState('');
+    const [pharmacyData, setPharmacyData] = useState(0);
+    const [suggestionList, setSuggestionList] = useState([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate(); 
-
+    const debounce = (func, delay) => {
+        let timeoutId;
+        return (...args) => {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+          timeoutId = setTimeout(() => {
+            func(...args);
+          }, delay);
+        };
+      };
+    
+      // Fetch pharmacy suggestions
+      const fetchPharmacySuggestions = useCallback(async (searchTerm) => {
+        if (!searchTerm.trim()) {
+          setSuggestionList([]);
+          setShowSuggestions(false);
+          return;
+        }
+    
+        try {
+          const license2 = searchTerm.trim().toUpperCase();
+          const response = await fetch(
+            `${config.API_HOST}/api/user/getPharmaCentalData?licenseNo=${license2}`,
+            {
+              method: 'GET',
+              credentials: 'include',
+              headers: {
+                'Accept': 'application/json',
+              }
+            }
+          );
+          
+          const result = await response.json();
+    
+          if (!response.ok) {
+            throw new Error(result.message || 'Failed to fetch pharmacy suggestions');
+          }
+    
+          if (result.data && result.data.length > 0) {
+            console.log(result.data,"result------")
+            setSuggestionList(result.data);
+            setShowSuggestions(true);
+          } else {
+            setSuggestionList([]);
+            setShowSuggestions(false);
+          }
+        } catch (err) {
+          console.error('Error fetching pharmacy suggestions:', err);
+          setSuggestionList([]);
+          setShowSuggestions(false);
+        }
+      }, []);
+    
+      // Create a debounced version of fetchPharmacySuggestions
+      const debouncedFetchSuggestions = useCallback(
+        debounce(fetchPharmacySuggestions, 300), // 300ms delay
+        [fetchPharmacySuggestions]
+      );
+    
+      // Handle input change
+      useEffect(() => {
+        if (formData.pharmacy_name.trim()) {
+          debouncedFetchSuggestions(formData.pharmacy_name);
+        } else {
+          // Clear everything when search is empty
+          setSuggestionList([]);
+          setShowSuggestions(false);
+         
+        }
+      }, [formData.pharmacy_name, debouncedFetchSuggestions]);
+    
+      // Handle suggestion selection
+      const handleSuggestionSelect = (selectedPharmacy) => {
+        // Robust date conversion function
+        const convertToValidDate = (dateValue) => {
+            // If it's already in DD-MM-YYYY format
+            if (typeof dateValue === 'string' && dateValue.includes('-')) {
+                // Split the date and rearrange to YYYY-MM-DD
+                const [day, month, year] = dateValue.split('-');
+                // Ensure month is padded correctly
+                return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+            }
+            
+            // If it's an Excel date number
+            if (!isNaN(parseFloat(dateValue))) {
+                // Convert Excel date
+                const excelDate = parseFloat(dateValue);
+                const days = Math.floor(excelDate);
+                
+                // Create a new Date object
+                const jsDate = new Date(1899, 11, 30); // Excel's epoch start
+                jsDate.setDate(jsDate.getDate() + days);
+                
+                // Format as YYYY-MM-DD
+                const year = jsDate.getFullYear();
+                const month = (jsDate.getMonth() + 1).toString().padStart(2, '0');
+                const day = jsDate.getDate().toString().padStart(2, '0');
+                
+                return `${year}-${month}-${day}`;
+            }
+            
+            // If no valid date is found, return empty string
+            return '';
+        };
+    
+        console.log('Original Date:', selectedPharmacy.ExpDate);
+        const convertedDate = convertToValidDate(selectedPharmacy.ExpDate || '');
+        console.log('Converted Date:', convertedDate);
+    
+        setFormData(prevData => ({
+            ...prevData,
+            pharmacy_name: selectedPharmacy.FirmName,
+            dl_code: selectedPharmacy.LicenceNumber,
+            address: selectedPharmacy.Address,
+            expiry_date: convertedDate
+        }));
+        
+        // Clear suggestions
+        setSuggestionList([]);
+        setShowSuggestions(false);
+    };
     const handleChange = (e) => {
         const { name, value } = e.target;
         
-        // Special handling for pharmacy_name and dl_code
+        // Existing cases for pharmacy_name and dl_code
         if (name === 'pharmacy_name') {
             setFormData({
                 ...formData,
@@ -42,6 +167,13 @@ export const Register = ({ onRegistrationSuccess }) => {
                 [name]: value.toUpperCase(),
             });
         } 
+        // New case for expiry_date
+        else if (name === 'expiry_date') {
+            setFormData({
+                ...formData,
+                [name]: value,
+            });
+        }
         else {
             setFormData({
                 ...formData,
@@ -64,8 +196,8 @@ export const Register = ({ onRegistrationSuccess }) => {
         const { pharmacy_name, email, phone_number, dl_code, gstno, address, password, confirmPassword, user_type,expiry_date,distributor_types } = formData;
 
         const requiredFields = user_type === 'distributor' 
-            ? [pharmacy_name, phone_number, dl_code, gstno, address, password]
-            : [pharmacy_name, phone_number, dl_code, address, password];
+            ? [pharmacy_name, phone_number, dl_code, gstno, address, password,expiry_date]
+            : [pharmacy_name, phone_number, dl_code, address, password,expiry_date];
 
         if (requiredFields.some(field => !field)) {
             setIsLoading(false);
@@ -140,6 +272,27 @@ export const Register = ({ onRegistrationSuccess }) => {
                                 onChange={handleChange}
                                 className="form-radio text-[#1565C0] w-4 h-4"
                             />
+                          {showSuggestions && suggestionList.length > 0 && (
+    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+        {suggestionList.map((suggestion, index) => (
+            <div 
+                key={index} 
+                onClick={() => handleSuggestionSelect(suggestion)}
+                className="p-2 hover:bg-gray-100 cursor-pointer border-b last:border-b-0 border-gray-200"
+            >
+                <div className="font-semibold text-sm">
+                    {suggestion.FirmName || suggestion.firm_name || suggestion.pharmacy_name}
+                </div>
+                <div className="text-xs text-gray-600">
+                    License: {suggestion.LicenceNumber || suggestion.license_number}
+                </div>
+                <div className="text-xs text-gray-600">
+                    Address: {suggestion.Address || suggestion.address}
+                </div>
+            </div>
+        ))}
+    </div>
+)}
                             <span className="text-gray-700 font-medium">Pharmacy</span>
                         </label>
                         <label className="flex items-center space-x-2 cursor-pointer">
@@ -267,13 +420,13 @@ export const Register = ({ onRegistrationSuccess }) => {
                 <span>DL Expiry Date</span>
               </label>
               <input
-                type="date"
-                name="expiry_date"
-                value={formData.expiry_date}
-                onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
+    type="date"
+    name="expiry_date"
+    value={formData.expiry_date}
+    onChange={handleChange}
+    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+    required
+/>
             </div>
             <div className="relative">
                         <input
@@ -327,6 +480,14 @@ export const Register = ({ onRegistrationSuccess }) => {
             ) : (
                 'Register'
             )}
+                       
+                    </button>
+                    <button
+                         onClick={()=>{navigate("/")}}
+                        type="submit"
+                        className='w-28 h-10 bg-slate-500 text-white font-bold hover:bg-slate-800 rounded-s-sm shadow-md'
+                    >
+                      Home
                        
                     </button>
                 </form>

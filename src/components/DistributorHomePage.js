@@ -1,52 +1,137 @@
-import React, { useState,useEffect } from 'react';
-import { LogOut, Search,X ,Menu, User,IndianRupee} from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { LogOut, Search, X, Menu, User, IndianRupee } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { 
   BarChart, Bar, PieChart, Pie, XAxis, YAxis, 
-  CartesianGrid, Tooltip, ResponsiveContainer, Cell ,LineChart,Line
+  CartesianGrid, Tooltip, ResponsiveContainer, Cell, LineChart, Line
 } from 'recharts';
 import { AlertCircle } from 'lucide-react';
 import { config } from '../config';
+import { Navbar } from './Navbar';
 
 export const DistributorHomePage = ({ onLogout }) => {
   const [license, setLicenseNo] = useState('');
+  const [suggestionList, setSuggestionList] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [invoiceData, setInvoiceData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [noticeCount, setNoticeCount] = useState(null);
   const [score, setScore] = useState(0);
-  const [pharmacyData,setPharmacyData]=useState(0);
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const [oustandingTotal,setOutStandingTotal]=useState(0);
+  const [pharmacyData, setPharmacyData] = useState(0);
+  const [oustandingTotal, setOutStandingTotal] = useState(0);
 
-  const toggleProfileMenu = () => {
-    setIsProfileMenuOpen(!isProfileMenuOpen);
+  const onNavigate = useNavigate();
+
+  // Debounce function to limit API calls
+  const debounce = (func, delay) => {
+    let timeoutId;
+    return (...args) => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      timeoutId = setTimeout(() => {
+        func(...args);
+      }, delay);
+    };
   };
-  const handleProfileClick = () => {
-    onNavigate('/DistributorProfile');
-    setIsProfileMenuOpen(false);
-  };
-  const onNavigate=useNavigate()
-  const handleSearch = async () => {
-    setInvoiceData('')
+
+  // Fetch pharmacy suggestions
+  const fetchPharmacySuggestions = useCallback(async (searchTerm) => {
+    if (!searchTerm.trim()) {
+      setSuggestionList([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    try {
+      const license2 = searchTerm.trim().toUpperCase();
+      const response = await fetch(
+        `${config.API_HOST}/api/user/getPharmaData?licenseNo=${license2}`,
+        {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+          }
+        }
+      );
+      
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to fetch pharmacy suggestions');
+      }
+
+      if (result.data && result.data.length > 0) {
+        setSuggestionList(result.data);
+        setShowSuggestions(true);
+      } else {
+        setSuggestionList([]);
+        setShowSuggestions(false);
+      }
+    } catch (err) {
+      console.error('Error fetching pharmacy suggestions:', err);
+      setSuggestionList([]);
+      setShowSuggestions(false);
+    }
+  }, []);
+
+  // Create a debounced version of fetchPharmacySuggestions
+  const debouncedFetchSuggestions = useCallback(
+    debounce(fetchPharmacySuggestions, 300), // 300ms delay
+    [fetchPharmacySuggestions]
+  );
+
+  // Handle input change
+  useEffect(() => {
+    if (license.trim()) {
+      debouncedFetchSuggestions(license);
+    } else {
+      // Clear everything when search is empty
+      setSuggestionList([]);
+      setShowSuggestions(false);
+      setPharmacyData([]);
+      setError(null);
+      setScore(0);
+      setInvoiceData('');
+      setOutStandingTotal(0);
+    }
+  }, [license, debouncedFetchSuggestions]);
+
+  // Handle suggestion selection
+  const handleSuggestionSelect = (selectedPharmacy) => {
+    setLicenseNo(selectedPharmacy.dl_code);
+    setSuggestionList([]);
+    setShowSuggestions(false);
     
-    if (!license.trim()) {
+    // Trigger search with the selected pharmacy's license code
+    handleSearch(selectedPharmacy.dl_code);
+  };
+  const handleSearch = async (providedLicense) => {
+    const license2 = (providedLicense || license).trim().toUpperCase();
+
+    if (!license2) {
       setError('Please enter a license number');
       return;
     }
+
+    setInvoiceData('');
     setLoading(true);
     setError(null);
-    const license2=license.trim().toUpperCase();
+
     try {
       // Fetch invoice data
       const distId = localStorage.getItem('userId');
+      console.log("distIs",distId)
       const invoiceResponse = await fetch(
         `${config.API_HOST}/api/user/getInvoiceRDforDist/${distId}?licenseNo=${license2}`,
         {
+          
           method: 'GET',
           headers: {
             'Accept': 'application/json',
-            'Content-Type': 'application/json'
+            // 'Content-Type': 'application/json'
           }
          
         }
@@ -68,7 +153,7 @@ export const DistributorHomePage = ({ onLogout }) => {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
-            'Content-Type': 'application/json'
+            // 'Content-Type': 'application/json'
           }
         }
       );
@@ -82,7 +167,7 @@ export const DistributorHomePage = ({ onLogout }) => {
             method: 'GET',
             headers: {
               'Accept': 'application/json',
-              'Content-Type': 'application/json'
+              // 'Content-Type': 'application/json'
             }
           }
         );
@@ -105,7 +190,7 @@ export const DistributorHomePage = ({ onLogout }) => {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
-            'Content-Type': 'application/json'
+            // 'Content-Type': 'application/json'
           }
         }
       );
@@ -133,7 +218,7 @@ export const DistributorHomePage = ({ onLogout }) => {
             method: 'GET',
             headers: {
               'Accept': 'application/json',
-              'Content-Type': 'application/json'
+              // 'Content-Type': 'application/json'
             }
           }
         );
@@ -156,7 +241,7 @@ export const DistributorHomePage = ({ onLogout }) => {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
-            'Content-Type': 'application/json'
+            // 'Content-Type': 'application/json'
           }
         }
       );
@@ -184,7 +269,7 @@ export const DistributorHomePage = ({ onLogout }) => {
             method: 'GET',
             headers: {
               'Accept': 'application/json',
-              'Content-Type': 'application/json'
+              // 'Content-Type': 'application/json'
             }
           }
         );
@@ -202,6 +287,7 @@ export const DistributorHomePage = ({ onLogout }) => {
       setError(err.message || 'Error fetching data');
     } finally {
       setLoading(false);
+      setShowSuggestions(false);
     }
   };
     const handleViewButton =(license)=>{
@@ -230,7 +316,7 @@ export const DistributorHomePage = ({ onLogout }) => {
 
   const navigationButtons = [
     { label: 'Link Customer', path: '/PharmacySearch', color: 'bg-gradient-to-r from-[#517296] via-[#6eaece] to-[#8dc0df]'},
-    { label: 'Send Notice', path: '/SendNotice', color: 'from-orange-900 to-orange-500' },
+    { label: 'Send Reminder', path: '/SendNotice', color: 'from-orange-900 to-orange-500' },
     { label: 'Report Default', path: '/ReportDefault', color: 'from-red-900 to-red-500' },
     { label: 'Update Payment Details', path: '/UpdateDefaultReport', color: 'from-green-900 to-green-500' },
     { label: 'Add Customer', path: '/Addcustomer', color: 'bg-gradient-to-r from-[#517296] via-[#6eaece] to-[#8dc0df]' },
@@ -440,117 +526,59 @@ export const DistributorHomePage = ({ onLogout }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-md relative">
-        <div className="container mx-auto px-3 py-3 flex justify-between items-center">
-             {/* Menu Button */}
-             <button
-            onClick={handleProfileClick}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 ml-2"
-          >
-            <Menu size={30} className="text-gray-600" />
-          </button>
-          {/* Logo */}
-          <div className="relative group w-20 sm:w-30">
-            <img 
-              src="/medscore.png" 
-              alt="Medscore Logo" 
-              className="w-100 h-auto object-contain rounded-lg shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:scale-100"
+     
+       <Navbar/>
+       <div className="container mx-auto px-4 py-8">
+        {/* Search with Suggestions */}
+        
+        <div className="relative w-full sm:max-w-xl sm:mx-8 mb-5">
+          <div className="relative">
+            <input
+              type="text"
+              value={license}
+              onChange={(e) => setLicenseNo(e.target.value)}
+
+              placeholder="Enter pharmacy name or drug license No..."
+              className="w-full px-5 py-2 pr-15 ml-1 border border-black rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
+              onFocus={() => {
+                if (suggestionList.length > 0) {
+                  setShowSuggestions(true);
+                }
+              }}
             />
-            <div className="absolute inset-0 bg-blue-600 opacity-0 group-hover:opacity-10 rounded-lg transition-opacity duration-300"></div>
+            {license && (
+              <button
+                onClick={() => {
+                  setLicenseNo('');
+                  setSuggestionList([]);
+                  setShowSuggestions(false);
+                }}
+                className="absolute right-12 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+              >
+                <X size={18} />
+              </button>
+            )}
+          
           </div>
 
-
-          {/* Profile Menu Dropdown */}
-          {isProfileMenuOpen && (
-            <div className="absolute top-full right-0 mt-2 w-48 bg-[#74b4d5] rounded-lg shadow-lg py-1 z-50">
-              <button
-                onClick={handleProfileClick}
-                className="flex items-center w-full px-4 py-2 text-sm text-black hover:bg-gray-100"
-              >
-                <User size={16} className="mr-2" />
-                View Profile
-              </button>
-              {/* Add more menu items here if needed */}
+          {/* Suggestions Dropdown */}
+          {showSuggestions && suggestionList.length > 0 && (
+            <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto">
+              {suggestionList.map((pharmacy, index) => (
+                <div
+                  key={index}
+                  onClick={() => handleSuggestionSelect(pharmacy)}
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex justify-between"
+                >
+                  <span className="font-medium">{pharmacy.pharmacy_name}</span>
+                  <span className="text-gray-500 text-sm">{pharmacy.dl_code}</span>
+                </div>
+              ))}
             </div>
           )}
-
-          {/* Search Bar */}
-          
-
-          {/* Logout Button */}
-          <button
-            onClick={handleLogout}
-            className="flex items-center ml-2 gap-1 sm:gap-2 bg-red-500 hover:bg-red-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base whitespace-nowrap"
-          >
-            <LogOut size={18} />
-            <span>Logout</span>
-          </button>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-8">
-        {/* search */}
-      <div className="flex-1 w-full sm:max-w-xl sm:mx-8 mb-5">
-            <div className="relative">
-              <input
-                type="text"
-                value={license}
-                onChange={(e) => setLicenseNo(e.target.value)}
-                placeholder="Enter dealer code..."
-                className="w-full px-5 py-2 pr-15 ml-1 border border-black rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
-              />
-              {license && (
-                <button
-                  onClick={handleClear}
-                  className="absolute right-12 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
-                >
-                  <X size={18} />
-                </button>
-              )}
-              <button
-                onClick={handleSearch}
-                disabled={loading}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 text-gray-500 hover:text-blue-600 transition-colors duration-200"
-              >
-                <Search size={18} />
-              </button>
-            </div>
             {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
           </div>
-        {/* Hero Section */}
-        <section className="bg-gradient-to-r from-[#8dc0df] via-[#6eaece] to-[#517296] text-[#121441] text-center py-16 rounded-2xl shadow-xl mb-10 transform hover:scale-[1.02] transition-transform duration-300">
-          <h1 className="text-5xl font-bold mb-6 text-[#121441]">World's First Credit Risk Platform for Pharma & Healthcare Distribution</h1>
-          <p className="text-xl mb-8 max-w-3xl mx-auto italic font-bold">
-            Revolutionizing credit risk management for the pharmaceutical industry. MedScore gives distributors reliable
-            data to assess credit risks.
-          </p>
-          {noticeCount !== null && (
-            <p className="text-lg">
-              Total Notices: <span className="font-bold">{noticeCount}</span>
-            </p>
-          )}
-        </section>
-
-        {/* Navigation Buttons */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
-          {navigationButtons.map((btn, index) => (
-            <button
-              key={index}
-              onClick={() => onNavigate(btn.path)}
-              className={`bg-gradient-to-r ${btn.color} text-white font-bold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-sm md:text-base`}
-            >
-              {btn.label}
-            </button>
-          ))}
-        </div>
-        {/* Loading State */}
-        {loading && (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          </div>
-        )}
-
-        {/* Invoice Data Table */}
+           {/* Invoice Data Table */}
         {score >0 && (
          <div className="w-full max-w-6xl mx-auto p-6 space-y-6">
          <h1 className="text-2xl font-bold mb-6 text-gray-900">Credit Analytics Dashboard</h1>
@@ -746,6 +774,40 @@ export const DistributorHomePage = ({ onLogout }) => {
          </div>
        </div>
         )}
+        {/* Hero Section */}
+        <section className="bg-gradient-to-r from-[#8dc0df] via-[#6eaece] to-[#517296] text-[#121441] text-center py-16 rounded-2xl shadow-xl mb-10 transform hover:scale-[1.02] transition-transform duration-300">
+          <h1 className="text-5xl font-bold mb-6 text-[#121441]">World's First Credit Risk Platform for Pharma & Healthcare Distribution</h1>
+          <p className="text-xl mb-8 max-w-3xl mx-auto italic font-bold">
+            Revolutionizing credit risk management for the pharmaceutical industry. MedScore gives distributors reliable
+            data to assess credit risks.
+          </p>
+          {noticeCount !== null && (
+            <p className="text-lg">
+              Total Notices: <span className="font-bold">{noticeCount}</span>
+            </p>
+          )}
+        </section>
+
+        {/* Navigation Buttons */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
+          {navigationButtons.map((btn, index) => (
+            <button
+              key={index}
+              onClick={() => onNavigate(btn.path)}
+              className={`bg-gradient-to-r ${btn.color} text-white font-bold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-sm md:text-base`}
+            >
+              {btn.label}
+            </button>
+          ))}
+        </div>
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          </div>
+        )}
+
+       
 
         {/* No Results Message */}
        

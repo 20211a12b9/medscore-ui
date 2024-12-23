@@ -15,12 +15,14 @@ export const AdminHomeScreen = () => {
   const [distError, setDistError] = useState(null);
 
   const navigate=useNavigate();
-    const handleLogout = () => {
-    // Add your logout logic here
-    // For example: clear localStorage, redirect to login page, etc.
-    localStorage.clear();
-    window.location.href = '/login';
-  };
+  const handleLogout = () => {
+    const confirmLogout = window.confirm('Are you sure you want to log out?');
+    if (confirmLogout) {
+      localStorage.removeItem('jwttoken');
+      localStorage.removeItem('userId');
+      window.location.href = '/';
+    }
+};
   
   // Rest of your existing functions...
   const handleSearch = async (e) => {
@@ -34,7 +36,7 @@ export const AdminHomeScreen = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`${config.API_HOST}/api/user/getInvoiceRD/${licenseNo}`);
+      const response = await fetch(`${config.API_HOST}/api/user/getInvoiceRD?licenseNo=${licenseNo}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -89,7 +91,8 @@ export const AdminHomeScreen = () => {
       const response = await fetch('/api/notices/send', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          // 'Content-Type': 'application/json',
         },
         body: JSON.stringify({ invoiceId: invoice._id }),
       });
@@ -146,6 +149,13 @@ export const AdminHomeScreen = () => {
   >
     <LogOut className="w-4 h-4 mr-2" />
     Create Blog
+  </button>
+  <button
+    onClick={()=>navigate('/UploadDistCentalData')}
+    className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+  >
+    <LogOut className="w-4 h-4 mr-2" />
+    Upload DistCental Data
   </button>
   <button
     onClick={handleLogout}

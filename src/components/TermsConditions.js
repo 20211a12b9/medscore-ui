@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Mail, Phone, MapPin, Star, Shield, Bell, BarChart, Database, Headphones } from 'lucide-react';
 import { Github, Linkedin, Twitter, Instagram, Facebook, X } from 'lucide-react';
+import { HomeNavbar } from './HomeNavbar';
 
 const TermsConditions = () => {
   const navigate = useNavigate();
@@ -14,27 +15,14 @@ const TermsConditions = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <img
-              src="/medscorelogo.jpeg"
-              alt="MedScore Logo"
-              className="w-24 h-auto object-contain hover:scale-105 transition-all duration-300"
-            />
-            <button
-              onClick={() => navigate('/')}
-              className="text-blue-500 hover:text-blue-700 transition-colors"
-            >
-              Back to Home
-            </button>
-          </div>
-        </div>
-      </header>
+      <div className="fixed top-0 left-0 w-full z-50">
+      <HomeNavbar/>
+      </div>
+    
 
       {/* Privacy Policy Content */}
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-white shadow-md rounded-lg p-8">
+        <div className="bg-white shadow-md rounded-lg p-8 mt-10">
           <h1 className="text-2xl font-bold mb-4">MedScore Terms & Conditions</h1>
           <p className="text-gray-600 mb-8">
           Welcome to MedScore! By accessing our platform, you agree to these Terms and Conditions. Please read carefully          
