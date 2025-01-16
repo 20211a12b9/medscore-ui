@@ -28,6 +28,7 @@ export const Register = ({ onRegistrationSuccess }) => {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [hasSelectedSuggestion, setHasSelectedSuggestion] = useState(false);
     const navigate = useNavigate(); 
     const debounce = (func, delay) => {
         let timeoutId;
@@ -43,10 +44,14 @@ export const Register = ({ onRegistrationSuccess }) => {
     
       // Fetch pharmacy suggestions
       const fetchPharmacySuggestions = useCallback(async (searchTerm) => {
+        if (hasSelectedSuggestion) {
+            return;
+        }
+
         if (!searchTerm.trim()) {
-          setSuggestionList([]);
-          setShowSuggestions(false);
-          return;
+            setSuggestionList([]);
+            setShowSuggestions(false);
+            return;
         }
     
         try {
@@ -91,54 +96,39 @@ export const Register = ({ onRegistrationSuccess }) => {
     
       // Handle input change
       useEffect(() => {
-        if (formData.pharmacy_name.trim()) {
-          debouncedFetchSuggestions(formData.pharmacy_name);
+        if (formData.pharmacy_name.trim() && !hasSelectedSuggestion) {
+            debouncedFetchSuggestions(formData.pharmacy_name);
         } else {
-          // Clear everything when search is empty
-          setSuggestionList([]);
-          setShowSuggestions(false);
-         
+            setSuggestionList([]);
+            setShowSuggestions(false);
         }
-      }, [formData.pharmacy_name, debouncedFetchSuggestions]);
+    }, [formData.pharmacy_name, debouncedFetchSuggestions, hasSelectedSuggestion]);
+
     
-      // Handle suggestion selection
-      const handleSuggestionSelect = (selectedPharmacy) => {
-        // Robust date conversion function
+    const handleSuggestionSelect = (selectedPharmacy) => {
         const convertToValidDate = (dateValue) => {
-            // If it's already in DD-MM-YYYY format
             if (typeof dateValue === 'string' && dateValue.includes('-')) {
-                // Split the date and rearrange to YYYY-MM-DD
                 const [day, month, year] = dateValue.split('-');
-                // Ensure month is padded correctly
                 return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
             }
             
-            // If it's an Excel date number
             if (!isNaN(parseFloat(dateValue))) {
-                // Convert Excel date
                 const excelDate = parseFloat(dateValue);
                 const days = Math.floor(excelDate);
-                
-                // Create a new Date object
-                const jsDate = new Date(1899, 11, 30); // Excel's epoch start
+                const jsDate = new Date(1899, 11, 30);
                 jsDate.setDate(jsDate.getDate() + days);
-                
-                // Format as YYYY-MM-DD
                 const year = jsDate.getFullYear();
                 const month = (jsDate.getMonth() + 1).toString().padStart(2, '0');
                 const day = jsDate.getDate().toString().padStart(2, '0');
-                
                 return `${year}-${month}-${day}`;
             }
-            
-            // If no valid date is found, return empty string
             return '';
         };
-    
+
         console.log('Original Date:', selectedPharmacy.ExpDate);
         const convertedDate = convertToValidDate(selectedPharmacy.ExpDate || '');
         console.log('Converted Date:', convertedDate);
-    
+
         setFormData(prevData => ({
             ...prevData,
             pharmacy_name: selectedPharmacy.FirmName,
@@ -147,15 +137,19 @@ export const Register = ({ onRegistrationSuccess }) => {
             expiry_date: convertedDate
         }));
         
-        // Clear suggestions
+        // Set the flag to indicate a suggestion has been selected
+        setHasSelectedSuggestion(true);
         setSuggestionList([]);
         setShowSuggestions(false);
     };
+
+    // Modified handleChange
     const handleChange = (e) => {
         const { name, value } = e.target;
         
-        // Existing cases for pharmacy_name and dl_code
+        // Reset hasSelectedSuggestion when pharmacy_name is changed manually
         if (name === 'pharmacy_name') {
+            setHasSelectedSuggestion(false);
             setFormData({
                 ...formData,
                 [name]: value.toUpperCase(),
@@ -167,7 +161,6 @@ export const Register = ({ onRegistrationSuccess }) => {
                 [name]: value.toUpperCase(),
             });
         } 
-        // New case for expiry_date
         else if (name === 'expiry_date') {
             setFormData({
                 ...formData,
@@ -181,6 +174,9 @@ export const Register = ({ onRegistrationSuccess }) => {
             });
         }
     };
+    const handlesuggession =()=>{
+        setShowSuggestions(false)
+    }
     const handleDistributorTypeChange = (type) => {
         setFormData({
             ...formData,
@@ -232,7 +228,19 @@ export const Register = ({ onRegistrationSuccess }) => {
             setIsLoading(false);
             const fullPhoneNumber = `91${formData.phone_number.trim()}`;
             if (response.ok) {
-                await fetch(`https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=uewziuRKDUWctgdrHdXm5g&senderid=MEDSCR&channel=2&DCS=0&flashsms=0&number=${fullPhoneNumber}&text=Welcome to MedScore – Your Account is Ready! Dear ${formData.pharmacy_name}, Welcome to MedScore! Your account has been successfully created. User ID: ${formData.dl_code} Log in to start exploring our credit risk solutions designed specifically for the pharmaceutical industry. For security, please change your password upon first login. Thank you for joining MedScore. Best Regards, The MedScore Team&route=1`,{mode: "no-cors"});
+                 const smsResult = await fetch(`${config.API_HOST}/api/user/sendSMS`, {
+                                               method: 'POST',
+                                               headers: { 'Content-Type': 'application/json' },
+                                               body: JSON.stringify({
+                                                 phone: fullPhoneNumber,
+                                                 message: `Welcome to MedScore – Your Account is Ready! Dear ${formData.pharmacy_name}, Welcome to MedScore! Your account has been successfully created. User ID: ${formData.dl_code} Log in to start exploring our credit risk solutions designed specifically for the pharmaceutical industry. For security, please change your password upon first login. Thank you for joining MedScore. Best Regards, The MedScore Team`
+                                               })
+                                             });
+                                       
+                                             if (!smsResult.ok) {
+                                               
+                                               throw new Error('Failed to send SMS');
+                                             }
 
                 console.log('Registration successful:', data);
                 alert("Registration successful!");
@@ -250,8 +258,8 @@ export const Register = ({ onRegistrationSuccess }) => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-[#E3F2FD] to-[#BBDEFB] p-4">
-            <div className="w-full max-w-md bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-14 transform transition-all hover:scale-[1.01]">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-[#4e98cc] to-[#494da4] p-4">
+            <div className="w-full max-w-md bg-white/90  rounded-2xl shadow-xl p-14 transform transition-all hover:scale-[1.01]">
                 <div className="flex flex-col items-center mb-6">
                     <img 
                         src="/medscore.png" 
@@ -273,7 +281,7 @@ export const Register = ({ onRegistrationSuccess }) => {
                                 className="form-radio text-[#1565C0] w-4 h-4"
                             />
                           {showSuggestions && suggestionList.length > 0 && (
-    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+    <div className="absolute z-50 w-full mb-44  bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
         {suggestionList.map((suggestion, index) => (
             <div 
                 key={index} 
@@ -289,8 +297,13 @@ export const Register = ({ onRegistrationSuccess }) => {
                 <div className="text-xs text-gray-600">
                     Address: {suggestion.Address || suggestion.address}
                 </div>
+                
             </div>
+            
         ))}
+        <button onClick={()=>handlesuggession()} className='text-xl w-full hover:bg-gray-100 align-middle justify-between font-serif'>
+                      Others
+                </button>
     </div>
 )}
                             <span className="text-gray-700 font-medium">Pharmacy</span>

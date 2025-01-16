@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { config } from '../config';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from './Navbar';
+import { Search, Building2, Phone, LinkIcon } from 'lucide-react';
 
 export const PharmacySearch = () => {
   const [licenseNo, setLicenseNo] = useState('');
@@ -158,86 +159,110 @@ export const PharmacySearch = () => {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="fixed top-0 left-0 w-full z-50">
-        <Navbar/>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <div className="fixed top-0 left-0 w-full z-50 bg-white/80 backdrop-blur-sm shadow-lg">
+        <Navbar />
       </div>
-      <div className="flex flex-col gap-6 mt-20">
-        {/* Search Section */}
-        <h2 className="text-2xl font-bold text-gray-900">Search and Link Your Customer</h2>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex gap-4">
-            <input
-              type="text"
-              placeholder="Enter Pharmacy Drug License Number"
-              value={licenseNo}
-              onChange={(e) => setLicenseNo(e.target.value)}
-              className="flex-1 border rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            <div className="flex items-center justify-between">
-              <span>{error}</span>
-              <button
-                onClick={() => navigate('/Addcustomer')}
-                className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
-              >
-                Add Customer
-              </button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+        <div className="bg-white/70 backdrop-blur-md rounded-xl shadow-xl p-8 border border-indigo-100">
+          <div className="max-w-3xl mx-auto">
+            <h1 className="text-3xl font-bold text-indigo-900 mb-8 text-center">
+              Search and Link Pharmacy
+            </h1>
+
+            <div className="relative mb-8">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-indigo-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Enter Pharmacy Drug License Number"
+                value={licenseNo}
+                onChange={(e) => setLicenseNo(e.target.value)}
+                className="block w-full pl-10 pr-3 py-4 border-2 border-indigo-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition duration-150 ease-in-out text-indigo-900 placeholder-indigo-400"
+              />
             </div>
-          </div>
-        )}
 
-        {/* Results Table */}
-        {pharmacyData.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse table-auto bg-white shadow rounded">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="border border-gray-200 p-2 text-left">Pharmacy Name</th>
-                  <th className="border border-gray-200 p-2 text-left">Address</th>
-                  <th className="border border-gray-200 p-2 text-left">Phone Number</th>
-                  <th className="border border-gray-200 p-2 text-left">License Number</th>
-                  <th className="border border-gray-200 p-2 text-left">Action</th>
-                </tr>
-              </thead>
-              <tbody>
+            {loading && (
+              <div className="flex justify-center my-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+              </div>
+            )}
+
+            {error && (
+              <div className="bg-red-50/80 backdrop-blur-sm border-l-4 border-red-400 p-4 mb-8 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <p className="text-red-700">{error}</p>
+                  <button
+                    onClick={() => navigate('/Addcustomer')}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Add Customer
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {pharmacyData.length > 0 && (
+              <div className="space-y-4">
                 {pharmacyData.map((pharmacy, index) => {
                   const linkStatus = linkingStatus[pharmacy._id] || 'not_linked';
+                  const cardColors = [
+                    'bg-gradient-to-br from-purple-50 to-indigo-50',
+                    'bg-gradient-to-br from-blue-50 to-cyan-50',
+                    'bg-gradient-to-br from-indigo-50 to-purple-50'
+                  ];
+                  const cardColor = cardColors[index % cardColors.length];
+                  
                   return (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="border border-gray-200 p-2">{pharmacy.pharmacy_name}</td>
-                      <td className="border border-gray-200 p-2">{pharmacy.address}</td>
-                      <td className="border border-gray-200 p-2">{pharmacy.phone_number}</td>
-                      <td className="border border-gray-200 p-2">{pharmacy.dl_code}</td>
-                      <td className="border border-gray-200 p-2">
-                        <button
-                          onClick={() => handleLink(pharmacy._id)}
-                          disabled={linkStatus === 'linked' || linkStatus === 'linking'}
-                          className={`px-3 py-1 rounded text-white ${
-                            linkStatus === 'linked' ? 'bg-green-500' :
-                            linkStatus === 'error' ? 'bg-red-500' :
-                            linkStatus === 'linking' ? 'bg-yellow-500' :
-                            'bg-blue-500 hover:bg-blue-600'
-                          }`}
-                        >
-                          {linkStatus === 'linked' ? 'Linked' :
-                           linkStatus === 'error' ? 'Failed' :
-                           linkStatus === 'linking' ? 'Linking...' :
-                           'Link'}
-                        </button>
-                      </td>
-                    </tr>
+                    <div key={index} className={`${cardColor} rounded-lg p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-indigo-100/50`}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-2">
+                            <Building2 className="h-5 w-5 text-indigo-500" />
+                            <span className="font-medium text-indigo-900">{pharmacy.pharmacy_name}</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Phone className="h-5 w-5 text-indigo-400" />
+                            <span className="text-indigo-700">{pharmacy.phone_number}</span>
+                          </div>
+                        </div>
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-2">
+                            {/* <License className="h-5 w-5 text-indigo-400" /> */}
+                            <span className="text-indigo-700">{pharmacy.dl_code}</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => handleLink(pharmacy._id)}
+                              disabled={linkStatus === 'linked' || linkStatus === 'linking'}
+                              className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium shadow-sm transition-all duration-200 ${
+                                linkStatus === 'linked' ? 'bg-emerald-500 text-white hover:bg-emerald-600' :
+                                linkStatus === 'error' ? 'bg-red-500 text-white hover:bg-red-600' :
+                                linkStatus === 'linking' ? 'bg-amber-500 text-white' :
+                                'bg-indigo-600 text-white hover:bg-indigo-700'
+                              }`}
+                            >
+                              <LinkIcon className="h-4 w-4 mr-2" />
+                              {linkStatus === 'linked' ? 'Linked' :
+                               linkStatus === 'error' ? 'Failed' :
+                               linkStatus === 'linking' ? 'Linking...' :
+                               'Link Pharmacy'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-3 text-indigo-700 text-sm bg-white/50 rounded-md p-2">
+                        <p>{pharmacy.address}</p>
+                      </div>
+                    </div>
                   );
                 })}
-              </tbody>
-            </table>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

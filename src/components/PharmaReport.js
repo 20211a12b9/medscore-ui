@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2, AlertCircle, Search, X,User } from 'lucide-react';
+import { Loader2, AlertCircle, Search, X, User, FileText, Calendar, DollarSign, Clock,Timer } from 'lucide-react';
 import { config } from '../config';
 import { PharmaNavbar } from './PharmaNavbar';
+
 
 const PharmaReport = () => {
   const [licenseNo, setLicenseNo] = useState('');
@@ -79,7 +80,10 @@ const PharmaReport = () => {
       const result = await response.json();
       console.log("result----",result)
       if (result.success) {
-        setInvoices(result.data);
+        const sortedInvoices = result.data.sort((a, b) => 
+          new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        setInvoices(sortedInvoices);
       } else {
         throw new Error(result.message || 'Failed to fetch invoice data');
       }
@@ -101,64 +105,74 @@ const PharmaReport = () => {
   };
 
   const handleSubmitDispute = async () => {
+    if (!selectedInvoice) {
+        alert('No invoice selected');
+        return;
+    }
+
     if (!disputeReason) {
-      alert('Please select a reason for dispute');
-      return;
+        alert('Please select a reason for dispute');
+        return;
     }
 
     if (disputeReason === 'custom' && !customReason.trim()) {
-      alert('Please enter a custom reason');
-      return;
+        alert('Please enter a custom reason');
+        return;
     }
 
     try {
-      setLoading(true);
-      
-      const finalReason = disputeReason === 'custom' ? customReason : 
-        disputeReasons.find(r => r.value === disputeReason)?.label;
-       console.log("finalReason",finalReason)
-      const response = await fetch(
-        `${config.API_HOST}/api/user/disputebypharma/${selectedInvoice.pharmadrugliseanceno}/${selectedInvoice.invoice}/${selectedInvoice.customerId}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Accept': 'application/json',
-            // 'Content-Type': 'application/json' // Add this header
-          },
-          body: JSON.stringify({ // Convert to JSON string and fix the object structure
-            reasonforDispute: finalReason
-          })
+        setLoading(true);
+
+        // Prepare the final reason for dispute
+        const finalReason = disputeReason === 'custom' ? customReason.trim() : 
+            disputeReasons.find(r => r.value === disputeReason)?.label;
+
+        const response = await fetch(`${config.API_HOST}/api/user/disputebypharma`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                reasonforDispute: finalReason,
+                pharmadrugliseanceno: selectedInvoice.pharmadrugliseanceno,
+                invoice: selectedInvoice.invoice,
+                customerId: selectedInvoice.customerId,
+            }),
+        });
+
+        // Handle non-OK HTTP responses
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to submit dispute');
         }
-      );
 
-      if (!response.ok) {
-        throw new Error('Failed to submit dispute');
-      }
-      const fullPhoneNumber = `+917036222121`;
-      const license = await localStorage.getItem("dl_code");
-       await fetch(`https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=uewziuRKDUWctgdrHdXm5g&senderid=MEDSCR&channel=2&DCS=0&flashsms=0&number=${fullPhoneNumber}&text=Dear Admin,A forced dispute request has been made for dealer with Drug License No. ${license}, regarding invoice ${selectedInvoice}. website: medxbid.in&route=1`,{mode: "no-cors"});
+        const result = await response.json();
 
-      const result = await response.json();
-      if (result.success) {
-        // Update the local invoices state to mark this invoice as disputed
-        setInvoices(prevInvoices => 
-          prevInvoices.map(inv => 
-            inv._id === selectedInvoice._id 
-              ? { ...inv, isDisputed: true }
-              : inv
-          )
-        );
-        alert('Dispute submitted successfully!');
-        setIsDisputeModalOpen(false);
-        setDisputeReason('');
-        setCustomReason('');
-      }
+        // Check success flag from the API
+        if (result.success) {
+            setInvoices(prevInvoices =>
+                prevInvoices.map(inv =>
+                    inv._id === selectedInvoice._id
+                        ? { ...inv, isDisputed: true }
+                        : inv
+                )
+            );
+
+            alert(result.message || 'Dispute submitted successfully!');
+            setIsDisputeModalOpen(false);
+            setDisputeReason('');
+            setCustomReason('');
+            setSelectedInvoice(null);
+        } else {
+            alert(result.message || 'Dispute already exists for this invoice');
+        }
     } catch (err) {
-      alert(`Error submitting dispute: ${err.message}`);
+        alert(`Error submitting dispute: ${err.message}`);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
+
 
   const formatDate = (dateString) => {
     try {
@@ -171,80 +185,171 @@ const PharmaReport = () => {
       return 'Invalid date';
     }
   };
+  const StatusBadge = ({ status }) => {
+    const styles = {
+      accepted: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      rejected: "bg-red-50 text-red-700 border-red-200",
+      pending: "bg-amber-50 text-amber-700 border-amber-200"
+    };
 
+    const getStyle = () => {
+      if (status.accept) return styles.accepted;
+      if (status.reject) return styles.rejected;
+      return styles.pending;
+    };
+
+    const getLabel = () => {
+      if (status.accept) return "Accepted";
+      if (status.reject) return "Rejected";
+      return "Pending";
+    };
+
+    return (
+      <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStyle()}`}>
+        {getLabel()}
+      </span>
+    );
+  };
+
+  const StatCard = ({ icon: Icon, label, value,color }) => (
+    <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="flex items-center gap-4">
+        <div className="p-3 bg-blue-50 rounded-lg">
+          <Icon className="w-6 h-6 text-blue-600" />
+        </div>
+        <div>
+          <p className="text-sm text-gray-500">{label}</p>
+          <p className="text-xl font-semibold text-gray-900 mt-1">{value}</p>
+        </div>
+      </div>
+    </div>
+  );
   return (
-    <div className="max-w-7xl mx-auto mt-8 bg-white rounded-xl shadow-lg">
-      <div className="fixed top-0 left-0 w-full z-50">
-        <PharmaNavbar/>
-      </div>
-      <div className="border-b border-gray-100 p-8">
-        <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Your Detailed Report</h2>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-200 to-cyan-100">
+    <div className="fixed top-0 left-0 w-full z-50">
+      <PharmaNavbar />
+    </div>
 
-      <div className="p-8">
-        {error && (
-          <div className="mb-8 p-4 bg-red-50 border-l-4 border-red-400 rounded-r-lg">
-            <div className="flex items-center gap-3 text-red-700">
-              <AlertCircle className="h-5 w-5" />
-              <span className="font-medium">{error}</span>
-            </div>
-          </div>
-        )}
-
-        <div className="overflow-x-auto rounded-lg border border-gray-200">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50">
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">SerialNo</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">IssuedOn</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Invoice</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">License Number</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Invoice Date</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Due Date</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Delay Days</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Invoice Amount</th>
-                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {invoices.map((invoice) => (
-                <tr key={invoice._id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 text-sm text-gray-900">{invoice.serialNo}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{formatDate(invoice.createdAt)}</td>
-                  <td className="px-6 py-4 text-sm font-medium text-blue-600">{invoice.invoice}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{invoice.pharmadrugliseanceno}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{formatDate(invoice.invoiceDate)}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{formatDate(invoice.dueDate)}</td>
-                  <td className="px-6 py-4 text-sm font-medium text-red-600">{invoice.delayDays}</td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">₹{invoice.invoiceAmount}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => handleDisputeClick(invoice)}
-                        disabled={invoice.dispute || invoice.isDisputed}
-                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed inline-flex items-center gap-2
-                          ${invoice.dispute || invoice.isDisputed
-                            ? 'bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-500' 
-                            : 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500'
-                          }`}
-                      >
-                        {invoice.dispute || invoice.isDisputed ? 'Disputed' : 'Report Dispute'}
-                      </button>
-                      <button
-                        onClick={() => fetchDistributorData(invoice.customerId)}
-                        className="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
-                      >
-                        <User className="w-4 h-4" />
-                        View Distributor
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    <div className="pt-24 px-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header Section */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Defaults Dashboard</h1>
+          <p className="mt-2 text-gray-600">Track and manage your pharmacy defaults</p>
         </div>
 
+        {/* Stats Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatCard 
+            icon={FileText}
+            label="Total Report Defaults"
+            value={invoices.length}
+          />
+          <StatCard 
+            icon={AlertCircle}
+            label="Cleared Defaults"
+            value={invoices.filter(i => i.accept ).length}
+          />
+          <StatCard 
+            icon={AlertCircle}
+            color='red'
+            label="Rejected Defaults"
+            value={invoices.filter(i => i.reject ).length}
+          />
+          <StatCard 
+            icon={AlertCircle}
+            label="Disputed Defaults"
+            value={invoices.filter(i => i.dispute ).length}
+          />
+        </div>
+
+        {/* Alert Notice */}
+        <div className="mb-8 rounded-xl border border-amber-200 bg-amber-50 p-6">
+          <div className="flex items-start gap-4">
+            <AlertCircle className="h-6 w-6 text-amber-600 mt-1" />
+            <div>
+              <h3 className="text-lg font-semibold text-amber-800">Important Notice</h3>
+              <p className="mt-1 text-amber-700">
+                If your dispute has been rejected, please reach out to your distributor directly to resolve the matter. 
+                Open communication can help resolve most payment-related issues efficiently.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Invoices Table */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {invoices.map((invoice) => (
+                  <tr key={invoice._id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{invoice.invoice}</p>
+                        <p className="text-xs text-gray-500 mt-1">#{invoice.serialNo}</p>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div>
+                        <p className="text-sm text-gray-900">{formatDate(invoice.invoiceDate)}</p>
+                        <p className="text-xs text-gray-500 mt-1">Issued: {formatDate(invoice.createdAt)}</p>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div>
+                        <p className="text-sm text-gray-900">{formatDate(invoice.dueDate)}</p>
+                        <p className="text-xs text-red-500 mt-1">{invoice.delayDays} days delay</p>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm font-medium text-gray-900">₹{invoice.invoiceAmount.toLocaleString()}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <StatusBadge status={invoice} />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => handleDisputeClick(invoice)}
+                          disabled={invoice.dispute || invoice.isDisputed}
+                          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed inline-flex items-center gap-2
+                            ${invoice.dispute || invoice.isDisputed
+                              ? 'bg-gray-100 text-gray-600'
+                              : 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500'
+                            }`}
+                        >
+                          {invoice.dispute || invoice.isDisputed ? 'Disputed' : 'Report Issue'}
+                        </button>
+                        {invoice.reject && (
+                          <button
+                            onClick={() => fetchDistributorData(invoice.customerId)}
+                            className="px-4 py-2 bg-white text-gray-700 border border-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 inline-flex items-center gap-2"
+                          >
+                            <User className="w-4 h-4" />
+                            Contact
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
         {/* Dispute Modal */}
         {isDisputeModalOpen && (
           <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -368,7 +473,7 @@ const PharmaReport = () => {
           </div>
         )}
       </div>
-    </div>
+   
   );
 };
 

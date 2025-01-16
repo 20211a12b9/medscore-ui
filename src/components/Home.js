@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Mail, Phone, MapPin, Star, Shield, Bell, BarChart, Database, Headphones } from 'lucide-react';
+import { ArrowRight, Mail, Phone, MapPin, Star, Shield, Bell, BarChart, Database, Headphones ,Building2,Timer} from 'lucide-react';
 import { Github, Linkedin, Twitter, Instagram, Facebook, X } from 'lucide-react';
 import { HomeNavbar } from './HomeNavbar';
 import { useState } from 'react';
@@ -8,6 +8,7 @@ import { ChevronsRight, ArrowUpRight } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useEffect } from 'react';
 import { CalendarDays,ArrowUp } from 'lucide-react';
+import emailjs from '@emailjs/browser'; 
 const Card = ({ children, className, ...props }) => (
   <div className={`bg-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 ${className}`} {...props}>
     {children}
@@ -35,13 +36,59 @@ export const Home = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isLoggedIn = localStorage.getItem('jwttoken') !== null;
   const [isChecked, setIsChecked] = useState(false);
+  const [formData,setFormData]=useState({
+    name:'',
+    city:'',
+    phone:'',
+    businessname:'',
+    message:''
+  })
+  const [sending,setSending]=useState(false)
+  const handleChange=(e)=>{
+    setFormData({
+      ...formData,
+      [e.target.name]:e.target.value
 
-  const handleChange = (e) => {
-    setIsChecked(e.target.checked);
-    // if (onChange) {
-    //   onChange(e.target.checked);
-    // }
+    })
+  }
+  const handleSubmit =async (e) => {
+    e.preventDefault();
+    setSending(true);
+
+    try {
+      // Replace these with your actual EmailJS credentials
+      const templateParams = {
+        to_name: "Medscore",
+        from_name: formData.name,
+        from_city: formData.city,
+        phone: formData.phone,
+        business_name: formData.businessname,
+        message: formData.message
+      };
+
+      await emailjs.send(
+        'service_tam6f72', // Replace with your EmailJS service ID
+        'template_aadlafx', // Replace with your EmailJS template ID
+        templateParams,
+        'MB5Z4ns9hoVRCHL41' // Replace with your EmailJS public key
+      );
+
+      alert('Message sent successfully!');
+      setFormData({
+        name: '',
+        city: '',
+        phone: '',
+        businessname: '',
+        message: ''
+      });
+    } catch (error) {
+      alert('Failed to send message. Please try again.');
+      console.error('EmailJS Error:', error);
+    } finally {
+      setSending(false);
+    }
   };
+  
   const handleLogout = () => {
     localStorage.removeItem('jwttoken');
     localStorage.removeItem('userId');
@@ -200,7 +247,7 @@ export const Home = () => {
               {/* Decorative images - Hidden on mobile */}
               <div className="">
                 <img src="box-shape.png" alt="" className="absolute top-1 left-8 w-12 md:w-auto animate-slow-left-right" />
-                <img src="gap-box.png" alt="" className="absolute top-80 right-56 w-12 md:w-auto animate-slow-top-bottom hidden md:block" />
+                <img src="free.png" alt="" className="absolute top-[380px] right-80 w-12 h-36 md:w-auto animate-slow-top-bottom hidden md:block" />
                 <img src="cursor.png" alt="" className="absolute top-1 right-2 w-12 md:w-auto animate-slow-left-right" />
                 <img src="rocket-2.png" alt="" className="absolute -right-56 -mb-8 w-12 md:w-auto animate-slow-top-bottom hidden md:block" />
               </div>
@@ -209,49 +256,7 @@ export const Home = () => {
         </div>
       </div>
     </section>
-      {/* Enhanced About Section */}
-      {/* <section id="distributors" className="py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
-        <h2 className="text-4xl font-bold text-center mb-8 bg-gradient-to-b from-[#8dc0df]  to-[#121441] bg-clip-text text-transparent">
-            What is MedScore?
-        </h2>
-
-          <div className="relative overflow-hidden bg-gradient-to-r from-[#8dc0df] via-[#6eaece] to-[#517296] text-[#121441] text-center py-8 rounded-2xl shadow-xl mb-10 transform hover:scale-[1.02] transition-transform duration-300">
-            <p className="italic font-bold">
-              MedScore is the world's first credit score platform dedicated to the medical and
-              pharmaceutical industry. We provide a transparent, data-driven solution for assessing
-              creditworthiness, empowering both distributors and medical shops to build strong,
-              trust-based business relationships.
-            </p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-8">
-            {[
-              {
-                title: 'For Distributors',
-                description:
-                  'Evaluate the creditworthiness of medical shops to lower the risk of defaults.',
-                gradient: ' bg-gradient-to-r from-[#8dc0df] via-[#6eaece] to-[#517296] transform hover:scale-[1.02] transition-transform duration-300'
-              },
-              {
-                title: 'For Medical Shops',
-                description:
-                  'Build a transparent credit profile to access better terms and strengthen relationships.',
-                gradient: ' bg-gradient-to-r from-[#8dc0df] via-[#6eaece] to-[#517296] transform hover:scale-[1.02] transition-transform duration-300'
-              }
-            ].map((card, index) => (
-              <Card
-                key={index}
-                className={`group relative overflow-hidden rounded-2xl p-8 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br ${card.gradient}`}
-              >
-                <div className="relative z-10">
-                  <h3 className="text-2xl font-bold text-[#121441] mb-4">{card.title}</h3>
-                  <p className="text-[#282c56] italic font-bold">{card.description}</p>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section> */}
+    
      <section  id="distributors" className="py-40 bg-white">
       <div className="container mx-auto px-4 flex-row">
         <div className="flex flex-col md:flex-row items-center justify-between gap-12">
@@ -351,117 +356,70 @@ export const Home = () => {
        
       </div>
     </section>
-      {/* Enhanced Features Section */}
-      {/* <section id="features" className="py-24 bg-blue-50/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-center mb-8 bg-gradient-to-b from-[#8dc0df]  to-[#121441] bg-clip-text text-transparent">
-            Powerful Features
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <Card
-                key={index}
-                className="bg-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
-              >
-                <div className="mb-4 p-3 bg-blue-50 rounded-lg w-fit">
-                  {feature.icon}
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
-              </Card>
-            ))}
+     
+  
+  <section id='features' className="py-20 sm:py-24 lg:py-40" style={{ backgroundImage: `url('img/team/team-bg.jpg')`}}>
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <h1 className='text-6xl font-bold flex justify-items-start justify-self-start text-left mb-20'>Powerful Features</h1>
+    <div className="flex flex-col gap-10">
+      {/* First Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-12">
+        <div className="flex flex-row items-start space-x-4 animate-fadeIn border-2 border-gray-200 rounded-3xl p-6">
+          <img src="img/service/icon-1.png" alt="Dashboard Icon" className="w-12 sm:w-16" />
+          <div>
+            <h3 className="font-bold text-xl sm:text-2xl">Dashboard</h3>
+            <p className="text-sm sm:text-base text-gray-600">Complete view of credit scores and trends.</p>
           </div>
         </div>
-      </section> */}
-  <section id='features' className='py-40'  style={{ backgroundImage: `url('img/team/team-bg.jpg')`}}>
-  <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-  <h1 className='text-6xl font-bold flex justify-items-start justify-self-start text-left mb-20'>Powerful Features</h1>
-  <div className='flex flex-col gap-10'>
-  <div className='flex flex-row gap-32'>
-    <div className='flex flex-row items-start space-x-8 animate-fadeIn border-2 border-gray-200 rounded-3xl p-6'>
-    <img src='img/service/icon-1.png' alt='img'/>
-     <div>
-     <h3 className='font-bold text-2xl'>Dashboard</h3>
-     <p>complete View of Credit score and scale</p>
-     </div>
-    </div>
-    <div className='flex flex-row items-start space-x-8 animate-fadeIn border-2 border-gray-200 rounded-3xl p-6'>
-    <img src='img/service/icon-2.png' alt='img'/>
-     <div>
-     <h3 className='font-bold text-2xl'>Custom Reports</h3>
-     <p>complete View of Credit score and scale</p>
-     </div>
-    </div>
-    <div className='flex flex-row items-start space-x-8 animate-fadeIn border-2 border-gray-200 rounded-3xl p-6'>
-    <img src='img/service/icon-3.png' alt='img'/>
-     <div>
-     <h3 className='font-bold text-2xl'>Real-Time Alerts</h3>
-     <p>complete View of Credit score and scale</p>
-     </div>
-    </div>
-  </div>
-  <div className='flex flex-row gap-36'>
-   <div className='flex flex-row items-start space-x-8 animate-fadeIn border-2 border-gray-200 rounded-3xl p-6'>
-    <img src='img/service/icon-4.png' alt='img'/>
-     <div>
-     <h3 className='font-bold text-2xl'>API Access</h3>
-     <p>complete View of Credit score and scale</p>
-     </div>
-    </div>
-    <div className='flex flex-row items-start space-x-8 animate-fadeIn border-2 border-gray-200 rounded-3xl p-6'>
-    <img src='img/service/icon-5.png' alt='img'/>
-     <div>
-     <h3 className='font-bold text-2xl'>24/7 Support</h3>
-     <p>complete View of Credit score and scale</p>
-     </div>
-    </div>
-    <div className='flex flex-row items-start space-x-8 animate-fadeIn border-2 border-gray-200 rounded-3xl p-6'>
-    <img src='img/service/icon-6.png' alt='img'/>
-     <div>
-     <h3 className='font-bold text-2xl'>Data Security</h3>
-     <p>complete View of Credit score and scale</p>
-     </div>
+        <div className="flex flex-row items-start space-x-4 animate-fadeIn border-2 border-gray-200 rounded-3xl p-6">
+          <img src="img/service/icon-2.png" alt="Custom Reports Icon" className="w-12 sm:w-16" />
+          <div>
+            <h3 className="font-bold text-xl sm:text-2xl">Custom Reports</h3>
+            <p className="text-sm sm:text-base text-gray-600">Actionable insights tailored to your needs.</p>
+          </div>
+        </div>
+        <div className="flex flex-row items-start space-x-4 animate-fadeIn border-2 border-gray-200 rounded-3xl p-6">
+          <img src="img/service/icon-3.png" alt="Real-Time Alerts Icon" className="w-12 sm:w-16" />
+          <div>
+            <h3 className="font-bold text-xl sm:text-2xl">Real-Time Alerts</h3>
+            <p className="text-sm sm:text-base text-gray-600">Stay informed about changes instantly</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Second Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-12">
+        <div className="flex flex-row items-start space-x-4 animate-fadeIn border-2 border-gray-200 rounded-3xl p-6">
+          <img src="img/service/icon-4.png" alt="API Access Icon" className="w-12 sm:w-16" />
+          <div>
+            <h3 className="font-bold text-xl sm:text-2xl">API Access</h3>
+            <p className="text-sm sm:text-base text-gray-600">Integrate MedScore with your systems.</p>
+          </div>
+        </div>
+        <div className="flex flex-row items-start space-x-4 animate-fadeIn border-2 border-gray-200 rounded-3xl p-6">
+          <img src="img/service/icon-5.png" alt="24/7 Support Icon" className="w-12 sm:w-16" />
+          <div>
+            <h3 className="font-bold text-xl sm:text-2xl">24/7 Support</h3>
+            <p className="text-sm sm:text-base text-gray-600">Help is always at hand.</p>
+          </div>
+        </div>
+        <div className="flex flex-row items-start space-x-4 animate-fadeIn border-2 border-gray-200 rounded-3xl p-6">
+          <img src="img/service/icon-6.png" alt="Data Security Icon" className="w-12 sm:w-16" />
+          <div>
+            <h3 className="font-bold text-xl sm:text-2xl">Data Security</h3>
+            <p className="text-sm sm:text-base text-gray-600">Your information is safe with us.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-  </div>
-  
-  </div>
-   
+</section>
   
 
      
   
-  </section>
-      {/* Why Choose MedScore? */}
-      {/* <section id="why-choose" className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-center mb-8 bg-gradient-to-b from-[#8dc0df]  to-[#412b12] bg-clip-text text-transparent">
-            Why Choose MedScore?
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="flex flex-col items-center text-center ">
-              <Shield className="w-12 h-12 text-[#121441] mb-4 shadow-2xl mb-10 transform hover:scale-[1.11] transition-transform duration-300" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Data Security</h3>
-              <p className="text-[#282c56] italic font-semibold">
-                Advanced security protocols to ensure the safety and privacy of your information.
-              </p>
-            </div>
-            <div className="flex flex-col items-center text-center">
-              <Headphones className="w-12 h-12 text-[#121441] mb-4 shadow-2xl mb-10 transform hover:scale-[1.11] transition-transform duration-300" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">24/7 Support</h3>
-              <p className="text-[#282c56] italic font-semibold">
-                Dedicated support team available around the clock to assist you.
-              </p>
-            </div>
-            <div className="flex flex-col items-center text-center">
-              <BarChart className="w-12 h-12 text-[#121441] mb-4 shadow-2xl mb-10 transform hover:scale-[1.11] transition-transform duration-300" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Reliable Insights</h3>
-              <p className="text-[#282c56] italic font-semibold">
-                Robust, data-backed credit scores tailored for the pharmaceutical industry.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section> */}
+ 
+     
  <section id="why-choose" className="py-24 bg-gradient-to-r from-[#f1bebb]  to-[#dbdbdd]  ">
   <div className="container mx-auto px-4">
     <div className="text-center mb-16">
@@ -542,43 +500,7 @@ export const Home = () => {
       </div>
     </section>
 
-      {/* <section className="py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-center mb-8 bg-gradient-to-b from-[#8dc0df]  to-[#121441] bg-clip-text text-transparent">
-            What Our Users Say
-          </h2>
-          <div className="grid md:grid-cols-2 gap-8 ">
-            {[
-              {
-                text: "MedScore has become an essential tool for our distribution business. It helps us identify credit risks early and manage cash flow better than ever.",
-                author: 'Rajesh P.',
-                role: 'Pharmaceutical Distributor'
-              },
-              {
-                text: "We never realized how important our credit score was to getting better terms from distributors. MedScore made it easy to track and improve.",
-                author: 'Neha K.',
-                role: 'Medical Shop Owner'
-              }
-            ].map((testimonial, index) => (
-              <Card
-                key={index}
-                className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300"
-              >
-                <div className="flex gap-2 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-current text-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-gray-600 mb-6 italic">"{testimonial.text}"</p>
-                <div>
-                  <p className="font-semibold text-gray-900">{testimonial.author}</p>
-                  <p className="text-[#282c56] italic font-semibold">{testimonial.role}</p>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section> */}
+     
   <section className="py-12 sm:py-16 md:py-20 lg:py-24">
   <div className="flex flex-col lg:flex-row gap-12 sm:gap-16 lg:gap-24 px-4 sm:px-6 lg:px-8">
     {/* Left Section */}
@@ -678,9 +600,85 @@ export const Home = () => {
   </div>
 </section>
 
+       {/* Contact Section */}
+       <div id='FAQ' className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+      <div className="bg-white rounded-lg shadow-xl p-8">
+        <h2 className="text-4xl font-bold text-[#2C3E50] text-center mb-12">Let's Connect</h2>
+        <div className="flex justify-center">
+          <div className="w-full max-w-md">
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              <div>
+                <label className="block text-gray-700 mb-2">Name</label>
+                <input 
+                  type="text" 
+                  className="w-full p-3 border rounded-lg bg-gray-100" 
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 mb-2">City</label>
+                <input 
+                  type="text"
+                  className="w-full p-3 border rounded-lg bg-gray-100"
+                  id="city"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleChange}
+                  required 
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 mb-2">Phone Number</label>
+                <input 
+                  type="tel" 
+                  className="w-full p-3 border rounded-lg bg-gray-100"
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 mb-2">Business Name</label>
+                <input 
+                  type="text" 
+                  className="w-full p-3 border rounded-lg bg-gray-100"
+                  id="businessname"
+                  name="businessname"
+                  value={formData.businessname}
+                  onChange={handleChange}
+                  required 
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 mb-2">Message</label>
+                <textarea 
+                  className="w-full p-3 border rounded-lg h-32 bg-gray-100"
+                  id="message"
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  required 
+                ></textarea>
+              </div>
+              <button 
+                type="submit"
+                className="bg-[#00A9E0] text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-opacity-90 transition-all w-full"
+              >
+                {sending ? "Sending..." : "Send Message"}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
       
-      
-      <section className="py-24 -mb-52 relative hidden lg:block">
+      <section className="py-24 -mb-44 relative hidden lg:block">
   <div className="relative">
     <img className="absolute right-6 -top-20 md:w-auto animate-slow-top-bottom" src="img/rokect.png" />
   </div>
@@ -700,170 +698,134 @@ export const Home = () => {
 </section>
 
 
-      <section className='bg-[#18185E] py-20 sm:py-32 lg:py-60'>
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4  lg:gap-36'>
-               <div className='flex flex-col'>
-                   <img className='w-36 left-16 relative -top-10' src='img/logo/white-logo.png'/>
-                   <h2 className='text-white font-light text-justify ml-14'>MedScore is the world's first credit score platform dedicated to the medical and pharmaceutical industry.</h2>
-                   <div className='flex flex-row gap-5  text-white mt-10 ml-14'>
-                   <a
-                href="https://www.instagram.com/medscore.in/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:bg-[#121441] transition-colors border-[1px] p-2 rounded-sm border-white hover:border-[#121441]"
-              >
-                <Instagram className="w-7 h-7 " />
-              </a>
+<footer className="bg-[#18185E] py-16 px-6 lg:py-24">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+        {/* Company Info */}
+        <div className="space-y-6">
+          <img 
+            className="w-36 h-auto" 
+            src="img/logo/white-logo.png" 
+            alt="MedScore Logo"
+          />
+          <p className="text-white/90 text-sm leading-relaxed">
+            MedScore is the world's first credit score platform dedicated to the medical and pharmaceutical industry.
+          </p>
+          <div className="flex gap-4">
+            {[
+              { icon: <Instagram />, href: "https://www.instagram.com/medscore.in/" },
+              { icon: <X />, href: "https://x.com/Medscore_in" },
+              { icon: <Facebook />, href: "https://www.facebook.com/Medscore.in/" },
+              { icon: <Linkedin />, href: "https://www.linkedin.com/company/medscore-in/" }
+            ].map((social, index) => (
               <a
-                href="https://x.com/Medscore_in"
+                key={index}
+                href={social.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:bg-[#121441] transition-colors border-[1px] p-2 rounded-sm border-white hover:border-[#121441]"
+                className="p-2 text-white border border-white/20 rounded-md hover:bg-white/10 transition-colors"
               >
-                <X className="w-7 h-7" />
+                {social.icon}
               </a>
-              <a
-                href="https://www.facebook.com/Medscore.in/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:bg-[#121441] transition-colors border-[1px] p-2 rounded-sm border-white hover:border-[#121441]"
-              >
-                <Facebook className="w-7 h-7" />
-              </a>
-              <a
-                href="https://www.linkedin.com/company/medscore-in/?viewAsMember=true"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:bg-[#121441] transition-colors border-[1px] p-2 rounded-sm border-white hover:border-[#121441] "
-              >
-                <Linkedin className="w-7 h-7" />
-              </a>
-                   </div>
-               </div>
-               <div className='flex flex-col '>
-                  <h1 className='font-bold text-2xl text-white underline decoration-white underline-offset-4 mb-10'>Quick Links</h1>
-                  <span class="text-4xl font-thin text-white flex flex-row gap-4 hover:translate-x-2 transition-transform duration-200 ">&raquo;<button
-                onClick={() => scrollToSection('about')}
-                className=" transition-colors font-thin text-xl "
-              >
-                About
-              </button></span>
-              <span class="text-4xl font-thin text-white flex flex-row gap-4 hover:translate-x-2 transition-transform duration-200 ">&raquo;<button
-                onClick={() => scrollToSection('features')}
-                className=" transition-colors font-thin text-xl "
-              >
-                Features
-              </button></span>
-              <span class="text-4xl font-thin text-white flex flex-row gap-4 hover:translate-x-2 transition-transform duration-200 ">&raquo;<button
-                onClick={() => scrollToSection('BlogList')}
-                className=" transition-colors font-thin text-xl "
-              >
-                Our Blogs
-              </button></span>
-              <span class="text-4xl font-thin text-white flex flex-row gap-4 hover:translate-x-2 transition-transform duration-200 ">&raquo;<button
-                onClick={() => scrollToSection('about')}
-                className=" transition-colors font-thin text-xl "
-              >
-                FAQ’S
-              </button></span>
-              <span class="text-4xl font-thin text-white flex flex-row gap-4 hover:translate-x-2 transition-transform duration-200 ">&raquo;<button
-                onClick={() => scrollToSection('contactUs')}
-                className=" transition-colors font-thin text-xl "
-              >
-                Contact Us
-              </button></span>
-               </div>
-               <div className='flex flex-col'>
-                  <h1 className='font-bold text-2xl text-white underline decoration-white underline-offset-4 mb-10'>Recent Posts</h1>
-                  <div className="space-y-6">
-      {posts.map((post, index) => (
-        <div 
-          key={post.id} 
-          className={`flex flex-row gap-4 ${
-            index === posts.length - 1 ? '' : 'mb-6'
-          }`}
-        >
-          <div className="flex-shrink-0">
-            <img 
-              src={post.image} 
-              alt="post thumbnail" 
-              className="w-16 h-16 object-cover rounded"
-            />
-          </div>
-          <div className="flex-grow">
-            <ul className="mb-2">
-              <li className="flex items-center text-gray-600 text-sm text-white">
-                <CalendarDays className="w-4 h-4 mr-2 text-white" />
-                {post.date}
-              </li>
-            </ul>
-            <h6 className="text-base font-thin">
-              <a 
-                href={post.link}
-                className="hover:text-blue-600 transition-colors duration-200 text-white"
-              >
-                {post.title.split('<br>').map((line, i) => (
-                  <React.Fragment key={i}>
-                    {line}
-                    {i < post.title.split('<br>').length - 1 && <br />}
-                  </React.Fragment>
-                ))}
-              </a>
-            </h6>
-            
+            ))}
           </div>
         </div>
-      ))}
-    </div>
-               </div>
-               <div className='flex flex-col '>
-                  <h1 className='font-bold text-2xl text-white underline decoration-white underline-offset-4 mb-10'>Contact Us</h1>
-                  <div className='flex flex-row'>
-                  <div id="contactUs" className="flex flex-col gap-2 text-white">
-              <a href="mailto:support@medscore.in" className="hover:text-red-500 transition-colors font-bold">
-                <Mail className="w-5 h-5 inline-block mr-2 " /> support@medscore.in
-              </a>
-              <a href="tel:9347070310" className="hover:text-red-500 transition-colors font-bold">
-                <Phone className="w-5 h-5 inline-block mr-2" /> 9347070310
-              </a>
-              {/* <div className='hover:text-red-500 transition-colors font-bold'>
-                <MapPin className="w-7 h-7 inline-block mr-2 " /> Incubated by AIC Aleap We Hub ( supported by AIM,NITI AAYOG,GOI ) 
-                Head Office : Hyderabad - Telangana, India .
-              </div> */}
-              <div className='flex flex-row'>
-              <MapPin className="w-11 h-11 inline-block mr-2 " />
-              <h1 className='text-xs text-justify'>
-              Incubated by AIC Aleap We Hub ( supported by AIM,NITI AAYOG,GOI )
-              Head Office : Hyderabad - Telangana, India .
-              </h1>
-              </div>
-              <div className="flex items-center gap-2">
-      <input
-        type="checkbox"
-        id="privacyCheckbox"
-        // checked={isChecked}
-        // onChange={handleChange}
-        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-      />
-      <label 
-        htmlFor="privacyCheckbox" 
-        className="text-sm text-white cursor-pointer select-none"
-      >
-        I agree to the{' '}
-        <a 
-          href="/PrivacyPolicy" 
-          className="text-white hover:text-blue-800 underline"
-        >
-          Privacy Policy.
-        </a>
-      </label>
-    </div>
-            </div>
+
+        {/* Quick Links */}
+        <div className="space-y-6">
+          <h3 className="text-xl font-semibold text-white border-b border-white/20 pb-2">
+            Quick Links
+          </h3>
+          <nav className="space-y-3">
+            {['about', 'features', 'BlogList', 'FAQ\'S', 'contactUs'].map((section, index) => (
+              <button
+                key={index}
+                onClick={() => scrollToSection(section)}
+                className="flex items-center text-white/90 hover:text-white group w-full"
+              >
+                <span className="text-lg mr-2 group-hover:translate-x-1 transition-transform">→</span>
+                <span className="text-sm font-medium">{section.charAt(0).toUpperCase() + section.slice(1)}</span>
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        {/* Recent Posts */}
+        <div className="space-y-6">
+          <h3 className="text-xl font-semibold text-white border-b border-white/20 pb-2">
+            Recent Posts
+          </h3>
+          <div className="space-y-6">
+            {posts?.map((post) => (
+              <article key={post.id} className="flex gap-4">
+                <img 
+                  src={post.image} 
+                  alt="" 
+                  className="w-16 h-16 object-cover rounded-md"
+                />
+                <div>
+                  <div className="flex items-center text-white/60 text-xs mb-1">
+                    <CalendarDays className="w-4 h-4 mr-1" />
+                    {post.date}
                   </div>
-               </div>
+                  <a 
+                    href={post.link}
+                    className="text-white/90 text-sm hover:text-white transition-colors line-clamp-2"
+                  >
+                    {post.title}
+                  </a>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        {/* Contact Info */}
+        <div className="space-y-6">
+          <h3 className="text-xl font-semibold text-white border-b border-white/20 pb-2">
+            Contact Us
+          </h3>
+          <div className="space-y-4">
+            <a 
+              href="mailto:support@medscore.in" 
+              className="flex items-center text-white/90 hover:text-white group"
+            >
+              <Mail className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+              <span className="text-sm">support@medscore.in</span>
+            </a>
+            <a 
+              href="tel:9347070310" 
+              className="flex items-center text-white/90 hover:text-white group"
+            >
+              <Phone className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+              <span className="text-sm">9347070310</span>
+            </a>
+            <div className="flex items-start text-white/90">
+              <MapPin className="w-5 h-5 mr-2 flex-shrink-0 mt-1" />
+              <p className="text-sm">
+                Incubated by AIC Aleap We Hub (supported by AIM, NITI AAYOG, GOI)
+                Head Office: Hyderabad - Telangana, India
+              </p>
             </div>
-          
-      </section>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="privacyCheckbox"
+                className="h-4 w-4 rounded border-white/20 bg-transparent text-blue-500 focus:ring-blue-500 cursor-pointer"
+              />
+              <label className="text-sm text-white/90 cursor-pointer">
+                I agree to the{' '}
+                <button 
+                  onClick={()=>navigate('/PrivacyPolicy')}
+                  className="underline hover:text-white transition-colors"
+                >
+                  Privacy Policy
+                </button>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
       <div className="footer-bottom bg-gray-800 text-white py-6">
   <div className="container mx-auto px-4">
     <div className="footer-wrapper flex flex-col sm:flex-row items-center justify-between">
@@ -872,14 +834,14 @@ export const Home = () => {
       </p>
       <ul className="footer-menu flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 fadeInRight" style={{ animationDelay: '.5s' }}>
         <li>
-          <a href="/TermsConditions" className="text-gray-400 hover:text-white transition duration-300">
+          <button  className="text-gray-400 hover:text-white transition duration-300" onClick={()=>navigate('/TermsConditions')}>
             Terms & Condition
-          </a>
+          </button>
         </li>
         <li>
-          <a href="/PrivacyPolicy" className="text-gray-400 hover:text-white transition duration-300">
+          <button onClick={()=>navigate('/PrivacyPolicy')} className="text-gray-400 hover:text-white transition duration-300">
             Privacy Policy
-          </a>
+          </button>
         </li>
       </ul>
     </div>

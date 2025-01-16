@@ -7,6 +7,7 @@ import { LogOut, Search,X ,Menu, User} from 'lucide-react';
 import { PharmaNavbar } from './PharmaNavbar';
 const PharmaProfile = () => {
   const [distributorData, setDistributorData] = useState(null);
+  
 const navigate=useNavigate();
   useEffect(() => {
     const fetchDistributorData = async () => {
@@ -83,7 +84,7 @@ const navigate=useNavigate();
   const status = getExpiryStatus();
 
   return (
-    <div className="bg-white max-w-4xl mx-auto p-4 space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
       <div className="fixed top-0 left-0 w-full z-50">
         <PharmaNavbar/>
       </div>

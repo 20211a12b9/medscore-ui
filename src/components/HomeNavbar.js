@@ -26,17 +26,7 @@ export const HomeNavbar = () => {
       }
     }
   };
-  // const scrollToSection = (id) => {
-  //   if (id === '/') {
-  //     // If on the home page, scroll to the top
-  //     window.scrollTo({ top: 0, behavior: 'smooth' });
-  //   } else {
-  //     const element = document.getElementById(id);
-  //     if (element) {
-  //       element.scrollIntoView({ behavior: 'smooth' });
-  //     }
-  //   }
-  // };
+ 
   return (
     <nav 
       className='relative md:flex items-center justify-between p-4 bg-[#121441] shadow-md font-mono cursor-pointer'
@@ -107,7 +97,7 @@ export const HomeNavbar = () => {
       className='font-mono bg-[#74b4d5] text-white hover:bg-[#17012C] px-7 py-4 rounded-3xl shadow-md transition-colors duration-300 flex items-center'
       aria-label="Go to Register"
     >
-      Get Started 
+      Register 
       <ChevronsRight className="ml-2 h-4 w-4" />
     </button>
       </div>
@@ -117,7 +107,7 @@ export const HomeNavbar = () => {
           <div className='flex flex-col'>
             <button 
               onClick={() => {
-                navigate('/Home');
+                navigate('/');
                 setIsMobileMenuOpen(false);
               }} 
               className='w-full text-left p-4 border-b hover:bg-gray-100'

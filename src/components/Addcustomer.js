@@ -1,6 +1,6 @@
-import React, { useState,useCallback,useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, Calendar, DollarSign, FileText, Clock } from 'lucide-react';
+import { AlertCircle, Calendar, DollarSign, FileText, Clock ,Search,Building2,Phone,MapPin} from 'lucide-react';
 import { config } from '../config';
 import { Navbar } from './Navbar';
 
@@ -11,356 +11,320 @@ export const Addcustomer = () => {
         phone_number: '',
         dl_code: '',
         address: '',
-        password:'123',
+        password: '123',
         user_type: 'pharmacy',
-        expiry_date:'',
+        expiry_date: '',
     });
 
-    const [license, setLicenseNo] = useState('');
-    const [pharmacyData, setPharmacyData] = useState(0);
+    const [isManualEntry, setIsManualEntry] = useState(false);
     const [suggestionList, setSuggestionList] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
+    const [hasSelectedSuggestion, setHasSelectedSuggestion] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
 
     const debounce = (func, delay) => {
         let timeoutId;
         return (...args) => {
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-          }
-          timeoutId = setTimeout(() => {
-            func(...args);
-          }, delay);
+            if (timeoutId) clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => func(...args), delay);
         };
-      };
-    
-      // Fetch pharmacy suggestions
-      const fetchPharmacySuggestions = useCallback(async (searchTerm) => {
-        if (!searchTerm.trim()) {
-          setSuggestionList([]);
-          setShowSuggestions(false);
-          return;
+    };
+
+    const fetchPharmacySuggestions = useCallback(async (searchTerm) => {
+        if (hasSelectedSuggestion) {
+            return;
         }
-    
-        try {
-          const license2 = searchTerm.trim().toUpperCase();
-          const response = await fetch(
-            `${config.API_HOST}/api/user/getPharmaCentalData?licenseNo=${license2}`,
-            {
-              method: 'GET',
-              credentials: 'include',
-              headers: {
-                'Accept': 'application/json',
-              }
-            }
-          );
-          
-          const result = await response.json();
-    
-          if (!response.ok) {
-            throw new Error(result.message || 'Failed to fetch pharmacy suggestions');
-          }
-    
-          if (result.data && result.data.length > 0) {
-            console.log(result.data,"result------")
-            setSuggestionList(result.data);
-            setShowSuggestions(true);
-          } else {
+        if (!searchTerm.trim()) {
             setSuggestionList([]);
             setShowSuggestions(false);
-          }
+            return;
+        }
+
+        try {
+            const license2 = searchTerm.trim().toUpperCase();
+            const response = await fetch(
+                `${config.API_HOST}/api/user/getPharmaCentalData?licenseNo=${license2}`,
+                {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: { 'Accept': 'application/json' }
+                }
+            );
+
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message);
+
+            setSuggestionList(result.data || []);
+            setShowSuggestions(Boolean(result.data?.length));
         } catch (err) {
-          console.error('Error fetching pharmacy suggestions:', err);
-          setSuggestionList([]);
-          setShowSuggestions(false);
+            console.error('Error:', err);
+            setSuggestionList([]);
+            setShowSuggestions(false);
         }
-      }, []);
-    
-      // Create a debounced version of fetchPharmacySuggestions
-      const debouncedFetchSuggestions = useCallback(
-        debounce(fetchPharmacySuggestions, 300), // 300ms delay
+    }, [hasSelectedSuggestion, isManualEntry]);
+
+    const debouncedFetchSuggestions = useCallback(
+        debounce(fetchPharmacySuggestions, 300),
         [fetchPharmacySuggestions]
-      );
-    
-      // Handle input change
-      useEffect(() => {
-        if (formData.pharmacy_name.trim()) {
-          debouncedFetchSuggestions(formData.pharmacy_name);
+    );
+
+    useEffect(() => {
+        if (formData.pharmacy_name.trim() && !hasSelectedSuggestion && !isManualEntry) {
+            debouncedFetchSuggestions(formData.pharmacy_name);
         } else {
-          // Clear everything when search is empty
-          setSuggestionList([]);
-          setShowSuggestions(false);
-         
+            setSuggestionList([]);
+            setShowSuggestions(false);
         }
-      }, [formData.pharmacy_name, debouncedFetchSuggestions]);
-    
-      // Handle suggestion selection
-      const handleSuggestionSelect = (selectedPharmacy) => {
-        // Robust date conversion function
+    }, [formData.pharmacy_name, debouncedFetchSuggestions, hasSelectedSuggestion, isManualEntry]);
+
+    const handleSuggestionSelect = (selectedPharmacy) => {
         const convertToValidDate = (dateValue) => {
-            // If it's already in DD-MM-YYYY format
             if (typeof dateValue === 'string' && dateValue.includes('-')) {
-                // Split the date and rearrange to YYYY-MM-DD
                 const [day, month, year] = dateValue.split('-');
-                // Ensure month is padded correctly
                 return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
             }
-            
-            // If it's an Excel date number
             if (!isNaN(parseFloat(dateValue))) {
-                // Convert Excel date
                 const excelDate = parseFloat(dateValue);
-                const days = Math.floor(excelDate);
-                
-                // Create a new Date object
-                const jsDate = new Date(1899, 11, 30); // Excel's epoch start
-                jsDate.setDate(jsDate.getDate() + days);
-                
-                // Format as YYYY-MM-DD
-                const year = jsDate.getFullYear();
-                const month = (jsDate.getMonth() + 1).toString().padStart(2, '0');
-                const day = jsDate.getDate().toString().padStart(2, '0');
-                
-                return `${year}-${month}-${day}`;
+                const jsDate = new Date(1899, 11, 30);
+                jsDate.setDate(jsDate.getDate() + Math.floor(excelDate));
+                return jsDate.toISOString().split('T')[0];
             }
-            
-            // If no valid date is found, return empty string
             return '';
         };
-    
-        console.log('Original Date:', selectedPharmacy.ExpDate);
-        const convertedDate = convertToValidDate(selectedPharmacy.ExpDate || '');
-        console.log('Converted Date:', convertedDate);
-    
-        setFormData(prevData => ({
-            ...prevData,
+
+        setFormData(prev => ({
+            ...prev,
             pharmacy_name: selectedPharmacy.FirmName,
             dl_code: selectedPharmacy.LicenceNumber,
             address: selectedPharmacy.Address,
-            expiry_date: convertedDate
+            expiry_date: convertToValidDate(selectedPharmacy.ExpDate || '')
         }));
-        
-        // Clear suggestions
+
+        setHasSelectedSuggestion(true);
         setSuggestionList([]);
         setShowSuggestions(false);
     };
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         
-        // Existing cases for pharmacy_name and dl_code
-        if (name === 'pharmacy_name') {
-            setFormData({
-                ...formData,
+        if (name === 'pharmacy_name' || name === 'dl_code') {
+            setFormData(prev => ({
+                ...prev,
                 [name]: value.toUpperCase(),
-            });
-        } 
-        else if (name === 'dl_code') {
-            setFormData({
-                ...formData,
-                [name]: value.toUpperCase(),
-            });
-        } 
-        // New case for expiry_date
-        else if (name === 'expiry_date') {
-            setFormData({
-                ...formData,
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
                 [name]: value,
-            });
+            }));
         }
-        else {
-            setFormData({
-                ...formData,
-                [name]: value,
-            });
+
+        if (name === 'pharmacy_name' && !isManualEntry) {
+            setHasSelectedSuggestion(false);
+        }
+    };
+
+    const toggleManualEntry = () => {
+        setIsManualEntry(!isManualEntry);
+        if (!isManualEntry) {
+            setHasSelectedSuggestion(false);
+            setSuggestionList([]);
+            setShowSuggestions(false);
         }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const { pharmacy_name, email, phone_number, dl_code, address, user_type,expiry_date } = formData;
+        setIsLoading(true);
+        const { pharmacy_name, phone_number, dl_code, address, expiry_date } = formData;
 
-       if(!pharmacy_name  || !phone_number || !dl_code || !address )
-       {
-        alert("All fields are mandatory!");
+        if (!pharmacy_name || !phone_number || !dl_code || !address) {
+            alert("All fields are mandatory!");
             return;
-       }
+        }
 
-       
-       const dist_pharmacy_name = localStorage.getItem('pharmacy_name');
         try {
-            const endpoint = user_type === 'pharmacy' 
-                ? `${config.API_HOST}/api/user/Pharmacyregister`
-                : `${config.API_HOST}/api/user/Distributorregister`;
-
             const response = await fetch(`${config.API_HOST}/api/user/Pharmacyregister`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
             });
 
             const data = await response.json();
-            const fullPhoneNumber = `91${formData.phone_number.trim()}`;
+            
             if (response.ok) {
-               
-                 await fetch(`https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=uewziuRKDUWctgdrHdXm5g&senderid=MEDSCR&channel=2&DCS=0&flashsms=0&number=${fullPhoneNumber}&text=Hello  ${formData.pharmacy_name}, your information has been successfully added to MedScore by distributor ${''} . To access your account, please go to medscore.in Select ‘Forgot Password’ and use your drug license number as the username to reset your password and log in. Best regards, MedScore&route=1`,{mode: "no-cors"});
+                const fullPhoneNumber = `91${formData.phone_number.trim()}`;
+                console.log("full phone numebr",fullPhoneNumber)
+               const smsResult = await fetch(`${config.API_HOST}/api/user/sendSMS`, {
+                               method: 'POST',
+                               headers: { 'Content-Type': 'application/json' },
+                               body: JSON.stringify({
+                                 phone: fullPhoneNumber,
+                                 message: `Hello ${formData.pharmacy_name} , your information has been successfully added to MedScore by distributor  . To access your account, please go to medscore.in Select ‘Forgot Password’ and use your drug license number as the username to reset your password and log in. Best regards, MedScore`
+                               })
+                             });
+                       
+                             if (!smsResult.ok) {
+                               
+                               throw new Error('Failed to send SMS');
+                             }
+
+                const customerId = localStorage.getItem('userId');
+                await fetch(`${config.API_HOST}/api/user/linkPharma/${customerId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pharmaId: data.user._id }),
+                });
 
                 alert("Customer details added successfully!");
-                
-                const pharmaId=data.user._id;
-                console.log("pharcy id",pharmaId)
-                const customerId = localStorage.getItem('userId');
-                const response = await fetch(`${config.API_HOST}/api/user/linkPharma/${customerId}`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({ pharmaId }),
-                });
-            
-                const result = await response.json();
-            
-                if (!response.ok) {
-                  throw new Error(result.message || 'Failed to link pharmacy');
-                }
-                console.log("linked")
                 navigate('/DistributorHomePage');
             } else {
-                console.error('failed:', data.message);
-                alert(` failed: ${data.message}`);
+                alert(`Failed: ${data.message}`);
             }
         } catch (error) {
             console.error('Error:', error);
             alert("An error occurred. Please try again.");
         }
+        finally{
+            setIsLoading(false);
+        }
     };
-
+    const handlesuggession =()=>{
+        setShowSuggestions(false)
+    }
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-[#E3F2FD] to-[#BBDEFB] p-4">
-            <div className="fixed top-0 left-0 w-full z-50">
-  <Navbar />
-</div>
-            <div className="w-full max-w-md bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-12 transform transition-all hover:scale-[1.01] mt-10">
-                <div className="flex flex-col items-center mb-6">
-                    <img 
-                        src="/medscorelogo.jpeg" 
-                        alt="Medscore Logo" 
-                        className="w-[180px] h-auto object-contain mx-auto mb-4 drop-shadow-md transform transition-all duration-300 hover:scale-105"
-                    />
-                    <p className="text-[#1565C0] text-sm font-medium mt-2">Credit Simplified, Amplified</p>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-5 bg-white/80 p-6 rounded-xl">
-                   
-                    
-                    <div className="space-y-4">
-                        <input
-                            type="text"
-                            name="pharmacy_name"
-                            placeholder={formData.user_type === 'pharmacy' ? "Pharmacy Name" : "Distributor Name"}
-                            value={formData.pharmacy_name}
-                            onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
-                            required
-                        />
-                           {showSuggestions && suggestionList.length > 0 && (
-    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-        {suggestionList.map((suggestion, index) => (
-            <div 
-                key={index} 
-                onClick={() => handleSuggestionSelect(suggestion)}
-                className="p-2 hover:bg-gray-100 cursor-pointer border-b last:border-b-0 border-gray-200"
-            >
-                <div className="font-semibold text-sm">
-                    {suggestion.FirmName || suggestion.firm_name || suggestion.pharmacy_name}
-                </div>
-                <div className="text-xs text-gray-600">
-                    License: {suggestion.LicenceNumber || suggestion.license_number}
-                </div>
-                <div className="text-xs text-gray-600">
-                    Address: {suggestion.Address || suggestion.address}
-                </div>
-            </div>
-        ))}
-    </div>
-)}
-                         <small className="absolute text-xs text-gray-500 mt-1">* Will be automatically capitalized</small>
-                        {/* <input
-                            type="email"
-                            name="email"
-                            placeholder="Owner`s Email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
-                           
-                        /> */}
-                        
-                        <input
-                            type="text"
-                            name="phone_number"
-                            placeholder="Owner Phone Number"
-                            value={formData.phone_number}
-                            onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
-                            required
-                        />
-                        <input
-                            type="text"
-                            name="dl_code"
-                            placeholder="Drug License No"
-                            value={formData.dl_code}
-                            onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
-                            required
-                        />
-                         <small className="absolute text-xs text-gray-500 mt-1">* Will be automatically capitalized</small>
-                        {formData.user_type === 'distributor' && (
-                            <input
-                                type="text"
-                                name="gstno"
-                                placeholder="GST Number"
-                                value={formData.gstno}
-                                onChange={handleChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
-                                required
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+            <Navbar />
+            <div className="container mx-auto px-4 py-16">
+                <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden">
+                    <div className="p-8">
+                        <div className="text-center mb-8">
+                            <img 
+                                src="img\logo\black-logo.png" 
+                                alt="Medscore Logo" 
+                                className="w-40 h-auto mx-auto mb-4"
                             />
-                        )}
-                        <input
-                            type="text"
-                            name="address"
-                            placeholder="Address"
-                            value={formData.address}
-                            onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
-                            required
-                        />
-                    <div className="space-y-2">
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                <Calendar className="w-4 h-4" />
-                <span>DL Expiry Date</span>
-              </label>
-              <input
-    type="date"
-    name="expiry_date"
-    value={formData.expiry_date}
-    onChange={handleChange}
-    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-    required
-/>
-            </div>
-                        
-                    </div>
+                            <h2 className="text-2xl font-bold text-gray-800">Add New Pharmacy</h2>
+                            <p className="text-gray-600 mt-2">Register a new pharmacy in the MedScore network</p>
+                        </div>
 
-                    <button
-                        type="submit"
-                        className="w-full bg-gradient-to-r from-[#1565C0] to-[#1976D2] text-white py-3 px-4 rounded-lg font-semibold shadow-lg hover:from-[#1976D2] hover:to-[#1565C0] focus:outline-none focus:ring-2 focus:ring-[#1565C0] focus:ring-offset-2 transform transition-all hover:scale-[1.02] mt-6"
-                    >
-                        Submit
-                    </button>
-                </form>
+                        {/* <div className="mb-6">
+                            <button
+                                onClick={() => setIsManualEntry(!isManualEntry)}
+                                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                            >
+                                {isManualEntry ? <Search className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+                                {isManualEntry ? "Switch to Search Mode" : "Switch to Manual Entry"}
+                            </button>
+                        </div> */}
+
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div className="relative">
+                                <div className="flex items-center border-2 rounded-lg focus-within:border-indigo-500 transition-colors">
+                                    <Building2 className="w-5 h-5 text-gray-400 ml-3" />
+                                    <input
+                                        type="text"
+                                        name="pharmacy_name"
+                                        placeholder="Pharmacy Name"
+                                        value={formData.pharmacy_name}
+                                        onChange={handleChange}
+                                        className="w-full p-3 bg-transparent outline-none"
+                                        required
+                                    />
+                                </div>
+
+                                {!isManualEntry && showSuggestions && suggestionList.length > 0 && (
+                                    <div className="absolute z-50 w-full mt-1 bg-white rounded-lg shadow-xl border border-gray-200 max-h-60 overflow-y-auto">
+                                        {suggestionList.map((suggestion, index) => (
+                                            <div 
+                                                key={index}
+                                                onClick={() => handleSuggestionSelect(suggestion)}
+                                                className="p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 transition-colors"
+                                            >
+                                                <div className="font-medium text-gray-800">{suggestion.FirmName}</div>
+                                                <div className="text-sm text-gray-600 mt-1">
+                                                    <div>License: {suggestion.LicenceNumber}</div>
+                                                    <div className="truncate">Address: {suggestion.Address}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                         <button onClick={()=>handlesuggession()} className='text-xl w-full hover:bg-gray-100 align-middle justify-between font-serif'>
+                      Others
+                </button>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex items-center border-2 rounded-lg focus-within:border-indigo-500 transition-colors">
+                                <Phone className="w-5 h-5 text-gray-400 ml-3" />
+                                <input
+                                    type="text"
+                                    name="phone_number"
+                                    placeholder="Owner Phone Number"
+                                    value={formData.phone_number}
+                                    onChange={handleChange}
+                                    className="w-full p-3 bg-transparent outline-none"
+                                    required
+                                />
+                            </div>
+
+                            <div className="flex items-center border-2 rounded-lg focus-within:border-indigo-500 transition-colors">
+                                <FileText className="w-5 h-5 text-gray-400 ml-3" />
+                                <input
+                                    type="text"
+                                    name="dl_code"
+                                    placeholder="Drug License No"
+                                    value={formData.dl_code}
+                                    onChange={handleChange}
+                                    className="w-full p-3 bg-transparent outline-none"
+                                    required
+                                />
+                            </div>
+
+                            <div className="flex items-center border-2 rounded-lg focus-within:border-indigo-500 transition-colors">
+                                <MapPin className="w-5 h-5 text-gray-400 ml-3" />
+                                <input
+                                    type="text"
+                                    name="address"
+                                    placeholder="Address"
+                                    value={formData.address}
+                                    onChange={handleChange}
+                                    className="w-full p-3 bg-transparent outline-none"
+                                    required
+                                />
+                            </div>
+
+                            <div className="flex items-center border-2 rounded-lg focus-within:border-indigo-500 transition-colors">
+                                <Calendar className="w-5 h-5 text-gray-400 ml-3" />
+                                <input
+                                    type="date"
+                                    name="expiry_date"
+                                    value={formData.expiry_date}
+                                    onChange={handleChange}
+                                    className="w-full p-3 bg-transparent outline-none"
+                                    required
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white py-4 px-6 rounded-lg font-medium shadow-md hover:from-indigo-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isLoading ? (
+                                    <span className="flex items-center justify-center gap-2">
+                                        <div className="w-5 h-5 border-t-2 border-white rounded-full animate-spin" />
+                                        Processing...
+                                    </span>
+                                ) : (
+                                    "Register Pharmacy"
+                                )}
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     );

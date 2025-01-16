@@ -1,44 +1,152 @@
 import React, { useState, useEffect } from 'react';
 import { 
   LineChart, Line, PieChart, Pie, XAxis, YAxis, 
-  CartesianGrid, Tooltip, ResponsiveContainer, Cell 
+  CartesianGrid, Tooltip, ResponsiveContainer, Cell,
+  Sector, RadialBarChart, RadialBar, Legend 
 } from 'recharts';
-import { AlertCircle } from 'lucide-react';
+
 import { config } from '../config';
 import { PharmaNavbar } from './PharmaNavbar';
+import { AlertCircle, TrendingUp, PieChart as PieChartIcon, Activity } from 'lucide-react';
 
 const CreditScoreDisplay = () => {
   const [invoiceData, setInvoiceData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [score, setScore] = useState(0);
-
+  const [chartType, setChartType] = useState('donut');
   const COLORS = ['#22c55e', '#f97316', '#eab308', '#3b82f6', '#ef4444'];
+  const [activeIndex, setActiveIndex] = useState(0);
   const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const getCreditScoreStatus = (score) => {
-    if (score >= 800) {
-      return {
-        status: 'Excellent',
-        color: '#22c55e'
-      };
-    } else if (score >= 700) {
-      return {
-        status: 'Good',
-        color: '#eab308'
-      };
-    } else if (score >= 600) {
-      return {
-        status: 'Fair',
-        color: '#f97316'
-      };
-    } else {
-      return {
-        status: 'Poor',
-        color: '#ef4444'
-      };
-    }
+ 
+  const renderActiveShape = (props) => {
+    const {
+      cx, cy, innerRadius, outerRadius, startAngle, endAngle,
+      fill, payload, percent, value
+    } = props;
+
+    return (
+      <g>
+        <text x={cx} y={cy - 10} dy={8} textAnchor="middle" fill={fill}>
+          {payload.name}
+        </text>
+        <text x={cx} y={cy + 10} dy={8} textAnchor="middle" fill={fill}>
+          {`${(percent * 100).toFixed(0)}%`}
+        </text>
+        <Sector
+          cx={cx}
+          cy={cy}
+          innerRadius={innerRadius}
+          outerRadius={outerRadius}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          fill={fill}
+        />
+        <Sector
+          cx={cx}
+          cy={cy}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          innerRadius={outerRadius + 6}
+          outerRadius={outerRadius + 10}
+          fill={fill}
+        />
+      </g>
+    );
   };
 
+  // Prepare data for radial bar chart
+  const getRadialBarData = (pieData) => {
+    return pieData.map((item, index) => ({
+      name: item.name,
+      value: item.value,
+      fill: COLORS[index % COLORS.length]
+    }));
+  };
+
+  // Prepare data for nested donut chart
+  const getNestedDonutData = (pieData) => {
+    const total = pieData.reduce((sum, item) => sum + item.value, 0);
+    return pieData.map((item, index) => ({
+      name: item.name,
+      value: item.value,
+      percentage: (item.value / total) * 100,
+      fill: COLORS[index % COLORS.length]
+    }));
+  };
+
+  const renderChart = () => {
+    switch(chartType) {
+      case 'donut':
+        return (
+          <PieChart>
+            <Pie
+              activeIndex={activeIndex}
+              activeShape={renderActiveShape}
+              data={pieData}
+              cx="50%"
+              cy="50%"
+              innerRadius={60}
+              outerRadius={80}
+              dataKey="value"
+              onMouseEnter={(_, index) => setActiveIndex(index)}
+            >
+              {pieData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+          </PieChart>
+        );
+      
+      case 'radial':
+        return (
+          <RadialBarChart
+            innerRadius="30%"
+            outerRadius="100%"
+            data={getRadialBarData(pieData)}
+            startAngle={180}
+            endAngle={0}
+          >
+            <RadialBar
+              minAngle={15}
+              label={{ fill: '#666', position: 'insideStart' }}
+              background
+              clockWise={true}
+              dataKey="value"
+            />
+            <Legend
+              iconSize={20}
+              width={120}
+              height={140}
+              layout="vertical"
+              verticalAlign="bottom"
+              align="right"
+            />
+            <Tooltip />
+          </RadialBarChart>
+        );
+
+      case 'nested':
+        return (
+          <PieChart>
+            <Pie
+              data={getNestedDonutData(pieData)}
+              cx="50%"
+              cy="50%"
+              innerRadius={60}
+              outerRadius={80}
+              dataKey="value"
+              label={({ name, percentage }) => `${name} (${percentage.toFixed(0)}%)`}
+            >
+              {pieData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip />
+          </PieChart>
+        );
+    }
+  };
   const calculateScore = (invoices) => {
     if (!invoices?.length) return 1000;
   
@@ -140,6 +248,7 @@ const CreditScoreDisplay = () => {
       }
 
       setInvoiceData(result.data || []);
+      console.log(invoiceData,"--")
       setScore(calculateScore(result.data));
       
     } catch (err) {
@@ -228,157 +337,223 @@ const CreditScoreDisplay = () => {
       </div>
     );
   }
-
+  const getStatusConfig = (value) => {
+    if (value >= 900) {
+      return {
+        status: 'Very Low Risk',
+        textColor: '#22c55e',    // Green text
+        bgColor: '#dcfce7'       // Light green background
+      };
+    } else if (value >= 800) {
+      return {
+        status: 'Low Risk',
+        textColor: '#eab308',    // Yellow text
+        bgColor: '#fef9c3'       // Light yellow background
+      };
+    } else if (value >= 700) {
+      return {
+        status: 'Moderate Risk',
+        textColor: '#f97316',    // Orange text
+        bgColor: '#ffedd5'       // Light orange background
+      };
+    } else if (value >= 600) {
+      return {
+        status: 'High Risk',
+        textColor: '#ea580c',    // Dark orange text
+        bgColor: '#fee2e2'       // Light red background
+      };
+    } else {
+      return {
+        status: 'Very High Risk',
+        textColor: '#ef4444',    // Red text
+        bgColor: '#fecdd3'       // Light red background
+      };
+    }
+  };
+  const { status, textColor, bgColor } = getStatusConfig(score);
   const { pieData, lineData } = processDataForCharts();
-  const { category, color,riskLevel } = getCreditScoreStatus(score);
+  
   return (
-    <div className="w-full max-w-6xl mx-auto p-6 space-y-6">
+    <div className="min-h-screen bg-gray-300" >
       <div className="fixed top-0 left-0 w-full z-50">
-        <PharmaNavbar/>
+        <PharmaNavbar />
       </div>
-      <h1 className="text-2xl font-bold mb-6 text-gray-900">Invoice Analytics Dashboard</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Credit Score Gauge */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold mb-4 text-gray-900">Credit Score</h2>
-          <div className="relative">
+   
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">MedScore Analytics</h1>
+          <span className="px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+            Last Updated: {new Date().toLocaleDateString()}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* MedScore Card */}
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg shadow-sm p-6">
+             <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Activity className="w-5 h-5 text-blue-600" />
+                      <h2 className="text-lg font-semibold text-slate-900">MedScore</h2>
+                    </div>
+                    
+                    <div 
+                      className="px-3 py-1 rounded-full font-medium text-sm"
+                      style={{ backgroundColor: bgColor }}
+                    >
+                      <span style={{ color: textColor }}>{status}</span>
+                    </div>
+                  </div>
+            <div className="relative pt-4">
             <svg viewBox="0 0 200 140" className="w-full">
-             <text x="104" y="117" textAnchor="middle" className="text-xs font-mono">
-               <tspan fill={'blue'}>{category}</tspan>
-              
-               </text>
-               <text x="104" y="130" textAnchor="middle" className="text-xs font-mono">
-              
-               <tspan fill={color}>{riskLevel}</tspan>
-               </text>
-              <defs>
-                <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#ef4444" />
-                  <stop offset="50%" stopColor="#eab308" />
-                  <stop offset="100%" stopColor="#22c55e" />
-                </linearGradient>
-              </defs>
-              
-              <path
-                d="M 30 100 A 70 70 0 0 1 170 100"
-                fill="none"
-                stroke="#e5e7eb"
-                strokeWidth="12"
-                strokeLinecap="round"
-              />
+                  <defs>
+                    <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#ef4444" />
+                      <stop offset="50%" stopColor="#eab308" />
+                      <stop offset="100%" stopColor="#22c55e" />
+                    </linearGradient>
+                  </defs>
+                  
+                  <path
+                    d="M 30 100 A 70 70 0 0 1 170 100"
+                    fill="none"
+                    stroke="#e5e7eb"
+                    strokeWidth="12"
+                    strokeLinecap="round"
+                    className="transition-all duration-1000 ease-out"
+                  />
 
-              <path
-                d="M 30 100 A 70 70 0 0 1 170 100"
-                fill="none"
-                stroke="url(#scoreGradient)"
-                strokeWidth="12"
-                strokeLinecap="round"
-                strokeDasharray="220"
-                strokeDashoffset={(1 - (score - 100) / 900) * 220}
-              />
+                  <path
+                    d="M 30 100 A 70 70 0 0 1 170 100"
+                    fill="none"
+                    stroke="url(#scoreGradient)"
+                    strokeWidth="12"
+                    strokeLinecap="round"
+                    strokeDasharray="220"
+                    strokeDashoffset={(1 - (score - 100) / 900) * 220}
+                    className="transition-all duration-1000 ease-out"
+                  />
 
-              <circle cx="100" cy="100" r="8" fill="#1f2937" />
-              <line
-                x1="100"
-                y1="100"
-                x2="100"
-                y2="40"
-                stroke="#1f2937"
-                strokeWidth="3"
-                strokeLinecap="round"
-                transform={`rotate(${calculateRotation(score)}, 100, 100)`}
-              />
+                  <circle cx="100" cy="100" r="8" fill="#1f2937" />
+                  <line
+                    x1="100"
+                    y1="100"
+                    x2="100"
+                    y2="40"
+                    stroke="#1f2937"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    transform={`rotate(${calculateRotation(score)}, 100, 100)`}
+                    className="transition-all duration-1000 ease-out"
+                  />
 
-              <text x="30" y="130" className="text-sm" fill="#6b7280">100</text>
-              <text x="165" y="130" className="text-sm" fill="#6b7280">1000</text>
-              <text 
-                x="100" 
-                y="80" 
-                textAnchor="middle" 
-                className="text-3xl font-bold" 
-                fill="#1f2937"
+                  <text x="30" y="130" className="text-sm" fill="#6b7280">100</text>
+                  <text x="165" y="130" className="text-sm" fill="#6b7280">1000</text>
+                  <text 
+                    x="100" 
+                    y="80" 
+                    textAnchor="middle" 
+                    className="text-3xl font-bold" 
+                    fill="#1f2937"
+                  >
+                    {score}
+                  </text>
+                
+                </svg>
+            </div>
+          </div>
+
+          {/* Payment Distribution Card */}
+          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-between pb-2 mb-4">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <PieChartIcon className="h-5 w-5 text-blue-500" />
+                Payment Distribution
+              </h2>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setChartType('donut')}
+                className={`px-3 py-1 rounded-full text-sm ${
+                  chartType === 'donut' 
+                    ? 'bg-blue-100 text-blue-700' 
+                    : 'bg-gray-100 text-gray-600'
+                }`}
               >
-                {score}
-              </text>
-            </svg>
-          </div>
-        </div>
-
-        {/* Payment Delay Distribution */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold mb-4 text-gray-900">Payment Delay Distribution</h2>
-          <div className="h-80">
+                Donut
+              </button>
+              <button
+                onClick={() => setChartType('radial')}
+                className={`px-3 py-1 rounded-full text-sm ${
+                  chartType === 'radial' 
+                    ? 'bg-blue-100 text-blue-700' 
+                    : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                Radial
+              </button>
+              <button
+                onClick={() => setChartType('nested')}
+                className={`px-3 py-1 rounded-full text-sm ${
+                  chartType === 'nested' 
+                    ? 'bg-blue-100 text-blue-700' 
+                    : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                Nested
+              </button>
+            </div>
+            <div className="h-[400px]">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  label={({ name, percent }) => 
-                    ` (${(percent * 100).toFixed(0)}%)`
-                      
-                  }
-                 
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={COLORS[index % COLORS.length]} 
-                    />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
+              {renderChart()}
             </ResponsiveContainer>
           </div>
-        </div>
+          </div>
 
-        {/* Monthly Score Trend */}
-        <div className="bg-white mr-5 rounded-lg shadow-md p-6 md:col-span-2">
-          <h2 className="text-lg font-semibold mb-4 text-gray-900">
-            Monthly Credit Score Trend
-            <span className="text-sm font-normal text-gray-500 ml-2">
-              (Cumulative calculation)
-            </span>
-          </h2>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={lineData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis 
-                  dataKey="month" 
-                  stroke="#6b7280"
-                  tick={{ fill: '#6b7280' }}
-                />
-                <YAxis 
-                  domain={[0, 1000]}
-                  ticks={[0, 200, 400, 600, 800, 1000]}
-                  stroke="#6b7280"
-                  tick={{ fill: '#6b7280' }}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb'
-                  }}
-                  formatter={(value, name, props) => [
-                    [`Score: ${value}`, `Invoices: ${props.payload.invoiceCount}`]
-                  ]}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="score" 
-                  stroke="#3b82f6" 
-                  strokeWidth={2}
-                  dot={{ fill: '#3b82f6', r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+          {/* Trend Analysis Card */}
+          <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-100 rounded-lg shadow-sm p-6 lg:col-span-2">
+            <div className="flex items-center justify-between pb-2 mb-4">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-blue-500" />
+                Score Trend Analysis
+              </h2>
+            </div>
+            <div className="h-[400px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={lineData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis 
+                    dataKey="month" 
+                    stroke="#6b7280"
+                    tick={{ fill: '#6b7280' }}
+                  />
+                  <YAxis 
+                    domain={[0, 1000]}
+                    ticks={[0, 200, 400, 600, 800, 1000]}
+                    stroke="#6b7280"
+                    tick={{ fill: '#6b7280' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    }}
+                    formatter={(value, name, props) => [
+                      [`Score: ${value}`, `Invoices: ${props.payload.invoiceCount}`]
+                    ]}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="score" 
+                    stroke="#3b82f6" 
+                    strokeWidth={2.5}
+                    dot={{ fill: '#3b82f6', r: 4 }}
+                    activeDot={{ r: 6, fill: '#2563eb' }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
       </div>

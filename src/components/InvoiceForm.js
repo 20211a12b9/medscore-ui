@@ -1,5 +1,5 @@
-import React, { useState ,useEffect} from 'react';
-import { AlertCircle, Calendar, DollarSign, FileText, Clock, IndianRupee } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { AlertCircle, Calendar, FileText, Clock, IndianRupee, MessageCircle } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { config } from '../config';
 import { Navbar } from './Navbar';
@@ -7,45 +7,41 @@ import { Navbar } from './Navbar';
 const InvoiceForm = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { pharmaDrugLicense, phone_number , pharmacy_name } = location.state || {};
-console.log("phone_number ",phone_number)
+  const { pharmaDrugLicense, phone_number, pharmacy_name } = location.state || {};
+  const [smsStatus, setSmsStatus] = useState('');
+
   const [formData, setFormData] = useState({
     pharmadrugliseanceno: pharmaDrugLicense,
     invoice: '',
     invoiceAmount: '',
     invoiceDate: '',
     dueDate: '',
-    delayDays: ''
+    delayDays: '0'
   });
 
   const [error, setError] = useState('');
-
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+
   useEffect(() => {
-    if (formData.dueDate) {
+    if (formData.dueDate && formData.invoiceDate) {
       const dueDate = new Date(formData.dueDate);
       const currentDate = new Date();
-      
-      // Reset time part to avoid time zone issues
       dueDate.setHours(0, 0, 0, 0);
       currentDate.setHours(0, 0, 0, 0);
-
-      // Calculate difference in days
       const diffTime = currentDate - dueDate;
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      // Only set delay days if payment is actually delayed (positive number)
-      const delayDays = diffDays > 0 ? diffDays : 0;
-      
       setFormData(prev => ({
         ...prev,
-        delayDays: delayDays.toString()
+        delayDays: Math.max(0, diffDays).toString()
       }));
     }
-  }, [formData.dueDate]);
+  }, [formData.dueDate, formData.invoiceDate]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'invoiceAmount' && value < 0) return;
+    if (name === 'delayDays' && value < 0) return;
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -54,162 +50,180 @@ console.log("phone_number ",phone_number)
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
     setLoading(true);
+    setSmsStatus('');
 
     const customerId = localStorage.getItem('userId');
-    const fullPhoneNumber = `91${phone_number.trim()}`;
+    const dist_pharmacy_name = localStorage.getItem('pharmacy_name');
+    const fullPhoneNumber = phone_number ? `91${phone_number.trim()}` : '';
 
     try {
-      const response = await fetch(`${config.API_HOST}/api/user/Invoice/${customerId}`, {
+      const invoiceResponse = await fetch(`${config.API_HOST}/api/user/Invoice/${customerId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
 
-      const data = await response.json();
-      const dist_pharmacy_name = localStorage.getItem('pharmacy_name');
-      if (response.ok) {
-       await fetch(`https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=uewziuRKDUWctgdrHdXm5g&senderid=MEDSCR&channel=2&DCS=0&flashsms=0&number=${fullPhoneNumber}&text=Payment Reminder - Invoice No. ${formData.invoice} Dear ${pharmacy_name}, This is a reminder from MedScore, on behalf of ${dist_pharmacy_name}, regarding your pending payment for Invoice No. ${formData.invoice}, dated ${formData.invoiceDate}, which was due on ${formData.dueDate}. The payment is currently overdue by ${formData.delayDays} days. To maintain a strong MedScore rating and ensure continued access to credit, please complete the payment at your earliest convenience. If payment has already been processed, kindly disregard this notice. Thank you for your prompt attention. Best regards, MedScore&route=1`,{mode: "no-cors"});
+      if (!invoiceResponse.ok) throw new Error('Failed to create invoice');
 
-        if (response.ok) {
-          setSuccess('Invoice created and SMS sent successfully!');
-          setFormData({ invoice: '', invoiceAmount: '', invoiceDate: '', dueDate: '', delayDays: '' });
-          navigate("/SendNotice");
-        } else {
-         
-          setError('Invoice created, but failed to send SMS: ' + ( 'Unknown error'));
-        }
-      } else {
-        setError(data.message || 'Failed to create invoice');
+      const smsResult = await fetch(`${config.API_HOST}/api/user/sendSMS`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: fullPhoneNumber,
+          message: `Payment Reminder - Invoice No. ${formData.invoice} Dear ${pharmacy_name}, This is a reminder from MedScore, on behalf of ${dist_pharmacy_name}, regarding your pending payment for Invoice No. ${formData.invoice}, dated ${formData.invoiceDate}, which was due on ${formData.dueDate}. The payment is currently overdue by ${formData.delayDays} days. To maintain a strong MedScore rating and ensure continued access to credit, please complete the payment at your earliest convenience. If payment has already been processed, kindly disregard this notice. Thank you for your prompt attention. Best regards, MedScore`
+        })
+      });
+
+      if (!smsResult.ok) {
+        setSmsStatus('SMS delivery failed');
+        throw new Error('Failed to send SMS');
       }
+
+      const smsData = await smsResult.json();
+      setSmsStatus(`SMS Status: ${smsData.status || 'Sent'}`);
+      setSuccess('Invoice created and notification sent successfully!');
+      navigate("/SendNotice");
     } catch (err) {
-      setError('Network error: Failed to create invoice');
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-
   return (
-    
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       <div className="fixed top-0 left-0 w-full z-50">
-        <Navbar/>
+        <Navbar />
       </div>
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-lg shadow-md p-6 mt-16">
-          <h2 className="text-2xl font-bold text-center mb-6">Create Invoice</h2>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Invoice Number */}
-            <div className="space-y-2">
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                <FileText className="w-4 h-4" />
-                <span>Invoice</span>
-              </label>
-              <input
-                type="text"
-                name="invoice"
-                value={formData.invoice}
-                onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter invoice number"
-                required
-              />
+
+      <div className="max-w-4xl mx-auto px-4 py-20">
+        <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-100 rounded-2xl shadow-xl overflow-hidden">
+          <div className="bg-blue-600 px-6 py-8">
+            <h2 className="text-3xl font-bold text-white text-center">Create New Invoice</h2>
+          </div>
+
+          <form onSubmit={handleSubmit} className="p-8 space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+                  <FileText className="w-4 h-4 text-blue-600" />
+                  <span>Invoice Number</span>
+                </label>
+                <input
+                  type="text"
+                  name="invoice"
+                  value={formData.invoice}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  placeholder="Enter invoice number"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+                  <IndianRupee className="w-4 h-4 text-blue-600" />
+                  <span>Invoice Amount (₹)</span>
+                </label>
+                <input
+                  type="number"
+                  name="invoiceAmount"
+                  value={formData.invoiceAmount}
+                  onChange={handleChange}
+                  min="0"
+                  step="0.01"
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  placeholder="Enter amount"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+                  <Calendar className="w-4 h-4 text-blue-600" />
+                  <span>Invoice Date</span>
+                </label>
+                <input
+                  type="date"
+                  name="invoiceDate"
+                  value={formData.invoiceDate}
+                  onChange={handleChange}
+                  max={new Date().toISOString().split('T')[0]}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+                  <Calendar className="w-4 h-4 text-blue-600" />
+                  <span>Due Date</span>
+                </label>
+                <input
+                  type="date"
+                  name="dueDate"
+                  value={formData.dueDate}
+                  onChange={handleChange}
+                  min={formData.invoiceDate}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+                  <Clock className="w-4 h-4 text-blue-600" />
+                  <span>Delay Days</span>
+                </label>
+                <input
+                  type="number"
+                  name="delayDays"
+                  value={formData.delayDays}
+                  onChange={handleChange}
+                  min="0"
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-500"
+                  readOnly
+                />
+              </div>
             </div>
 
-            {/* Invoice Amount */}
-            <div className="space-y-2">
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                <IndianRupee className="w-4 h-4" />
-                <span>Invoice Amount</span>
-              </label>
-              <input
-                type="number"
-                name="invoiceAmount"
-                value={formData.invoiceAmount}
-                onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter amount"
-                required
-              />
-            </div>
-
-            {/* Invoice Date */}
-            <div className="space-y-2">
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                <Calendar className="w-4 h-4" />
-                <span>Invoice Date</span>
-              </label>
-              <input
-                type="date"
-                name="invoiceDate"
-                value={formData.invoiceDate}
-                onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
-            </div>
-
-            {/* Due Date */}
-            <div className="space-y-2">
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                <Calendar className="w-4 h-4" />
-                <span>Due Date</span>
-              </label>
-              <input
-                type="date"
-                name="dueDate"
-                value={formData.dueDate}
-                onChange={handleChange}
-                min={formData.invoiceDate}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
-            </div>
-
-            {/* Delay Days */}
-            <div className="space-y-2">
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                <Clock className="w-4 h-4" />
-                <span>Delay Days</span>
-              </label>
-              <input
-                type="number"
-                name="delayDays"
-                value={formData.delayDays}
-                onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter delay days"
-                required
-              />
-            </div>
-
-          
-
-            {/* Error Alert */}
             {error && (
-              <div className="bg-red-50 text-red-700 p-4 rounded-md flex items-center space-x-2">
-                <AlertCircle className="h-4 w-4" />
-                <p>{error}</p>
+              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg flex items-center space-x-2">
+                <AlertCircle className="h-5 w-5 flex-shrink-0" />
+                <p className="text-sm">{error}</p>
               </div>
             )}
 
-            {/* Success Alert */}
+            {smsStatus && (
+              <div className="bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded-lg flex items-center space-x-2">
+                <MessageCircle className="h-5 w-5 flex-shrink-0" />
+                <p className="text-sm">{smsStatus}</p>
+              </div>
+            )}
+
             {success && (
-              <div className="bg-green-50 text-green-700 p-4 rounded-md">
-                <p>{success}</p>
+              <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg">
+                <p className="text-sm">{success}</p>
               </div>
             )}
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {loading ? 'Submitting...' : 'Submit'}
+              {loading ? (
+                <span className="flex items-center justify-center space-x-2">
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Processing...</span>
+                </span>
+              ) : (
+                'Send Remainder Notice'
+              )}
             </button>
           </form>
         </div>

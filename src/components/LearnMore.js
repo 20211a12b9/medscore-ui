@@ -187,21 +187,21 @@ export const LearnMore = () => {
           <img src="img/service/icon-1.png" alt="Dashboard Icon" className="w-12 sm:w-16" />
           <div>
             <h3 className="font-bold text-xl sm:text-2xl">Dashboard</h3>
-            <p className="text-sm sm:text-base text-gray-600">Complete view of Credit score and scale</p>
+            <p className="text-sm sm:text-base text-gray-600">Complete view of credit scores and trends.</p>
           </div>
         </div>
         <div className="flex flex-row items-start space-x-4 animate-fadeIn border-2 border-gray-200 rounded-3xl p-6">
           <img src="img/service/icon-2.png" alt="Custom Reports Icon" className="w-12 sm:w-16" />
           <div>
             <h3 className="font-bold text-xl sm:text-2xl">Custom Reports</h3>
-            <p className="text-sm sm:text-base text-gray-600">Complete view of Credit score and scale</p>
+            <p className="text-sm sm:text-base text-gray-600">Actionable insights tailored to your needs.</p>
           </div>
         </div>
         <div className="flex flex-row items-start space-x-4 animate-fadeIn border-2 border-gray-200 rounded-3xl p-6">
           <img src="img/service/icon-3.png" alt="Real-Time Alerts Icon" className="w-12 sm:w-16" />
           <div>
             <h3 className="font-bold text-xl sm:text-2xl">Real-Time Alerts</h3>
-            <p className="text-sm sm:text-base text-gray-600">Complete view of Credit score and scale</p>
+            <p className="text-sm sm:text-base text-gray-600">Stay informed about changes instantly.</p>
           </div>
         </div>
       </div>
@@ -212,21 +212,21 @@ export const LearnMore = () => {
           <img src="img/service/icon-4.png" alt="API Access Icon" className="w-12 sm:w-16" />
           <div>
             <h3 className="font-bold text-xl sm:text-2xl">API Access</h3>
-            <p className="text-sm sm:text-base text-gray-600">Complete view of Credit score and scale</p>
+            <p className="text-sm sm:text-base text-gray-600">Integrate MedScore with your systems.</p>
           </div>
         </div>
         <div className="flex flex-row items-start space-x-4 animate-fadeIn border-2 border-gray-200 rounded-3xl p-6">
           <img src="img/service/icon-5.png" alt="24/7 Support Icon" className="w-12 sm:w-16" />
           <div>
             <h3 className="font-bold text-xl sm:text-2xl">24/7 Support</h3>
-            <p className="text-sm sm:text-base text-gray-600">Complete view of Credit score and scale</p>
+            <p className="text-sm sm:text-base text-gray-600">Help is always at hand.</p>
           </div>
         </div>
         <div className="flex flex-row items-start space-x-4 animate-fadeIn border-2 border-gray-200 rounded-3xl p-6">
           <img src="img/service/icon-6.png" alt="Data Security Icon" className="w-12 sm:w-16" />
           <div>
             <h3 className="font-bold text-xl sm:text-2xl">Data Security</h3>
-            <p className="text-sm sm:text-base text-gray-600">Complete view of Credit score and scale</p>
+            <p className="text-sm sm:text-base text-gray-600">Your information is safe with us.</p>
           </div>
         </div>
       </div>
@@ -443,143 +443,134 @@ export const LearnMore = () => {
     </div>
 </section>
 
-      <section className='bg-[#18185E] py-10 sm:py-16 md:py-20 lg:py-60'>
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 lg:gap-36 px-4 sm:px-6 md:px-8 lg:px-10'>
-               <div className='flex flex-col mb-8 sm:mb-0'>
-                   <img className='w-28 sm:w-32 lg:w-36 mx-auto sm:mx-0 sm:ml-16 -mt-8 sm:-mt-10' src='img/logo/white-logo.png'/>
-                   <h2 className='text-white font-light text-center sm:text-justify mt-4 sm:ml-14 px-4 sm:px-0'>MedScore is the world's first credit score platform dedicated to the medical and pharmaceutical industry.</h2>
-                   <div className='flex flex-row gap-4 justify-center sm:justify-start text-white mt-6 sm:mt-10 sm:ml-14'>
-                   <a
-                href="https://www.instagram.com/medscore.in/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:bg-[#121441] transition-colors border-[1px] p-2 rounded-sm border-white hover:border-[#121441]"
-              >
-                <Instagram className="w-7 h-7 " />
-              </a>
+<footer className="bg-[#18185E] py-16 px-6 lg:py-28">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+        {/* Company Info */}
+        <div className="space-y-6">
+          <img 
+            className="w-36 h-auto" 
+            src="img/logo/white-logo.png" 
+            alt="MedScore Logo"
+          />
+          <p className="text-white/90 text-sm leading-relaxed">
+            MedScore is the world's first credit score platform dedicated to the medical and pharmaceutical industry.
+          </p>
+          <div className="flex gap-4">
+            {[
+              { icon: <Instagram />, href: "https://www.instagram.com/medscore.in/" },
+              { icon: <X />, href: "https://x.com/Medscore_in" },
+              { icon: <Facebook />, href: "https://www.facebook.com/Medscore.in/" },
+              { icon: <Linkedin />, href: "https://www.linkedin.com/company/medscore-in/" }
+            ].map((social, index) => (
               <a
-                href="https://x.com/Medscore_in"
+                key={index}
+                href={social.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:bg-[#121441] transition-colors border-[1px] p-2 rounded-sm border-white hover:border-[#121441]"
+                className="p-2 text-white border border-white/20 rounded-md hover:bg-white/10 transition-colors"
               >
-                <X className="w-7 h-7" />
+                {social.icon}
               </a>
-              <a
-                href="https://www.facebook.com/Medscore.in/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:bg-[#121441] transition-colors border-[1px] p-2 rounded-sm border-white hover:border-[#121441]"
-              >
-                <Facebook className="w-7 h-7" />
-              </a>
-              <a
-                href="https://www.linkedin.com/company/medscore-in/?viewAsMember=true"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:bg-[#121441] transition-colors border-[1px] p-2 rounded-sm border-white hover:border-[#121441] "
-              >
-                <Linkedin className="w-7 h-7" />
-              </a>
-                   </div>
-               </div>
-               <div className='flex flex-col items-center sm:items-start mb-8 sm:mb-0'>
-            <h1 className='font-bold text-xl sm:text-2xl text-white underline decoration-white underline-offset-4 mb-6 sm:mb-10'>
-                Quick Links
-            </h1>
-            {/* Quick Links Buttons */}
-            {['about', 'features', 'BlogList', 'about', 'contactUs'].map((section, index) => (
-                <span key={index} className="text-3xl sm:text-4xl font-thin text-white flex flex-row gap-4 hover:translate-x-2 transition-transform duration-200">
-                    &raquo;
-                    <button
-                        onClick={() => scrollToSection(section)}
-                        className="transition-colors font-thin text-lg sm:text-xl"
-                    >
-                        {section === 'BlogList' ? 'Our Blogs' : 
-                         section === 'about' && index === 3 ? "FAQ'S" :
-                         section === 'contactUs' ? 'Contact Us' :
-                         section.charAt(0).toUpperCase() + section.slice(1)}
-                    </button>
-                </span>
             ))}
+          </div>
         </div>
 
-        {/* Recent Posts Section */}
-        <div className='flex flex-col mb-8 sm:mb-0 px-4 sm:px-0'>
-            <h1 className='font-bold text-xl sm:text-2xl text-white underline decoration-white underline-offset-4 mb-6 sm:mb-10 text-center sm:text-left'>
-                Recent Posts
-            </h1>
-            <div className="space-y-4 sm:space-y-6">
-                {posts.map((post, index) => (
-                    <div key={post.id} className="flex flex-row gap-3 sm:gap-4">
-                        <div className="flex-shrink-0">
-                            <img 
-                                src={post.image} 
-                                alt="post thumbnail" 
-                                className="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded"
-                            />
-                        </div>
-                        <div className="flex-grow">
-                            <ul className="mb-1 sm:mb-2">
-                                <li className="flex items-center text-white text-xs sm:text-sm">
-                                    <CalendarDays className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                                    {post.date}
-                                </li>
-                            </ul>
-                            <h6 className="text-sm sm:text-base font-thin">
-                                <a href={post.link} className="text-white hover:text-blue-600 transition-colors duration-200">
-                                    {post.title.split('<br>').map((line, i) => (
-                                        <React.Fragment key={i}>
-                                            {line}
-                                            {i < post.title.split('<br>').length - 1 && <br />}
-                                        </React.Fragment>
-                                    ))}
-                                </a>
-                            </h6>
-                        </div>
-                    </div>
-                ))}
-            </div>
+        {/* Quick Links */}
+        <div className="space-y-6">
+          <h3 className="text-xl font-semibold text-white border-b border-white/20 pb-2">
+            Quick Links
+          </h3>
+          <nav className="space-y-3">
+            {['about', 'features', 'BlogList', 'FAQ\'S', 'contactUs'].map((section, index) => (
+              <button
+                key={index}
+                onClick={() => scrollToSection(section)}
+                className="flex items-center text-white/90 hover:text-white group w-full"
+              >
+                <span className="text-lg mr-2 group-hover:translate-x-1 transition-transform">→</span>
+                <span className="text-sm font-medium">{section.charAt(0).toUpperCase() + section.slice(1)}</span>
+              </button>
+            ))}
+          </nav>
         </div>
 
-        {/* Contact Us Section */}
-        <div className='flex flex-col text-center sm:text-justify px-4 sm:px-0'>
-            <h1 className='font-bold text-xl sm:text-2xl text-white underline decoration-white underline-offset-4 mb-6 sm:mb-10'>
-                Contact Us
-            </h1>
-            <div id="contactUs" className="flex flex-col gap-3 sm:gap-4 text-white">
-                <a href="mailto:support@medscore.in" className="hover:text-red-500 transition-colors font-bold">
-                    <Mail className="w-4 h-4 sm:w-5 sm:h-5 inline-block mr-2" /> 
-                    support@medscore.in
-                </a>
-                <a href="tel:9347070310" className="hover:text-red-500 transition-colors font-bold">
-                    <Phone className="w-4 h-4 sm:w-5 sm:h-5 inline-block mr-2" /> 
-                    9347070310
-                </a>
-                <div className='flex flex-row items-start'>
-                    <MapPin className="w-8 h-8 sm:w-11 sm:h-11 inline-block mr-2 flex-shrink-0" />
-                    <h1 className='text-xs sm:text-sm text-justify'>
-                        Incubated by AIC Aleap We Hub ( supported by AIM,NITI AAYOG,GOI )
-                        Head Office : Hyderabad - Telangana, India .
-                    </h1>
+        {/* Recent Posts */}
+        <div className="space-y-6">
+          <h3 className="text-xl font-semibold text-white border-b border-white/20 pb-2">
+            Recent Posts
+          </h3>
+          <div className="space-y-6">
+            {posts?.map((post) => (
+              <article key={post.id} className="flex gap-4">
+                <img 
+                  src={post.image} 
+                  alt="" 
+                  className="w-16 h-16 object-cover rounded-md"
+                />
+                <div>
+                  <div className="flex items-center text-white/60 text-xs mb-1">
+                    <CalendarDays className="w-4 h-4 mr-1" />
+                    {post.date}
+                  </div>
+                  <a 
+                    href={post.link}
+                    className="text-white/90 text-sm hover:text-white transition-colors line-clamp-2"
+                  >
+                    {post.title}
+                  </a>
                 </div>
-                <div className="flex items-center gap-2 justify-center sm:justify-start">
-                    <input
-                        type="checkbox"
-                        id="privacyCheckbox"
-                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    />
-                    <label htmlFor="privacyCheckbox" className="text-xs sm:text-sm text-white cursor-pointer select-none">
-                        I agree to the{' '}
-                        <a href="/PrivacyPolicy" className="text-white hover:text-blue-800 underline">
-                            Privacy Policy.
-                        </a>
-                    </label>
-                </div>
-            </div>
+              </article>
+            ))}
+          </div>
         </div>
-    </div>
-</section>
+
+        {/* Contact Info */}
+        <div className="space-y-6">
+          <h3 className="text-xl font-semibold text-white border-b border-white/20 pb-2">
+            Contact Us
+          </h3>
+          <div className="space-y-4">
+            <a 
+              href="mailto:support@medscore.in" 
+              className="flex items-center text-white/90 hover:text-white group"
+            >
+              <Mail className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+              <span className="text-sm">support@medscore.in</span>
+            </a>
+            <a 
+              href="tel:9347070310" 
+              className="flex items-center text-white/90 hover:text-white group"
+            >
+              <Phone className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+              <span className="text-sm">9347070310</span>
+            </a>
+            <div className="flex items-start text-white/90">
+              <MapPin className="w-5 h-5 mr-2 flex-shrink-0 mt-1" />
+              <p className="text-sm">
+                Incubated by AIC Aleap We Hub (supported by AIM, NITI AAYOG, GOI)
+                Head Office: Hyderabad - Telangana, India
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="privacyCheckbox"
+                className="h-4 w-4 rounded border-white/20 bg-transparent text-blue-500 focus:ring-blue-500 cursor-pointer"
+              />
+              <label className="text-sm text-white/90 cursor-pointer">
+                I agree to the{' '}
+                <a 
+                  href="/PrivacyPolicy" 
+                  className="underline hover:text-white transition-colors"
+                >
+                  Privacy Policy
+                </a>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
 <div className="footer-bottom bg-gray-800 text-white py-6">
   <div className="container mx-auto px-4">
     <div className="footer-wrapper flex flex-col sm:flex-row items-center justify-between">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2, AlertCircle, Download } from 'lucide-react';
+import { Loader2, AlertCircle, Download ,FileSpreadsheet,DownloadIcon} from 'lucide-react';
 import { config } from '../config';
 import { PharmaNavbar } from './PharmaNavbar';
 
@@ -100,92 +100,89 @@ const DownloadReport = () => {
       return 'Invalid date';
     }
   };
-
-  return (
-    <div className="max-w-5xl mx-auto mt-20 bg-white rounded-lg shadow">
+return(
+  <div className="min-h-screen bg-gradient-to-l from-blue-100 via-white to-purple-200">
       <div className="fixed top-0 left-0 w-full z-50">
-        <PharmaNavbar/>
-      </div>
-      <div className="border-b p-6 ">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-900">Your Detailed Report</h2>
-          <button
-            onClick={handleDownloadExcel}
-            disabled={downloading || loading || invoices.length === 0}
-            className="px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
-          >
-            {downloading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Download className="h-4 w-4" />
-            )}
-            Download Excel Report
-          </button>
-        </div>
+        <PharmaNavbar />
       </div>
 
-      <div className="p-6">
+      <div className="pt-24 px-6 pb-12 max-w-7xl mx-auto">
+        {/* Header Section */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Download Reports</h1>
+              <p className="mt-1 text-gray-600">View and download your default reports</p>
+            </div>
+            <button
+              onClick={handleDownloadExcel}
+              disabled={downloading || loading || invoices.length === 0}
+              className="w-full md:w-auto px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2 transition-colors"
+            >
+              {downloading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <DownloadIcon className="h-5 w-5" />
+              )}
+              Export to Excel
+            </button>
+          </div>
+        </div>
+
+       
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div className="flex items-center gap-2 text-red-700">
-              <AlertCircle className="h-4 w-4" />
-              <span>{error}</span>
+          <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl">
+            <div className="flex items-center gap-3 text-red-700">
+              <AlertCircle className="h-5 w-5" />
+              <span className="font-medium">{error}</span>
             </div>
           </div>
         )}
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                  Invoice
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                  License Number
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                  Invoice Date
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                  Due Date
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                  Delay Days
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                  Invoice Amount
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {invoices.map((invoice) => (
-                <tr key={invoice._id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {invoice.invoice}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {invoice.pharmadrugliseanceno}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {formatDate(invoice.invoiceDate)}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {formatDate(invoice.dueDate)}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {invoice.delayDays}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {invoice.invoiceAmount}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    
-                  </td>
+        {/* Table Section */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-100">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice #</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">License Number</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice Date</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Delay</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {invoices.map((invoice) => (
+                  <tr key={invoice._id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-medium text-blue-600">{invoice.invoice}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-900">{invoice.pharmadrugliseanceno}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-900">{formatDate(invoice.invoiceDate)}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-900">{formatDate(invoice.dueDate)}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`text-sm font-medium ${invoice.delayDays > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                        {invoice.delayDays} days
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-medium text-gray-900">
+                        ₹{invoice.invoiceAmount.toLocaleString()}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

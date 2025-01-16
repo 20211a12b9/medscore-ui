@@ -78,12 +78,17 @@ const UpdateDefaultReport = () => {
 
       setLoading(true);
 
-      const response = await fetch(
-        `${config.API_HOST}/api/user/updateReportDefault/${invoice.pharmadrugliseanceno}/${invoice.invoice}/${invoice.customerId}`,
-        {
-          method: 'PUT',
-        }
-      );
+      const response = await fetch(`${config.API_HOST}/api/user/updateReportDefault`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json', // Ensures the server knows you're sending JSON
+        },
+        body: JSON.stringify({
+            pharmadrugliseanceno: invoice.pharmadrugliseanceno,
+            invoice: invoice.invoice,
+            customerId: invoice.customerId,
+        }),
+    });
 
       if (!response.ok) {
         throw new Error('Failed to update report status');
@@ -117,35 +122,41 @@ const UpdateDefaultReport = () => {
   };
 
   return (
-    <div className="bg-white [background-image:none] min-h-screen p-6 mx-auto">
-      <div className="fixed top-0 left-0 w-full z-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+      <div className="fixed top-0 left-0 w-full z-50 bg-white/80 backdrop-blur-sm shadow-lg">
         <Navbar />
       </div>
-    
-      <div className="border-b p-6 mt-10">
-        <h2 className="text-2xl font-bold text-gray-900">Update Payment Details</h2>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex gap-4">
-            <input
-              type="text"
-              placeholder="Enter Pharmacy Drug License Number"
-              value={licenseNo}
-              onChange={(e) => setLicenseNo(e.target.value)}
-              className="flex-1 border rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+      <div className="mb-8">
+      <div className="flex items-center gap-4 mb-8">
+            <div className="h-12 w-2 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full" />
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+              Update Default Report
+            </h1>
           </div>
-        </div>
+         <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-purple-100 p-6">
+                    <div className="relative">
+                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-purple-400 w-5 h-5" />
+                      <input
+                        type="text"
+                        placeholder="Enter pharmacy drug license number..."
+                        value={licenseNo}
+                        onChange={(e) => setLicenseNo(e.target.value)}
+                        className="w-full pl-12 pr-4 py-4 bg-white/50 border-2 border-purple-100 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all text-purple-900 placeholder-purple-300"
+                      />
+                    </div>
+                  </div>
       </div>
 
       <div className="p-6">
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div className="flex items-center gap-2 text-red-700">
-              <AlertCircle className="h-4 w-4" />
-              <span>{error}</span>
-            </div>
-          </div>
-        )}
+                  <div className="mb-6 bg-red-50/80 backdrop-blur-sm border-l-4 border-red-400 p-4 rounded-xl">
+                    <div className="flex items-center">
+                      <AlertCircle className="h-5 w-5 text-red-400" />
+                      <p className="ml-3 text-red-700">{error}</p>
+                    </div>
+                  </div>
+                )}
 
         {loading ? (
           <div className="flex items-center justify-center min-h-[200px]">
@@ -196,6 +207,7 @@ const UpdateDefaultReport = () => {
             Enter a license number to search for invoices
           </div>
         )}
+      </div>
       </div>
     </div>
   );

@@ -1,17 +1,40 @@
 import React, { useState } from 'react';
-import { Upload, File, CheckCircle, AlertCircle } from 'lucide-react';
+import { Upload, File, CheckCircle, AlertCircle, CloudUpload, X } from 'lucide-react';
 import { config } from '../config';
 import { Navbar } from './Navbar';
 
 const FileUpload = () => {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState(null); // 'success' | 'error' | null
+  const [status, setStatus] = useState(null);
+  const [dragActive, setDragActive] = useState(false);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
       setFile(selectedFile);
+      setStatus(null);
+    }
+  };
+
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile) {
+      setFile(droppedFile);
       setStatus(null);
     }
   };
@@ -27,8 +50,8 @@ const FileUpload = () => {
     formData.append('file', file);
 
     try {
-        const customerid=await localStorage.getItem('userId')
-      const response = await fetch(`${config.API_HOST}/api/user/outstanding/${customerid}`, {
+      const customerId = await localStorage.getItem('userId');
+      const response = await fetch(`${config.API_HOST}/api/user/outstanding/${customerId}`, {
         method: 'POST',
         body: formData,
       });
@@ -45,73 +68,128 @@ const FileUpload = () => {
     }
   };
 
+  const clearFile = () => {
+    setFile(null);
+    setStatus(null);
+  };
+
   return (
-    <div className="w-full max-w-md mx-auto bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="fixed top-0 left-0 w-full z-50">
-        <Navbar/>
-      </div>
-      <div className="p-4 border-b border-gray-200 mt-16">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Upload className="w-5 h-5" />
-          Upload Outstanding File
-        </h2>
-      </div>
-      
-      <div className="p-4 space-y-4">
-        <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center">
-          <input
-            type="file"
-            accept=".xlsx, .xls, .csv"
-            onChange={handleFileChange}
-            className="hidden"
-            id="file-upload"
-          />
-          <label 
-            htmlFor="file-upload" 
-            className="cursor-pointer flex flex-col items-center gap-2"
-          >
-            <File className="w-6 h-6 text-gray-400" />
-            <span className="text-sm text-gray-600">
-              {file ? file.name : 'Drop your file here or click to browse'}
-            </span>
-            <span className="text-xs text-gray-400">
-              Supported formats: XLSX, XLS, CSV
-            </span>
-          </label>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-red-50">
+      <Navbar />
+      <div className="container mx-auto px-4 py-16">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+            <div className="p-8 border-b border-gray-100">
+              <div className="flex items-center justify-center mb-6">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center">
+                  <Upload className="w-8 h-8 text-purple-600" />
+                </div>
+              </div>
+              <h2 className="text-2xl font-bold text-center text-gray-800">
+                Upload Outstanding File
+              </h2>
+              <p className="mt-2 text-center text-gray-600">
+                Import your outstanding data file here
+              </p>
+            </div>
+            
+            <div className="p-8 space-y-6">
+              <div
+                className={`relative border-3 border-dashed rounded-xl p-10 transition-all
+                  ${dragActive ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-300'}
+                  ${file ? 'bg-gray-50' : ''}`}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+              >
+                <input
+                  type="file"
+                  accept=".xlsx, .xls, .csv"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="file-upload"
+                />
+                
+                {!file ? (
+                  <label 
+                    htmlFor="file-upload" 
+                    className="cursor-pointer flex flex-col items-center gap-4"
+                  >
+                    <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center">
+                      <CloudUpload className="w-10 h-10 text-purple-600" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-lg font-medium text-gray-700">
+                        Drop your file here or <span className="text-purple-600">browse</span>
+                      </p>
+                      <p className="mt-2 text-sm text-gray-500">
+                        Supported formats: XLSX, XLS, CSV
+                      </p>
+                    </div>
+                  </label>
+                ) : (
+                  <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <File className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-700">{file.name}</p>
+                        <p className="text-sm text-gray-500">
+                          {(file.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={clearFile}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <X className="w-5 h-5 text-gray-500" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {status === 'success' && (
+                <div className="flex items-center gap-3 p-4 bg-green-50 text-green-700 rounded-lg border border-green-200">
+                  <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                  <p className="font-medium">File uploaded successfully!</p>
+                </div>
+              )}
+
+              {status === 'error' && (
+                <div className="flex items-center gap-3 p-4 bg-red-50 text-red-700 rounded-lg border border-red-200">
+                  <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                  <p className="font-medium">
+                    {!file ? 'Please select a file first' : 'Error uploading file. Please try again.'}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex justify-center">
+                <button
+                  onClick={handleSubmit}
+                  disabled={!file || loading}
+                  className={`px-8 py-4 rounded-xl font-medium text-white shadow-lg
+                    ${!file || loading 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
+                    } transition-all duration-200`}
+                >
+                  {loading ? (
+                    <span className="flex items-center justify-center gap-3">
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Uploading...
+                    </span>
+                  ) : (
+                    'Upload File'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-
-        {status === 'success' && (
-          <div className="flex items-center gap-2 p-3 bg-green-50 text-green-800 rounded-md">
-            <CheckCircle className="w-4 h-4" />
-            <p>File uploaded successfully!</p>
-          </div>
-        )}
-
-        {status === 'error' && (
-          <div className="flex items-center gap-2 p-3 bg-red-50 text-red-800 rounded-md">
-            <AlertCircle className="w-4 h-4" />
-            <p>{!file ? 'Please select a file first' : 'Error uploading file. Please try again.'}</p>
-          </div>
-        )}
-
-        <button
-          onClick={handleSubmit}
-          disabled={!file || loading}
-          className={`w-full py-2 px-4 rounded-md text-white font-medium
-            ${!file || loading 
-              ? 'bg-gray-400 cursor-not-allowed' 
-              : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-700'
-            } transition-colors duration-200`}
-        >
-          {loading ? (
-            <span className="flex items-center justify-center gap-2">
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Uploading...
-            </span>
-          ) : (
-            'Upload File'
-          )}
-        </button>
       </div>
     </div>
   );

@@ -1,136 +1,137 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Home, User, LogOut, ChevronLeft, Menu, X } from 'lucide-react';
 
 export const Navbar = () => {
-    // MODIFICATION: Renamed onNavigate to navigate for clarity
-    const navigate = useNavigate();
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    const handleLogout = () => {
-        const confirmLogout = window.confirm('Are you sure you want to log out?');
-        if (confirmLogout) {
-          localStorage.removeItem('jwttoken');
-          localStorage.removeItem('userId');
-          window.location.href = '/';
-        }
-    };
-      
-    return (
-        
-        <nav 
-            className='relative  md:flex items-center justify-between p-4 bg-white shadow-md font-mono cursor-pointer'
-            aria-label="Main Navigation"
-        >
-            
-            <div className='flex items-center justify-between'>
-                <img 
-                    src='medscore.png' 
-                    alt='MedScore Logo' 
-                    
-                    className='object-contain h-12 w-24'
-                    aria-label="Company Logo"
-                />
+  const handleLogout = () => {
+    const confirmLogout = window.confirm('Are you sure you want to log out?');
+    if (confirmLogout) {
+      localStorage.removeItem('jwttoken');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('pharmacy_name');
+      localStorage.removeItem('dl_code');
+      localStorage.removeItem('userType');
+      window.location.href = '/';
+    }
+  };
 
-                
-                <button 
-                    className='md:hidden'
-                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    aria-label="Toggle Menu"
-                >
-                    <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        className="h-6 w-6" 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
-                        stroke="currentColor"
-                    >
-                        {isMobileMenuOpen ? (
-                           
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        ) : (
-                           
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                        )}
-                    </svg>
-                </button>
-            </div>
+  return (
+    <nav className="relative  bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex justify-between items-center py-3">
+          {/* Logo Section */}
+          <div className="flex items-center">
+            <img
+              src="img/logo/white-logo.png"
+              alt="MedScore Logo"
+              className="h-20 w-20 object-contain"
+            />
+          </div>
 
-            
-            <div className='hidden md:flex space-x-9 pr-10 justify-normal'>
-                
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            <button
+              onClick={() => navigate('/DistributorHomePage')}
+              className="flex items-center space-x-2 text-gray-100 hover:bg-white rounded-md p-2 hover:text-blue-600 transition-colors duration-200 group"
+            >
+              <Home className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
+              <span className="font-medium">Home</span>
+            </button>
 
-                <button 
-                    onClick={() => navigate(-1)} 
-                    className='font-mono hover:text-blue-500 transition-colors'
-                    aria-label="Go Back"
-                >
-                    Back
-                </button>
+            <button
+              onClick={() => navigate('/DistributorProfile')}
+              className="flex items-center space-x-2 text-gray-100  hover:bg-white rounded-md p-2 hover:text-blue-600 transition-colors duration-200 group"
+            >
+              <User className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
+              <span className="font-medium">Profile</span>
+            </button>
 
-                <button 
-                    onClick={() => navigate('/DistributorHomePage')} 
-                    className='font-mono hover:text-blue-500 transition-colors'
-                    aria-label="Go to Home"
-                >
-                    Home
-                </button>
-                <button 
-                    onClick={() => navigate('/DistributorProfile')} 
-                    className='font-mono hover:text-blue-500 transition-colors'
-                    aria-label="Go to Profile"
-                >
-                    Profile
-                </button>
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center space-x-2 text-gray-100  hover:bg-white rounded-md p-2 hover:text-blue-600 transition-colors duration-200 group"
+            >
+              <ChevronLeft className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
+              <span className="font-medium">Back</span>
+            </button>
 
-                <button 
-                    onClick={handleLogout} 
-                    className='font-mono text-red-500 hover:text-red-700 transition-colors'
-                    aria-label="Logout"
-                >
-                    Logout
-                </button>
-            </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center space-x-2 text-red-100  hover:bg-white rounded-md p-2 hover:text-blue-600 transition-colors duration-200 group"
+            >
+              <LogOut className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
+              <span className="font-medium">Logout</span>
+            </button>
+          </div>
 
-            
-            {isMobileMenuOpen && (
-                <div className='absolute top-full left-0 w-full bg-white shadow-md md:hidden z-50'>
-                    <div className='flex flex-col'>
-                        <button 
-                            onClick={() => {
-                                navigate('/DistributorProfile');
-                                setIsMobileMenuOpen(false);
-                            }} 
-                            className='w-full text-left p-4 border-b hover:bg-gray-100'
-                        >
-                            Profile
-                        </button>
-                        <button 
-                            onClick={() => {
-                                navigate(-1);
-                                setIsMobileMenuOpen(false);
-                            }} 
-                            className='w-full text-left p-4 border-b hover:bg-gray-100'
-                        >
-                            Back
-                        </button>
-                        <button 
-                            onClick={() => {
-                                navigate('/DistributorHomePage');
-                                setIsMobileMenuOpen(false);
-                            }} 
-                            className='w-full text-left p-4 border-b hover:bg-gray-100'
-                        >
-                            Home
-                        </button>
-                        <button 
-                            onClick={handleLogout} 
-                            className='w-full text-left p-4 text-red-500 hover:bg-red-50'
-                        >
-                            Logout
-                        </button>
-                    </div>
-                </div>
-            )}
-        </nav>
-    )
-}
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="text-white hover:text-gray-200 transition-colors duration-200"
+              aria-label="Toggle Menu"
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="absolute top-full left-0 w-full bg-white shadow-xl md:hidden z-50 transition-all duration-200 ease-in-out">
+          <div className="flex flex-col divide-y divide-gray-100">
+            <button
+              onClick={() => {
+                navigate('/DistributorHomePage');
+                setIsMobileMenuOpen(false);
+              }}
+              className="flex items-center space-x-3 px-6 py-4 hover:bg-gray-50 transition-colors duration-200"
+            >
+              <Home className="h-5 w-5 text-blue-600" />
+              <span className="text-gray-800 font-medium">Home</span>
+            </button>
+
+            <button
+              onClick={() => {
+                navigate('/DistributorProfile');
+                setIsMobileMenuOpen(false);
+              }}
+              className="flex items-center space-x-3 px-6 py-4 hover:bg-gray-50 transition-colors duration-200"
+            >
+              <User className="h-5 w-5 text-blue-600" />
+              <span className="text-gray-800 font-medium">Profile</span>
+            </button>
+
+            <button
+              onClick={() => {
+                navigate(-1);
+                setIsMobileMenuOpen(false);
+              }}
+              className="flex items-center space-x-3 px-6 py-4 hover:bg-gray-50 transition-colors duration-200"
+            >
+              <ChevronLeft className="h-5 w-5 text-blue-600" />
+              <span className="text-gray-800 font-medium">Back</span>
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="flex items-center space-x-3 px-6 py-4 hover:bg-red-50 group transition-colors duration-200"
+            >
+              <LogOut className="h-5 w-5 text-red-600 group-hover:text-red-700" />
+              <span className="text-red-600 font-medium group-hover:text-red-700">Logout</span>
+            </button>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+};
+
+export default Navbar;

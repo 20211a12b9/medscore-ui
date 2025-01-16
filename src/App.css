@@ -61,3 +61,6 @@
 .animate-slow-top-bottom {
   animation: slowTopBottom 3s infinite ease-in-out; /* Slow animation */
 }
+.cursor-red {
+  @apply caret-red-500; /* Tailwind's `caret` utility for caret color */
+}

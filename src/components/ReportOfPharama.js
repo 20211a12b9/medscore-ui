@@ -43,6 +43,9 @@ const [dl_code,setDl_code]=useState('');
       const result = await response.json();
       
       if (result.success) {
+        const sortedInvoices = result.data.sort((a, b) => 
+          new Date(b.createdAt) - new Date(a.createdAt)
+        );
         setInvoices(result.data);
       } else {
         throw new Error(result.message || 'Failed to fetch invoice data');
@@ -134,11 +137,11 @@ const [dl_code,setDl_code]=useState('');
                 <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">
                     SerialNo 
                   </th>
-                  {/* <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                    Invoice 
-                  </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                    License Number
+                  Issued On 
+                  </th>
+                  {/* <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                    Issued On
                   </th> */}
                   <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">
                     Invoice Date
@@ -165,10 +168,10 @@ const [dl_code,setDl_code]=useState('');
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {invoice.serialNo}
                     </td>
-                    {/* <td className="px-4 py-3 text-sm text-gray-900">
-                      {invoice.invoice}
-                    </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
+                      {formatDate(invoice.createdAt)}
+                    </td>
+                    {/* <td className="px-4 py-3 text-sm text-gray-900">
                       {invoice.pharmadrugliseanceno}
                     </td> */}
                     <td className="px-4 py-3 text-sm text-gray-900">

@@ -16,6 +16,14 @@ import { Navbar } from './components/Navbar';
 import { PharmaNavbar } from './components/PharmaNavbar';
 import { HomeNavbar } from './components/HomeNavbar';
 import UploadDistCentalData from './components/UploadDistCentalData';
+import { AdminDisputedData } from './components/AdminDisputedData';
+import AdminDashboard from './components/AdminDashboard';
+import { AdminDistData } from './components/AdminDistData';
+import { AdminpharmacyData } from './components/AdminpharmacyData';
+import DisputedDatainDistribuorScn from './components/DisputedDatainDistribuorScn';
+import AdminCentralData from './components/AdminCentralData.js';
+import DistributorSerchedCreditscore from './components/DistributorSerchedCreditscore.js';
+import AddCustomer from './components/Addcustomer.js';
 
 // Lazy load all components
 const Home = lazy(() => import('./components/Home'));
@@ -38,7 +46,7 @@ const ReportOfPharama = lazy(() => import('./components/ReportOfPharama'));
 const AdminHomeScreen = lazy(() => import('./components/AdminHomeScreen'));
 const ForgotPassword = lazy(() => import('./components/ForgotPassword'));
 const ConfirmReset = lazy(() => import('./components/ConfirmReset'));
-const Addcustomer = lazy(() => import('./components/Addcustomer'));
+
 
 // Loading component
 const LoadingFallback = () => (
@@ -53,7 +61,7 @@ const AuthNavigator = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/ForgotPassword" element={<ForgotPassword />} />
-        <Route path="/PrivacyPolicy" element={<PrivacyPolicy />} />
+        <Route path="/PrivacyPolicy" element={<PrivacyPolicy/>} />
         <Route path="/TermsConditions" element={<TermsConditions />} />
         <Route path="/ConfirmReset" element={<ConfirmReset />} />
         <Route path="/LearnMore" element={<LearnMore />} />
@@ -61,7 +69,7 @@ const AuthNavigator = () => {
         <Route path="/blog/:blogId" element={<BlogDetail />} />
         <Route path="/HomeNavbar" element={<HomeNavbar />} />
         <Route path="/" element={<Home />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
   );
@@ -74,7 +82,12 @@ const AdminRoutes = () => {
         <Route path="AdminHomeScreen" element={<AdminHomeScreen />} />
         <Route path="/CreateBlog" element={<CreateBlog />} />
         <Route path="/UploadDistCentalData" element={<UploadDistCentalData />} />
-        <Route path="/" element={<Navigate to="/AdminHomeScreen" replace />} />
+        <Route path="/AdminDisputedData" element={<AdminDisputedData />} />
+        <Route path="/AdminDashboard" element={<AdminDashboard />} />
+        <Route path="/AdminDistData" element={<AdminDistData />} />
+        <Route path="/AdminpharmacyData" element={<AdminpharmacyData />} />
+        <Route path="/AdminCentralData" element={<AdminCentralData />} />
+ 
         <Route path="*" element={<Navigate to="/AdminHomeScreen" replace />} />
       </Routes>
     </Suspense>
@@ -94,13 +107,15 @@ const DistributorRoutes = () => {
         <Route path="/InvoiceFormRD" element={<InvoiceFormRD />} />
         <Route path="/SMSForm" element={<SMSForm />} />
         <Route path="/ReportOfPharama" element={<ReportOfPharama />} />
-        <Route path="/Addcustomer" element={<Addcustomer />} />
+        <Route path="/Addcustomer" element={<AddCustomer />} />
         <Route path="/DistributorProfile" element={<DistributorProfile />} />
         <Route path="/ForgotPassword" element={<ForgotPassword />} />
         <Route path="/ConfirmReset" element={<ConfirmReset />} />
         <Route path="/FileUpload" element={<FileUpload />} />
+        <Route path="/DisputedDatainDistribuorScn" element={<DisputedDatainDistribuorScn />} />
+        <Route path="/DistributorSerchedCreditscore" element={<DistributorSerchedCreditscore />} />
         <Route path="/Navbar" element={<Navbar/>} />
-        <Route path="/" element={<Navigate to="DistributorHomePage" replace />} />
+       
         <Route path="*" element={<Navigate to="DistributorHomePage" replace />} />
       </Routes>
     </Suspense>
@@ -120,7 +135,7 @@ const PharmacyRoutes = () => {
         <Route path="/ConfirmReset" element={<ConfirmReset />} />
         <Route path="/PharmaProfile" element={<PharmaProfile />} />
         <Route path="/PharmaNavbar" element={<PharmaNavbar />} />
-        <Route path="/" element={<Navigate to="PharmacyHomepage" replace />} />
+  
         <Route path="*" element={<Navigate to="PharmacyHomepage" replace />} />
       </Routes>
     </Suspense>
@@ -130,28 +145,60 @@ const PharmacyRoutes = () => {
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState("");
-
+  const [canNavigate, setCanNavigate] = useState(true);
   useEffect(() => {
     // Initialize Analytics
     initializeAnalytics();
   }, []);
+  // useEffect(() => {
+    
+  //   const handleContextMenu = (e) => {
+  //     e.preventDefault(); 
+  //     alert("For security reasons, right-click functionality has been disabled.");
+  //   };
+
+   
+  //   document.addEventListener("contextmenu", handleContextMenu);
+
+    
+  //   return () => {
+  //     document.removeEventListener("contextmenu", handleContextMenu);
+  //   };
+  // }, []); 
   useEffect(() => {
     const checkTokenAndRole = () => {
       const token = localStorage.getItem("jwttoken");
       const userRole = localStorage.getItem("userType");
       
       if (token) {
+        // Verify token validity here if needed
         setIsLoggedIn(true);
         setRole(userRole);
       } else {
         setIsLoggedIn(false);
         setRole("");
+        // Clear any remaining auth data
+        localStorage.clear();
       }
     };
 
     checkTokenAndRole();
   },100 [role]);  // Fixed the dependency array
-
+  useEffect(() => {
+    const preventBrowserBack = (e) => {
+      // Only prevent browser's back button
+      if (e.type === 'popstate') {
+        window.history.pushState(null, null, window.location.pathname);
+      }
+    };
+  
+    window.history.pushState(null, null, window.location.pathname);
+    window.addEventListener('popstate', preventBrowserBack);
+  
+    return () => {
+      window.removeEventListener('popstate', preventBrowserBack);
+    };
+  }, []);
   return (
     <AppContext.Provider value={{ isLoggedIn, setIsLoggedIn, role, setRole }}>
       <Router>

@@ -1,7 +1,7 @@
 import React, { useState,useEffect, useCallback,useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { config } from '../config';
-import { CalendarDays, DollarSign, Clock, AlertCircle, IndianRupee } from 'lucide-react';
+import { CalendarDays, DollarSign, Clock, AlertCircle, IndianRupee,Search,Send,Building2 } from 'lucide-react';
 import { Navbar } from './Navbar';
 
 export const SendNotice = () => {
@@ -144,147 +144,143 @@ export const SendNotice = () => {
 
 
   return (
-    <div className="bg-white [background-image:none] min-h-screen p-6  mx-auto">
-     <div className="fixed top-0 left-0 w-full z-50">
-  <Navbar />
-</div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+      <div className="fixed top-0 left-0 w-full z-50 bg-white/80 backdrop-blur-sm shadow-lg">
+        <Navbar />
+      </div>
 
-      <div className="flex flex-col gap-6 mt-14">
-        {/* Search Section */}
-        <h2 className="text-2xl font-bold text-gray-900">Search and Send Reminder Message</h2>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex gap-4">
-            <input
-              type="text"
-              placeholder="Enter Pharmacy Drug License Number"
-              value={licenseNo}
-              onChange={(e) => setLicenseNo(e.target.value)}
-              className="flex-1 border rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+        {/* Header Section */}
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="h-12 w-2 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full" />
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+              Payment Reminder Notice
+            </h1>
+          </div>
+
+          {/* Search Box */}
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-purple-100 p-6">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-purple-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Enter pharmacy drug license number..."
+                value={licenseNo}
+                onChange={(e) => setLicenseNo(e.target.value)}
+                className="w-full pl-12 pr-4 py-4 bg-white/50 border-2 border-purple-100 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all text-purple-900 placeholder-purple-300"
+              />
+            </div>
           </div>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {error}
+          <div className="mb-6 bg-red-50/80 backdrop-blur-sm border-l-4 border-red-400 p-4 rounded-xl">
+            <div className="flex items-center">
+              <AlertCircle className="h-5 w-5 text-red-400" />
+              <p className="ml-3 text-red-700">{error}</p>
+            </div>
           </div>
         )}
 
-        {/* Results Table */}
+        {/* Search Results */}
         {pharmacyData.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse table-auto bg-white shadow rounded">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="border border-gray-200 p-2 text-left">Pharmacy Name</th>
-                  <th className="border border-gray-200 p-2 text-left">Email</th>
-                  <th className="border border-gray-200 p-2 text-left">Phone Number</th>
-                  <th className="border border-gray-200 p-2 text-left">License Number</th>
-                  {/* <th className="border border-gray-200 p-2 text-left">Delay Days</th> */}
-                  <th className="border border-gray-200 p-2 text-left">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pharmacyData.map((pharmacy, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="border border-gray-200 p-2">{pharmacy.pharmacy_name}</td>
-                    <td className="border border-gray-200 p-2">{pharmacy.email}</td>
-                    <td className="border border-gray-200 p-2">{pharmacy.phone_number}</td>
-                    <td className="border border-gray-200 p-2">{pharmacy.dl_code}</td>
-                    {/* <td className="border border-gray-200 p-2">{pharmacy.delayDays}</td> */}
-                    <td className="border border-gray-200 p-2">
-                      <button
-                        onClick={() => handleLink(licenseNo,pharmacy.phone_number,pharmacy.pharmacy_name,pharmacy._id)}
-                        disabled={linkingStatus === 'linking'}
-                        className={`px-3 py-1 rounded text-white ${
-                          linkingStatus === 'success' ? 'bg-green-500' :
-                          linkingStatus === 'error' ? 'bg-red-500' :
-                          linkingStatus === 'linking' ? 'bg-yellow-500' :
-                          'bg-blue-500 hover:bg-blue-600'
-                        }`}
-                      >
-                        {linkingStatus === 'success' ? 'Linked!' :
-                         linkingStatus === 'error' ? 'Failed' :
-                         linkingStatus === 'linking' ? 'Linking...' :
-                         'Send Notice'}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="mb-12 bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-purple-100 overflow-hidden">
+            {pharmacyData.map((pharmacy, index) => (
+              <div key={index} className="p-6 hover:bg-purple-50/50 transition-colors border-b border-purple-100 last:border-b-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="flex items-center gap-3">
+                    <Building2 className="w-5 h-5 text-purple-400" />
+                    <div>
+                      <p className="text-sm text-purple-400">Pharmacy Name</p>
+                      <p className="font-medium text-purple-900">{pharmacy.pharmacy_name}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm text-purple-400">Email</p>
+                    <p className="font-medium text-purple-900">{pharmacy.email}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-purple-400">License Number</p>
+                    <p className="font-medium text-purple-900">{pharmacy.dl_code}</p>
+                  </div>
+                  <div className="flex items-center justify-end">
+                    <button
+                      onClick={() => handleLink(pharmacy.dl_code, pharmacy.phone_number, pharmacy.pharmacy_name, pharmacy._id)}
+                      className="inline-flex items-center px-6 py-3 rounded-xl text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all shadow-md hover:shadow-lg"
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      Send Notice
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
-<div className="mt-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Clock className="w-6 h-6" />
-            Reminders History
-          </h2>
+
+        {/* Reminders History */}
+        <div>
+          <div className="flex items-center gap-3 mb-6">
+            <Clock className="w-6 h-6 text-purple-400" />
+            <h2 className="text-2xl font-bold text-purple-900">Reminders History</h2>
+          </div>
           
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-purple-100 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse table-auto">
+              <table className="w-full">
                 <thead>
-                  <tr className="bg-gray-50">
-                    <th className="border-b px-6 py-3 text-left text-sm font-semibold text-gray-900">S.No</th>
-                    <th className="border-b px-6 py-3 text-left text-sm font-semibold text-gray-900">Reminder Issued On</th>
-                    <th className="border-b px-6 py-3 text-left text-sm font-semibold text-gray-900">License No.</th>
-                    <th className="border-b px-6 py-3 text-left text-sm font-semibold text-gray-900">Invoice No.</th>
-                    <th className="border-b px-6 py-3 text-left text-sm font-semibold text-gray-900">Amount</th>
-                    <th className="border-b px-6 py-3 text-left text-sm font-semibold text-gray-900">Invoice Date</th>
-                    <th className="border-b px-6 py-3 text-left text-sm font-semibold text-gray-900">Due Date</th>
-                    <th className="border-b px-6 py-3 text-left text-sm font-semibold text-gray-900">Delay Days</th>
-                    <th className="border-b px-6 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
+                  <tr className="bg-purple-50/50">
+                    {["S.No", "Reminder Date", "Pharmacy Name", "Invoice No.", "Amount", "Invoice Date", "Due Date", "Delay", "Status"].map((header) => (
+                      <th key={header} className="px-6 py-4 text-left text-sm font-semibold text-purple-900">{header}</th>
+                    ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-purple-100">
                   {invoiceHistory.map((invoice) => (
-                    <tr key={invoice.serialNo} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm text-gray-900">{invoice.serialNo}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        <div className="flex items-center gap-1">
-                          <CalendarDays className="w-4 h-4 text-gray-500" />
+                    <tr key={invoice.serialNo} className="hover:bg-purple-50/30 transition-colors">
+                      <td className="px-6 py-4 text-sm text-purple-900">{invoice.serialNo}</td>
+                      <td className="px-6 py-4 text-sm text-purple-700">
+                        <div className="flex items-center gap-2">
+                          <CalendarDays className="w-4 h-4 text-purple-400" />
                           {formatDate(invoice.createdAt)}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{invoice.pharmadrugliseanceno}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{invoice.invoice}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
+                      <td className="px-6 py-4 text-sm text-purple-900">{invoice.pharmadrugliseanceno}</td>
+                      <td className="px-6 py-4 text-sm font-medium text-purple-900">{invoice.invoice}</td>
+                      <td className="px-6 py-4 text-sm text-purple-900">
                         <div className="flex items-center gap-1">
-                          <IndianRupee className="w-4 h-4 text-gray-500" />
+                          <IndianRupee className="w-4 h-4 text-purple-400" />
                           {Number(invoice.invoiceAmount).toLocaleString()}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        <div className="flex items-center gap-1">
-                          <CalendarDays className="w-4 h-4 text-gray-500" />
-                          {formatDate(invoice.invoiceDate)}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{formatDate(invoice.dueDate)}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
+                      <td className="px-6 py-4 text-sm text-purple-700">{formatDate(invoice.invoiceDate)}</td>
+                      <td className="px-6 py-4 text-sm text-purple-700">{formatDate(invoice.dueDate)}</td>
+                      <td className="px-6 py-4">
                         {invoice.delayDays === "0" ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                             On Time
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                             {invoice.delayDays} days
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-sm">
-                        {invoice.reportDefault ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            <AlertCircle className="w-4 h-4 mr-1" />
-                            Defaulted
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            Active
-                          </span>
-                        )}
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                          invoice.reportDefault 
+                            ? 'bg-red-100 text-red-800' 
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {invoice.reportDefault ? (
+                            <>
+                              <AlertCircle className="w-4 h-4 mr-1" />
+                              Defaulted
+                            </>
+                          ) : 'Active'}
+                        </span>
                       </td>
                     </tr>
                   ))}
@@ -292,9 +288,8 @@ export const SendNotice = () => {
               </table>
             </div>
           </div>
-       </div>
+        </div>
       </div>
-      
     </div>
   );
 };

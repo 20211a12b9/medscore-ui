@@ -3,6 +3,7 @@ import { config } from '../config';
 import { useNavigate } from 'react-router-dom';
 import { Clock, User, Image as ImageIcon } from 'lucide-react';
 import { HomeNavbar } from './HomeNavbar';
+import DOMPurify from 'dompurify';
 
 const BlogList = () => {
     const [blogs, setBlogs] = useState([]);
@@ -13,19 +14,13 @@ const BlogList = () => {
     useEffect(() => {
         const fetchBlogs = async () => {
             try {
-                setLoading(true);
                 const response = await fetch(`${config.API_HOST}/api/user/getBlogs`);
-                
-                if (!response.ok) {
-                    throw new Error('Failed to fetch blogs');
-                }
-                
+                if (!response.ok) throw new Error('Failed to fetch blogs');
                 const data = await response.json();
                 setBlogs(data);
-                setLoading(false);
             } catch (error) {
-                console.error('Error fetching blogs:', error);
                 setError('Unable to load blogs. Please try again later.');
+            } finally {
                 setLoading(false);
             }
         };
@@ -33,8 +28,10 @@ const BlogList = () => {
         fetchBlogs();
     }, []);
 
-    const handleReadMore = (blogId) => {
-        navigate(`/blog/${blogId}`);
+    const createExcerpt = (htmlContent) => {
+        const div = document.createElement('div');
+        div.innerHTML = DOMPurify.sanitize(htmlContent);
+        return div.textContent.slice(0, 150) + '...';
     };
 
     const DefaultBlogImage = () => (
@@ -46,7 +43,7 @@ const BlogList = () => {
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
-                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-purple-600 shadow-lg"></div>
+                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-purple-600 shadow-lg" />
             </div>
         );
     }
@@ -62,8 +59,8 @@ const BlogList = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50 py-16 px-4 sm:px-6 lg:px-8">
             <div className="fixed top-0 left-0 w-full z-50">
-        <HomeNavbar/>
-      </div>
+                <HomeNavbar/>
+            </div>
             <div className="max-w-7xl mx-auto mt-10">
                 <div className="text-center mb-12">
                     <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-3">
@@ -97,7 +94,7 @@ const BlogList = () => {
                                     {blog.title}
                                 </h2>
                                 <p className="text-gray-600 mb-4 text-sm line-clamp-3">
-                                    {blog.content}
+                                    {createExcerpt(blog.content)}
                                 </p>
                                 
                                 <div className="flex items-center text-sm text-gray-500 space-x-4 mb-6">
@@ -112,7 +109,7 @@ const BlogList = () => {
                                 </div>
 
                                 <button 
-                                    onClick={() => handleReadMore(blog._id)}
+                                    onClick={() => navigate(`/blog/${blog._id}`)}
                                     className="w-full py-2.5 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all duration-300 font-medium"
                                 >
                                     Read More →

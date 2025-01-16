@@ -75,6 +75,7 @@ export const Login = () => {
         localStorage.setItem('userType', data.usertype);
         localStorage.setItem('userId', data.id);
         localStorage.setItem('pharmacy_name', data.pharmacy_name);
+        localStorage.setItem('dl_code', data.dl_code);
         setIsLoggedIn(true);
         
      
