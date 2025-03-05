@@ -34,7 +34,15 @@ const [dl_code,setDl_code]=useState('');
       setError(null);
       const distId = localStorage.getItem('userId');
       const license2=license.trim().toUpperCase();
-      const response = await fetch(`${config.API_HOST}/api/user/getInvoiceRDforDist/${distId}?licenseNo=${license2}`);
+      const response = await fetch(`${config.API_HOST}/api/user/getInvoiceRDforDist/${distId}?licenseNo=${license2}`,
+        {
+          method: 'GET',
+          // headers: {
+          //     'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+          //     'Content-Type': 'application/json',
+          // },
+        }
+      );
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

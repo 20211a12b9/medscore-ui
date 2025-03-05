@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Search, ChevronLeft, ChevronRight,Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { config } from '../config';
 
@@ -7,6 +7,9 @@ export const AdminDistData = () => {
   const [distData, setDistData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [dateFilter, setDateFilter] = useState({
+    endDate: '',
+  });
   const [filters, setFilters] = useState({
     pharma_ethical: false,
     generic_general: false,
@@ -68,11 +71,25 @@ export const AdminDistData = () => {
         limit: pagination.perPage,
         address,
         filters: JSON.stringify(activeFilters),
-        search: debouncedSearchTerm
+        search: debouncedSearchTerm,
+        endDate: dateFilter.endDate
       });
-
-      const response = await fetch(`${config.API_HOST}/api/user/getDistributorsData?${queryParams}`);
-      if (!response.ok) throw new Error('Network response was not ok');
+      const token= localStorage.getItem('jwttoken')
+      const response = await fetch(
+        `${config.API_HOST}/api/user/getDistributorsData?${queryParams}`,
+        {
+          method: 'GET',
+          // headers: {
+          //   // 'Authorization': `Bearer ${token}`,
+          //   'Content-Type': 'application/json'
+          // }
+        }
+      );
+  
+      if (response.status === 401) {
+        // Handle unauthorized error (e.g., token expired)
+        throw new Error('Unauthorized - Please login again');
+      }
       
       const data = await response.json();
       setDistData(data.dist || []);
@@ -90,7 +107,7 @@ export const AdminDistData = () => {
 
   useEffect(() => {
     fetchDistData(pagination.currentPage);
-  }, [pagination.currentPage, filters, selectedState, selectedDistrict, debouncedSearchTerm]);
+  }, [pagination.currentPage, filters, selectedState, selectedDistrict, debouncedSearchTerm, dateFilter]);
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
@@ -100,9 +117,22 @@ export const AdminDistData = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="flex items-center justify-center min-h-screen bg-white">
+      <div className="absolute">
+        {/* Spinning border */}
+        
+        {/* Logo in center - not spinning */}
+        <div className=" animate-circle top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <img 
+            src="medscore_newlogo.png"
+            alt="Company Logo" 
+            className="h-24 w-24 object-contain"
+          />
+          
+        </div>
+        <h1 className='text-wrap font-serif'>Loading</h1>
       </div>
+    </div>
     );
   }
 
@@ -148,7 +178,26 @@ export const AdminDistData = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-
+        <div className="flex items-center gap-4 mt-4">
+    <div className="relative flex-1">
+      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+      <input
+        type="date"
+        placeholder="End Date"
+        className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+        value={dateFilter.endDate}
+        onChange={(e) => setDateFilter({ endDate: e.target.value })}
+      />
+      {dateFilter.endDate && (
+        <button
+          onClick={() => setDateFilter({ endDate: '' })}
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+        >
+          ×
+        </button>
+      )}
+    </div>
+  </div>
         {/* Location Filters */}
         <div className="flex flex-col md:flex-row gap-4">
           <select
@@ -178,7 +227,7 @@ export const AdminDistData = () => {
             </select>
           )}
         </div>
-
+       
         {/* Type Filters */}
         <div className="flex flex-wrap gap-2">
           {Object.entries(filters).map(([key, value]) => (
@@ -203,7 +252,6 @@ export const AdminDistData = () => {
       <div className="text-sm text-gray-600 mb-4">
         Showing {distData.length} of {pagination.totalCount} distributors
       </div>
-
       {/* Distributor Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {distData.map((dist) => (

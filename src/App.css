@@ -44,7 +44,11 @@
     transform: translateX(20px);
   }
 }
-
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
 .animate-slow-left-right {
   animation: slowBounce 3s infinite ease-in-out; /* Slower animation */
 }

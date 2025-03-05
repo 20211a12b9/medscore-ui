@@ -51,8 +51,12 @@ const UploadDistCentalData = () => {
 
     try {
       const customerId = localStorage.getItem('userId');
-      const response = await fetch(`${config.API_HOST}/api/user/uploadcentalData`, {
+      const response = await fetch(`${config.API_HOST}/api/user/uploadMaharastracentalData`, {
         method: 'POST',
+        // headers:{
+        //   'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+        //   'Content-Type':'application/json'
+        // },
         body: formData,
       });
 

@@ -19,7 +19,12 @@ const PharmaReport = () => {
   const [showDistModal, setShowDistModal] = useState(false);
   const [distLoading, setDistLoading] = useState(false);
   const [distError, setDistError] = useState(null);
-
+const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 0,
+    limit: 10,
+    totalRecords: 0
+  });
   const disputeReasons = [
     { value: 'payment_cleared', label: 'Payment already cleared' },
     { value: 'payment_mismatch', label: 'Payment details not matching with our records' },
@@ -40,7 +45,15 @@ const PharmaReport = () => {
     try {
       setDistLoading(true);
       setDistError(null);
-      const response = await fetch(`${config.API_HOST}/api/user/getDistData/${customerId}`);
+      const response = await fetch(`${config.API_HOST}/api/user/getDistData/${customerId}`,
+        {
+          method: 'GET',
+          // headers: {
+          //     'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+          //     'Content-Type': 'application/json',
+          // },
+        }
+      );
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -59,13 +72,50 @@ const PharmaReport = () => {
       setDistLoading(false);
     }
   };
+  const fetchDistributorData2 = async (customerId) => {
+    try {
+     
+      const response = await fetch(`${config.API_HOST}/api/user/getDistData/${customerId}`,
+        {
+          method: 'GET',
+          // headers: {
+          //     'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+          //     'Content-Type': 'application/json',
+          // },
+        }
+      );
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      if (result.success) {
+        setDistData(result.data);
+       
+      } else {
+        throw new Error(result.message || 'Failed to fetch distributor data');
+      }
+    } catch (err) {
+      setDistError(err.message);
+    } 
+  };
   const fetchInvoiceData = async () => {
     const userId = await localStorage.getItem("userId");
     const license = await localStorage.getItem("dl_code");
+    const { currentPage, limit } = pagination;
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`${config.API_HOST}/api/user/getInvoiceRD?licenseNo=${license}`);
+      const response = await fetch(`${config.API_HOST}/api/user/getInvoiceRD?licenseNo=${license}&page=${currentPage}&limit=${limit}`,
+        {
+          method: 'GET',
+          // headers: {
+          //     'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+          //     'Content-Type': 'application/json',
+          // },
+        }
+      );
       console.log("response----",response)
       if (response.status === 404) {
         setError('No invoices found in database');
@@ -84,6 +134,11 @@ const PharmaReport = () => {
           new Date(b.createdAt) - new Date(a.createdAt)
         );
         setInvoices(sortedInvoices);
+        setPagination(prev => ({
+          ...prev,
+          totalPages: result.pagination?.totalPages || 0,
+          totalRecords: result.pagination?.totalCount || 0
+        }));
       } else {
         throw new Error(result.message || 'Failed to fetch invoice data');
       }
@@ -97,13 +152,17 @@ const PharmaReport = () => {
 
   useEffect(() => {
     fetchInvoiceData();
-  }, []);
+  }, [pagination.currentPage]);
 
   const handleDisputeClick = (invoice) => {
     setSelectedInvoice(invoice);
     setIsDisputeModalOpen(true);
   };
-
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      setPagination(prev => ({ ...prev, currentPage: newPage }));
+    }
+  };
   const handleSubmitDispute = async () => {
     if (!selectedInvoice) {
         alert('No invoice selected');
@@ -123,6 +182,22 @@ const PharmaReport = () => {
     try {
         setLoading(true);
 
+        // Get distributor data directly instead of using state
+        const distResponse = await fetch(`${config.API_HOST}/api/user/getDistData/${selectedInvoice.customerId}`,
+          {
+            method: 'GET',
+            // headers: {
+            //     'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+            //     'Content-Type': 'application/json',
+            // },
+          }
+        );
+        if (!distResponse.ok) {
+            throw new Error('Failed to fetch distributor data');
+        }
+        const distResult = await distResponse.json();
+        const distributorData = distResult.data;
+
         // Prepare the final reason for dispute
         const finalReason = disputeReason === 'custom' ? customReason.trim() : 
             disputeReasons.find(r => r.value === disputeReason)?.label;
@@ -130,6 +205,7 @@ const PharmaReport = () => {
         const response = await fetch(`${config.API_HOST}/api/user/disputebypharma`, {
             method: 'PUT',
             headers: {
+              //  'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
@@ -137,18 +213,36 @@ const PharmaReport = () => {
                 pharmadrugliseanceno: selectedInvoice.pharmadrugliseanceno,
                 invoice: selectedInvoice.invoice,
                 customerId: selectedInvoice.customerId,
+                _id: selectedInvoice._id
             }),
         });
-
-        // Handle non-OK HTTP responses
+        
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.message || 'Failed to submit dispute');
         }
 
+        const fullPhoneNumber = `91${distributorData.phone_number.trim()}`;
+        const pharmacy_name = await localStorage.getItem("pharmacy_name");
+        
+        const smsResult = await fetch(`${config.API_HOST}/api/user/sendSMS`, {
+            method: 'POST',
+            // headers: { 
+            //   'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+            //   'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                phone: fullPhoneNumber,
+                message: `Dear ${distributorData.pharmacy_name}, A dispute claim has been raised by ${pharmacy_name} regarding the payment delay for Invoice No. ${selectedInvoice.invoice}. The reason provided for the claim is: ${finalReason}. Please log in to your MedScore account at medscore.in to review and respond to this dispute by either accepting or rejecting the claim. Thank you, MedScore Team`
+            })
+        });
+                                            
+        if (!smsResult.ok) {
+            console.log('Failed to send SMS')
+            throw new Error('Failed to send SMS');
+        }
+
         const result = await response.json();
 
-        // Check success flag from the API
         if (result.success) {
             setInvoices(prevInvoices =>
                 prevInvoices.map(inv =>
@@ -172,7 +266,6 @@ const PharmaReport = () => {
         setLoading(false);
     }
 };
-
 
   const formatDate = (dateString) => {
     try {
@@ -230,7 +323,7 @@ const PharmaReport = () => {
       <PharmaNavbar />
     </div>
 
-    <div className="pt-24 px-8">
+    <div className="pt-32 px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="mb-8">
@@ -280,6 +373,27 @@ const PharmaReport = () => {
         {/* Invoices Table */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
+          <div className="flex justify-center items-center gap-4 p-4 bg-white/50">
+                <button 
+                  onClick={() => handlePageChange(pagination.currentPage - 1)} 
+                  disabled={pagination.currentPage === 1}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-purple-700 bg-purple-100 hover:bg-purple-200 disabled:opacity-50 disabled:hover:bg-purple-100 transition-colors"
+                >
+                  Previous
+                </button>
+                
+                <span className="text-sm text-purple-900">
+                  Page {pagination.currentPage} of {pagination.totalPages}
+                </span>
+                
+                <button 
+                  onClick={() => handlePageChange(pagination.currentPage + 1)} 
+                  disabled={pagination.currentPage === pagination.totalPages}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-purple-700 bg-purple-100 hover:bg-purple-200 disabled:opacity-50 disabled:hover:bg-purple-100 transition-colors"
+                >
+                  Next
+                </button>
+              </div>
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">

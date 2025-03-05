@@ -22,7 +22,13 @@ export const AdminHomeScreen = () => {
   useEffect(() => {
     const fetchAdminDashBordDeatils = async () => {
       try {
-        const response = await fetch(`${config.API_HOST}/api/user/getcountofAdminneedDetails`);
+        const response = await fetch(`${config.API_HOST}/api/user/getcountofAdminneedDetails`,{
+          method:'GET',
+          // headers:{
+          //   // 'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+          //   'content-type':'application/json'
+          // }
+        });
         const data = await response.json();
         setAdminDashbordDetails(data);
         
@@ -49,9 +55,10 @@ export const AdminHomeScreen = () => {
           <div className="bg-gray-900 text-white px-6 py-3 rounded-lg shadow-lg flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-blue-400" />
-              <span>
+              {/* <span>
                 {AdminDashbordDeatisl.disputescountbyAdminUnseen} new dispute record{AdminDashbordDeatisl.disputescountbyAdminUnseen > 1 ? 's' : ''} added in disputed data
-              </span>
+              </span> */}
+              <button onClick={()=>navigate('/AdminDisputedData')}>{AdminDashbordDeatisl.disputescountbyAdminUnseen} new dispute record{AdminDashbordDeatisl.disputescountbyAdminUnseen > 1 ? 's' : ''} added in disputed data</button>
             </div>
             <button 
               onClick={() => setShowNotification(false)}
@@ -82,6 +89,20 @@ export const AdminHomeScreen = () => {
             >
               <LogOut className="w-4 h-4 mr-2" />
               Create Blog
+            </button>
+            <button
+              onClick={() => navigate('/JobPostingForm')}
+              className="flex items-center px-4 py-2 text-white rounded-lg hover:bg-green-600 transition-colors"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Post JOb Openings
+            </button>
+            <button
+              onClick={() => navigate('/AdminJobManagement')}
+              className="flex items-center px-4 py-2 text-white rounded-lg hover:bg-green-600 transition-colors"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Job Openings Management
             </button>
             <button
               onClick={() => navigate('/UploadDistCentalData')}
@@ -132,8 +153,8 @@ export const AdminHomeScreen = () => {
 
       {/* Header */}
       <div className="bg-white p-4 rounded-lg shadow mb-4 flex justify-between items-center">
-        <div className="flex items-center">
-          <img src="/medscore.png" alt="Company Logo" className="h-20 w-20 mr-2" />
+        <div className="flex items-center  h-20  ">
+          <img src="/medscore_newlogo.png" alt="Company Logo" className="h-32 w-32 mr-2 " />
         </div>
         <div className="flex-grow text-center">
           <h1 className="text-2xl font-bold text-blue-900 color-blue">Admin Dashboard</h1>

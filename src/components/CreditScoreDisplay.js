@@ -19,134 +19,11 @@ const CreditScoreDisplay = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
  
-  const renderActiveShape = (props) => {
-    const {
-      cx, cy, innerRadius, outerRadius, startAngle, endAngle,
-      fill, payload, percent, value
-    } = props;
+ 
 
-    return (
-      <g>
-        <text x={cx} y={cy - 10} dy={8} textAnchor="middle" fill={fill}>
-          {payload.name}
-        </text>
-        <text x={cx} y={cy + 10} dy={8} textAnchor="middle" fill={fill}>
-          {`${(percent * 100).toFixed(0)}%`}
-        </text>
-        <Sector
-          cx={cx}
-          cy={cy}
-          innerRadius={innerRadius}
-          outerRadius={outerRadius}
-          startAngle={startAngle}
-          endAngle={endAngle}
-          fill={fill}
-        />
-        <Sector
-          cx={cx}
-          cy={cy}
-          startAngle={startAngle}
-          endAngle={endAngle}
-          innerRadius={outerRadius + 6}
-          outerRadius={outerRadius + 10}
-          fill={fill}
-        />
-      </g>
-    );
-  };
 
-  // Prepare data for radial bar chart
-  const getRadialBarData = (pieData) => {
-    return pieData.map((item, index) => ({
-      name: item.name,
-      value: item.value,
-      fill: COLORS[index % COLORS.length]
-    }));
-  };
 
-  // Prepare data for nested donut chart
-  const getNestedDonutData = (pieData) => {
-    const total = pieData.reduce((sum, item) => sum + item.value, 0);
-    return pieData.map((item, index) => ({
-      name: item.name,
-      value: item.value,
-      percentage: (item.value / total) * 100,
-      fill: COLORS[index % COLORS.length]
-    }));
-  };
-
-  const renderChart = () => {
-    switch(chartType) {
-      case 'donut':
-        return (
-          <PieChart>
-            <Pie
-              activeIndex={activeIndex}
-              activeShape={renderActiveShape}
-              data={pieData}
-              cx="50%"
-              cy="50%"
-              innerRadius={60}
-              outerRadius={80}
-              dataKey="value"
-              onMouseEnter={(_, index) => setActiveIndex(index)}
-            >
-              {pieData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-          </PieChart>
-        );
-      
-      case 'radial':
-        return (
-          <RadialBarChart
-            innerRadius="30%"
-            outerRadius="100%"
-            data={getRadialBarData(pieData)}
-            startAngle={180}
-            endAngle={0}
-          >
-            <RadialBar
-              minAngle={15}
-              label={{ fill: '#666', position: 'insideStart' }}
-              background
-              clockWise={true}
-              dataKey="value"
-            />
-            <Legend
-              iconSize={20}
-              width={120}
-              height={140}
-              layout="vertical"
-              verticalAlign="bottom"
-              align="right"
-            />
-            <Tooltip />
-          </RadialBarChart>
-        );
-
-      case 'nested':
-        return (
-          <PieChart>
-            <Pie
-              data={getNestedDonutData(pieData)}
-              cx="50%"
-              cy="50%"
-              innerRadius={60}
-              outerRadius={80}
-              dataKey="value"
-              label={({ name, percentage }) => `${name} (${percentage.toFixed(0)}%)`}
-            >
-              {pieData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip />
-          </PieChart>
-        );
-    }
-  };
+ 
   const calculateScore = (invoices) => {
     if (!invoices?.length) return 1000;
   
@@ -223,16 +100,18 @@ const CreditScoreDisplay = () => {
       }
 
       const response = await fetch(
-        `${config.API_HOST}/api/user/getInvoiceRD?licenseNo=${encodeURIComponent(license)}`,
+        `${config.API_HOST}/api/user/getInvoiceRDforIndividual?licenseNo=${encodeURIComponent(license)}`,
         {
-          headers: {
-            'Accept': 'application/json',
-            // 'Content-Type': 'application/json'
+          method:'GET',
+          headers:{
+            // 'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+            'content-type':'application/json'
           }
         }
       );
       
       if (response.status === 404) {
+        
         setScore(1000);
         setInvoiceData([]);
         return;
@@ -248,7 +127,7 @@ const CreditScoreDisplay = () => {
       }
 
       setInvoiceData(result.data || []);
-      console.log(invoiceData,"--")
+      console.log(result.data,"--")
       setScore(calculateScore(result.data));
       
     } catch (err) {
@@ -379,7 +258,7 @@ const CreditScoreDisplay = () => {
         <PharmaNavbar />
       </div>
    
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-12">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-gray-900">MedScore Analytics</h1>
           <span className="px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
@@ -403,8 +282,8 @@ const CreditScoreDisplay = () => {
                       <span style={{ color: textColor }}>{status}</span>
                     </div>
                   </div>
-            <div className="relative pt-4">
-            <svg viewBox="0 0 200 140" className="w-full">
+                  <div className="relative p-4">
+              <svg viewBox="0 0 200 140" className="w-full">
                   <defs>
                     <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                       <stop offset="0%" stopColor="#ef4444" />
@@ -457,57 +336,50 @@ const CreditScoreDisplay = () => {
                   >
                     {score}
                   </text>
-                
+                  
+               
                 </svg>
-            </div>
+              </div>
           </div>
 
           {/* Payment Distribution Card */}
-          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between pb-2 mb-4">
-              <h2 className="text-xl font-semibold flex items-center gap-2">
-                <PieChartIcon className="h-5 w-5 text-blue-500" />
-                Payment Distribution
-              </h2>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setChartType('donut')}
-                className={`px-3 py-1 rounded-full text-sm ${
-                  chartType === 'donut' 
-                    ? 'bg-blue-100 text-blue-700' 
-                    : 'bg-gray-100 text-gray-600'
-                }`}
-              >
-                Donut
-              </button>
-              <button
-                onClick={() => setChartType('radial')}
-                className={`px-3 py-1 rounded-full text-sm ${
-                  chartType === 'radial' 
-                    ? 'bg-blue-100 text-blue-700' 
-                    : 'bg-gray-100 text-gray-600'
-                }`}
-              >
-                Radial
-              </button>
-              <button
-                onClick={() => setChartType('nested')}
-                className={`px-3 py-1 rounded-full text-sm ${
-                  chartType === 'nested' 
-                    ? 'bg-blue-100 text-blue-700' 
-                    : 'bg-gray-100 text-gray-600'
-                }`}
-              >
-                Nested
-              </button>
-            </div>
-            <div className="h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              {renderChart()}
-            </ResponsiveContainer>
-          </div>
-          </div>
+         <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl shadow-sm p-6">
+                       <div className="flex items-center gap-2 mb-4">
+                         <PieChartIcon className="w-5 h-5 text-purple-600" />
+                         <h2 className="text-lg font-semibold text-slate-900">Delay Payment Days & Default Trend</h2>
+                       </div>
+                       <div className="h-80">
+                         <ResponsiveContainer width="100%" height="100%">
+                         <PieChart>
+                             <Pie
+                               data={pieData}
+                               dataKey="value"
+                               nameKey="name"
+                               cx="50%"
+                               cy="50%"
+                               outerRadius={100}
+                               label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                             >
+                               {pieData.map((entry, index) => (
+                                 <Cell 
+                                   key={`cell-${index}`} 
+                                   fill={COLORS[index % COLORS.length]} 
+                                   className="transition-all duration-300 ease-in-out"
+                                 />
+                               ))}
+                             </Pie>
+                             <Tooltip 
+                               contentStyle={{ 
+                                 backgroundColor: 'white',
+                                 borderRadius: '8px',
+                                 padding: '12px',
+                                 border: '1px solid #e5e7eb'
+                               }}
+                             />
+                           </PieChart>
+                         </ResponsiveContainer>
+                       </div>
+                     </div>
 
           {/* Trend Analysis Card */}
           <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-100 rounded-lg shadow-sm p-6 lg:col-span-2">

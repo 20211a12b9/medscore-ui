@@ -3,6 +3,7 @@ import { LogOut, User, Menu, Search, Bell, AlertCircle, FileText, Download } fro
 import { useNavigate } from 'react-router-dom';
 import { config } from '../config';
 import { PharmaNavbar } from './PharmaNavbar';
+import Chatbot from './Chatbot';
 
 export const PharmacyHomepage = ({ onLogout }) => {
   const [licenseNo, setLicenseNo] = useState('');
@@ -23,7 +24,13 @@ export const PharmacyHomepage = ({ onLogout }) => {
     setError(null);
     
     try {
-      const response = await fetch(`${config.API_HOST}/api/user/getInvoice/${licenseNo}`);
+      const response = await fetch(`${config.API_HOST}/api/user/getInvoice/${licenseNo}`, {
+        method: 'GET',
+        // headers: {
+        //     'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+        //     'Content-Type': 'application/json',
+        // },
+      });
       const result = await response.json();
 
       if (!response.ok) {
@@ -51,7 +58,10 @@ export const PharmacyHomepage = ({ onLogout }) => {
           `${config.API_HOST}/api/user/countNotices?licenseNo=${license}`,
           {
             method: 'GET',
-            headers: { 'Accept': 'application/json' }
+            // headers: {
+            //     'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+            //     'Content-Type': 'application/json',
+            // },
           }
         );
 
@@ -113,7 +123,7 @@ export const PharmacyHomepage = ({ onLogout }) => {
       <div className="container mx-auto px-4 py-8" >
         {/* Hero Section */}
         <section className=" text-white text-center py-10 rounded-2xl shadow-xl mt-20 mb-10 transform hover:scale-[1.02] transition-transform duration-300"style={{ backgroundImage: `url('img/cta-bg.jpg')` }}>
-          <h1 className="text-5xl font-serif mb-6 text-white">World's First Credit Risk Platform for Pharma & Healthcare Distribution</h1>
+          <h1 className="text-5xl font-serif mb-6 text-white">World's First Credit Risk Assessment Platform for Pharma & Healthcare Distribution</h1>
           <p className="text-lg mb-8 max-w-3xl mx-auto italic font-mono">
             Revolutionizing credit risk management for the pharmaceutical industry. MedScore gives distributors reliable
             data to assess credit risks.
@@ -174,7 +184,7 @@ export const PharmacyHomepage = ({ onLogout }) => {
             </div>
           </div>
         )}
-
+<Chatbot/>
         {/* No Results Message */}
         {invoiceData.length === 0 && !loading && !error && licenseNo && (
           <div className="flex items-center justify-center p-8 bg-blue-50 rounded-xl border border-blue-100">

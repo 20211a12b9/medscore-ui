@@ -2,19 +2,23 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { config } from '../config';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from './Navbar';
-import { Search, Building2, Phone, LinkIcon } from 'lucide-react';
+import { Search, Building2, Phone, LinkIcon, Plus, X } from 'lucide-react';
 
 export const PharmacySearch = () => {
   const [licenseNo, setLicenseNo] = useState('');
   const [pharmacyData, setPharmacyData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [linkingStatus, setLinkingStatus] = useState({});
+  const [linkingInProgress, setLinkingInProgress] = useState({});
   const [pharmaDrugliceId, setPharmaDrugLicId] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newPhoneNumber, setNewPhoneNumber] = useState('');
+  const [selectedPharmacy, setSelectedPharmacy] = useState(null);
+  const [addingPhone, setAddingPhone] = useState(false);
   
   const navigate = useNavigate();
 
-  // Debounce function to limit API calls
+  // Existing debounce function
   const debounce = (func, delay) => {
     let timeoutId;
     return (...args) => {
@@ -27,38 +31,7 @@ export const PharmacySearch = () => {
     };
   };
 
-  // Check if pharmacy is already linked
-  const checkLinkStatus = useCallback(async (pharmaIds) => {
-    try {
-      const customerId = localStorage.getItem('userId');
-      const linkStatuses = {};
-
-      for (const pharmaId of pharmaIds) {
-        const response = await fetch(
-          `${config.API_HOST}/api/user/checkIfLinked/${pharmaId}/${customerId}`,
-          {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-              'Accept': 'application/json',
-            }
-          }
-        );
-
-        if (response.ok) {
-          linkStatuses[pharmaId] = 'linked';
-        } else {
-          linkStatuses[pharmaId] = 'not_linked';
-        }
-      }
-
-      setLinkingStatus(linkStatuses);
-    } catch (err) {
-      console.error('Error checking link status:', err);
-    }
-  }, []);
-
-  // Fetch pharmacy data
+  // Existing fetchPharmacyData function
   const fetchPharmacyData = useCallback(async (searchTerm) => {
     if (!searchTerm.trim()) {
       setPharmacyData([]);
@@ -66,21 +39,22 @@ export const PharmacySearch = () => {
       return;
     }
 
-    setPharmacyData('');
+    setPharmacyData([]);
     setPharmaDrugLicId('');
     setLoading(true);
     setError(null);
 
     try {
       const license2 = searchTerm.trim().toUpperCase();
+      const customerId = localStorage.getItem('userId');
       const response = await fetch(
-        `${config.API_HOST}/api/user/getPharmaData?licenseNo=${license2}`,
+        `${config.API_HOST}/api/user/getPharmaData2?licenseNo=${license2}&customerId=${customerId}`,
         {
           method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Accept': 'application/json',
-          }
+          // headers: {
+          //     'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+          //     'Content-Type': 'application/json',
+          // },
         }
       );
       
@@ -91,12 +65,14 @@ export const PharmacySearch = () => {
       }
 
       if (result.data && result.data.length > 0) {
-        setPharmaDrugLicId(result.data[0].dl_code);
-        setPharmacyData(result.data);
-        
-        // Check link status for fetched pharmacies
-        const pharmaIds = result.data.map(pharmacy => pharmacy._id);
-        checkLinkStatus(pharmaIds);
+        // Ensure each pharmacy has a phone_number array
+        console.log("data",result.data)
+        const processedData = result.data.map(pharmacy => ({
+          ...pharmacy,
+          phone_number: Array.isArray(pharmacy.phone_number) ? pharmacy.phone_number : []
+        }));
+        setPharmaDrugLicId(processedData[0].dl_code);
+        setPharmacyData(processedData);
       } else {
         setPharmacyData([]);
         setError('No pharmacy found');
@@ -107,20 +83,58 @@ export const PharmacySearch = () => {
     } finally {
       setLoading(false);
     }
-  }, [checkLinkStatus]);
+  }, []);
 
-  // Create a debounced version of fetchPharmacyData
+  // Handle adding new phone number
+  const handleAddPhoneNumber = async (pharmacyId) => {
+    if (!newPhoneNumber.trim()) {
+        setError('Please enter a valid phone number');
+        return;
+    }
+
+    setAddingPhone(true);
+    try {
+        console.log('Sending request with:', {
+            pharmacyId,
+            phoneNumber: newPhoneNumber
+        });
+
+        const response = await fetch(`${config.API_HOST}/api/user/addPhoneNumber/${pharmacyId}`, {
+            method: 'POST',
+            // headers: {
+            //    'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+            //     'Content-Type': 'application/json',
+            // },
+            body: JSON.stringify({ phoneNumber: newPhoneNumber }),
+            credentials: 'include' // Add this if you're using cookies
+        });
+
+        console.log('Response status:', response.status);
+        const result = await response.json();
+        console.log('Response data:', result);
+
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to add phone number');
+        }
+
+        // Rest of your code...
+    } catch (err) {
+        console.error('Error in handleAddPhoneNumber:', err);
+        setError(err.message || 'Error adding phone number');
+    } finally {
+        setAddingPhone(false);
+    }
+};
+  // Existing useEffect and handleLink functions remain the same
   const debouncedFetchPharmacyData = useCallback(
-    debounce(fetchPharmacyData, 500), // 500ms delay
+    debounce(fetchPharmacyData, 500),
     [fetchPharmacyData]
   );
 
-  // Use effect to trigger search when license number changes
   useEffect(() => {
     if (licenseNo.trim()) {
       debouncedFetchPharmacyData(licenseNo);
-    }
-    else{
+    } else {
       setPharmacyData([]);
       setError(null);
     }
@@ -128,14 +142,13 @@ export const PharmacySearch = () => {
 
   const handleLink = async (pharmaId) => {
     try {
-      const updatedLinkingStatus = { ...linkingStatus };
-      updatedLinkingStatus[pharmaId] = 'linking';
-      setLinkingStatus(updatedLinkingStatus);
+      setLinkingInProgress(prev => ({ ...prev, [pharmaId]: true }));
 
       const customerId = localStorage.getItem('userId');
       const response = await fetch(`${config.API_HOST}/api/user/linkPharma/${customerId}`, {
         method: 'POST',
         headers: {
+          // 'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ pharmaId }),
@@ -147,14 +160,17 @@ export const PharmacySearch = () => {
         throw new Error(result.message || 'Failed to link pharmacy');
       }
   
-      // Update linking status to linked
-      updatedLinkingStatus[pharmaId] = 'linked';
-      setLinkingStatus(updatedLinkingStatus);
+      setPharmacyData(prevData => 
+        prevData.map(pharmacy => 
+          pharmacy._id === pharmaId 
+            ? { ...pharmacy, isLinked: true }
+            : pharmacy
+        )
+      );
     } catch (err) {
-      const updatedLinkingStatus = { ...linkingStatus };
-      updatedLinkingStatus[pharmaId] = 'error';
-      setLinkingStatus(updatedLinkingStatus);
       setError(err.message || 'Error linking pharmacy');
+    } finally {
+      setLinkingInProgress(prev => ({ ...prev, [pharmaId]: false }));
     }
   };
 
@@ -204,10 +220,10 @@ export const PharmacySearch = () => {
               </div>
             )}
 
-            {pharmacyData.length > 0 && (
+{pharmacyData.length > 0 && (
               <div className="space-y-4">
                 {pharmacyData.map((pharmacy, index) => {
-                  const linkStatus = linkingStatus[pharmacy._id] || 'not_linked';
+                  const isLinking = linkingInProgress[pharmacy._id];
                   const cardColors = [
                     'bg-gradient-to-br from-purple-50 to-indigo-50',
                     'bg-gradient-to-br from-blue-50 to-cyan-50',
@@ -216,38 +232,53 @@ export const PharmacySearch = () => {
                   const cardColor = cardColors[index % cardColors.length];
                   
                   return (
-                    <div key={index} className={`${cardColor} rounded-lg p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-indigo-100/50`}>
+                    <div key={pharmacy._id || index} className={`${cardColor} rounded-lg p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-indigo-100/50`}>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-3">
                           <div className="flex items-center space-x-2">
                             <Building2 className="h-5 w-5 text-indigo-500" />
                             <span className="font-medium text-indigo-900">{pharmacy.pharmacy_name}</span>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <Phone className="h-5 w-5 text-indigo-400" />
-                            <span className="text-indigo-700">{pharmacy.phone_number}</span>
+                        {pharmacy.isLinked &&(
+                            <div className="space-y-2">
+                            {/* Safe access to phone_number array */}
+                            {Array.isArray(pharmacy.phone_number) && (
+  <div className="flex items-center space-x-2">
+    <Phone className="h-5 w-5 text-indigo-400" />
+    <span className="text-indigo-700">{pharmacy.phone_number.join(", ")}</span>
+  </div>
+)}
+
+                            <button
+                              onClick={() => {
+                                setSelectedPharmacy(pharmacy);
+                                setIsModalOpen(true);
+                              }}
+                              className="inline-flex items-center px-3 py-1 text-sm text-indigo-600 hover:text-indigo-800 transition-colors"
+                            >
+                              <Plus className="h-4 w-4 mr-1" />
+                              Add Phone
+                            </button>
                           </div>
+                        )}
                         </div>
                         <div className="space-y-3">
                           <div className="flex items-center space-x-2">
-                            {/* <License className="h-5 w-5 text-indigo-400" /> */}
                             <span className="text-indigo-700">{pharmacy.dl_code}</span>
                           </div>
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={() => handleLink(pharmacy._id)}
-                              disabled={linkStatus === 'linked' || linkStatus === 'linking'}
+                              disabled={pharmacy.isLinked || isLinking}
                               className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium shadow-sm transition-all duration-200 ${
-                                linkStatus === 'linked' ? 'bg-emerald-500 text-white hover:bg-emerald-600' :
-                                linkStatus === 'error' ? 'bg-red-500 text-white hover:bg-red-600' :
-                                linkStatus === 'linking' ? 'bg-amber-500 text-white' :
+                                pharmacy.isLinked ? 'bg-emerald-500 text-white hover:bg-emerald-600' :
+                                isLinking ? 'bg-amber-500 text-white' :
                                 'bg-indigo-600 text-white hover:bg-indigo-700'
                               }`}
                             >
                               <LinkIcon className="h-4 w-4 mr-2" />
-                              {linkStatus === 'linked' ? 'Linked' :
-                               linkStatus === 'error' ? 'Failed' :
-                               linkStatus === 'linking' ? 'Linking...' :
+                              {pharmacy.isLinked ? 'Linked' :
+                               isLinking ? 'Linking...' :
                                'Link Pharmacy'}
                             </button>
                           </div>
@@ -264,6 +295,53 @@ export const PharmacySearch = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal for adding phone number */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Add Phone Number</h3>
+              <button
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setNewPhoneNumber('');
+                  setSelectedPharmacy(null);
+                }}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <input
+              type="tel"
+              value={newPhoneNumber}
+              onChange={(e) => setNewPhoneNumber(e.target.value)}
+              placeholder="Enter phone number"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+            />
+            <div className="mt-4 flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setNewPhoneNumber('');
+                  setSelectedPharmacy(null);
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleAddPhoneNumber(selectedPharmacy._id)}
+                disabled={addingPhone}
+                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md disabled:bg-indigo-400"
+              >
+                {addingPhone ? 'Adding...' : 'Add'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

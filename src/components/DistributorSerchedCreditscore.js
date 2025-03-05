@@ -3,25 +3,75 @@ import {
   LineChart, Line, PieChart, Pie, XAxis, YAxis, 
   CartesianGrid, Tooltip, ResponsiveContainer, Cell 
 } from 'recharts';
-import { AlertCircle, TrendingUp, PieChart as PieChartIcon, Activity, Phone, Calendar, Building2, ArrowRight,Hash } from 'lucide-react';
+import { AlertCircle, TrendingUp, PieChart as PieChartIcon, Activity, Phone, Calendar, Building2, ArrowRight, Hash } from 'lucide-react';
 import { config } from '../config';
 import { PharmaNavbar } from './PharmaNavbar';
-import { useLocation,useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Navbar } from './Navbar';
 
 const DistributorSerchedCreditscore = () => {
-    const location = useLocation();
+  const location = useLocation();
   const [invoiceData, setInvoiceData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [score, setScore] = useState(0);
-  const [pharmacyData, setPharmacyData] = useState(0);
+  const [pharmacyData, setPharmacyData] = useState([]);
   const [oustandingTotal, setOutStandingTotal] = useState(0);
-  const {license}=location.state || {}
- const navigate=useNavigate();
+  // Store license in state and initialize from location OR session storage for persistence
+  const [license, setLicense] = useState(() => {
+    const locationLicense = location.state?.license;
+    const savedLicense = sessionStorage.getItem('currentPharmacyLicense');
+    return locationLicense || savedLicense || '';
+  });
+  const navigate = useNavigate();
   const COLORS = ['#22c55e', '#f97316', '#eab308', '#3b82f6', '#ef4444'];
   const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   
+  // Save license to session storage whenever it changes
+  useEffect(() => {
+    if (license) {
+      sessionStorage.setItem('currentPharmacyLicense', license);
+    }
+  }, [license]);
+
+  // Update license from location if it changes
+  useEffect(() => {
+    if (location.state?.license) {
+      setLicense(location.state.license);
+    }
+  }, [location.state]);
+
+  const fetchOutstandingData = async () => {
+    try {
+      if (!license) {
+        throw new Error("License code not found");
+      }
+
+      const response = await fetch(
+        `${config.API_HOST}/api/user/outstandingReport?licenseNo=${encodeURIComponent(license)}`,
+        {
+          method: 'GET',
+          headers: {
+            'content-type': 'application/json'
+          }
+        }
+      );
+      
+      if (response.status === 404) {
+        console.log("Failed to fetch outstanding data");
+        return;
+      }
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log("Outstanding data:", result.data);
+    } catch (err) {
+      console.error("Error fetching outstanding data:", err);
+    }
+  };
 
   const calculateScore = (invoices) => {
     if (!invoices?.length) return 1000;
@@ -92,179 +142,109 @@ const DistributorSerchedCreditscore = () => {
   };
 
   const fetchInvoiceData = async () => {
+    if (!license) {
+      setError("No license code provided. Please select a pharmacy.");
+      setLoading(false);
+      return;
+    }
+
     try {
-          // Fetch invoice data
-          const distId = localStorage.getItem('userId');
-          console.log("distIs",distId)
-          const invoiceResponse = await fetch(
-            `${config.API_HOST}/api/user/getInvoiceRDforDist/${distId}?licenseNo=${license}`,
-            {
-              
-              method: 'GET',
-              headers: {
-                'Accept': 'application/json',
-                // 'Content-Type': 'application/json'
-              }
-             
-            }
-          );
+      // Show user what's loading
+      setLoading(true);
+      setError(null);
       
-          // Check if response is JSON
-          const contentType = invoiceResponse.headers.get('content-type');
-          if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Server error. Please try again later.');
-          }
-          const invoiceResult = await invoiceResponse.json();
-         
-          console.log("invoiceResult",invoiceResult)
-          if (!invoiceResponse.ok) {
-            // Set score to 1000 when no data
-            const response = await fetch(
-            `${config.API_HOST}/api/user/getPharmaData?licenseNo=${license}`,
-            {
-              method: 'GET',
-              headers: {
-                'Accept': 'application/json',
-                // 'Content-Type': 'application/json'
-              }
-            }
-          );
-          
-          const result = await response.json();
-    
-          if (!response.ok) {
-            const dresponse = await fetch(
-              `${config.API_HOST}/api/user/getUploadedData?licenseNo=${license}`,
-              {
-                method: 'GET',
-                headers: {
-                  'Accept': 'application/json',
-                  // 'Content-Type': 'application/json'
-                }
-              }
-            );
-            
-            const dresult = await dresponse.json();
-          
-           
-            setOutStandingTotal(Number(dresult[0].Total).toLocaleString('en-IN', { 
-              maximumFractionDigits: 2,
-              minimumFractionDigits: 2,
-              style: 'currency',
-              currency: 'INR'
-          }), "result")
-            throw new Error(result.message || 'Failed to fetch pharmacy data');
-          }
-          console.log("---amam00",result.data[0])
-          const dresponse = await fetch(
-            `${config.API_HOST}/api/user/getUploadedData?licenseNo=${license}`,
-            {
-              method: 'GET',
-              headers: {
-                'Accept': 'application/json',
-                // 'Content-Type': 'application/json'
-              }
-            }
-          );
-          
-          const dresult = await dresponse.json();
-        
-         
-          setOutStandingTotal(Number(dresult[0].Total).toLocaleString('en-IN', { 
-            maximumFractionDigits: 2,
-            minimumFractionDigits: 2,
-            style: 'currency',
-            currency: 'INR'
-        }), "result")
-          setPharmacyData(result.data);
-            setScore(1000);
-            setInvoiceData([]);
-            return;
-          }
-    
-          if (!invoiceResult.data || invoiceResult.data.length === 0) {
-            // Set score to 1000 when no data
-            const response = await fetch(
-              `${config.API_HOST}/api/user/getPharmaData?licenseNo=${license}`,
-              {
-                method: 'GET',
-                headers: {
-                  'Accept': 'application/json',
-                  // 'Content-Type': 'application/json'
-                }
-              }
-            );
-            
-            const result = await response.json();
+      // Fetch invoice data
+      const distId = localStorage.getItem('userId');
+      console.log("Distributor ID:", distId, "License:", license);
       
-            if (!response.ok) {
-              throw new Error(result.message || 'Failed to fetch pharmacy data');
-            }
-            console.log("---amam00",result.data[0])
-            setPharmacyData(result.data);
-              setScore(1000);
-              setInvoiceData([]);
-            
-            return;
+      const invoiceResponse = await fetch(
+        `${config.API_HOST}/api/user/getInvoiceRDforDist/${distId}?licenseNo=${license}`,
+        {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json'
           }
-          const response = await fetch(
-            `${config.API_HOST}/api/user/getPharmaData?licenseNo=${license}`,
-            {
-              method: 'GET',
-              headers: {
-                'Accept': 'application/json',
-                // 'Content-Type': 'application/json'
-              }
-            }
-          );
-          
-          const result = await response.json();
-    
-          if (!response.ok) {
-            
-            throw new Error(result.message || 'Failed to fetch pharmacy data');
+        }
+      );
+  
+      // Check if response is JSON
+      const contentType = invoiceResponse.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Server error. Please try again later.');
+      }
+      
+      const invoiceResult = await invoiceResponse.json();
+      console.log("Invoice data:", invoiceResult);
+      
+      // Fetch pharmacy data - this should happen in all cases
+      const response = await fetch(
+        `${config.API_HOST}/api/user/getPharmaData?licenseNo=${license}`,
+        {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json'
           }
-          console.log("---amam00",result.data[0])
-          setPharmacyData(result.data);
-            
-            
-          setInvoiceData(invoiceResult.data);
-          const calculatedScore2 = calculateScore(invoiceResult.data);
-          setScore(calculatedScore2);
-          setInvoiceData(invoiceResult.data);
-          
-          const calculatedScore = calculateScore(invoiceResult.data);
-            setScore(calculatedScore);
-            const dresponse = await fetch(
-              `${config.API_HOST}/api/user/getUploadedData?licenseNo=${license}`,
-              {
-                method: 'GET',
-                headers: {
-                  'Accept': 'application/json',
-                  // 'Content-Type': 'application/json'
-                }
-              }
-            );
-            
-            const dresult = await dresponse.json();
-          
-           
-            setOutStandingTotal(Number(dresult[0].Total).toLocaleString('en-IN', { 
-              maximumFractionDigits: 2,
-              minimumFractionDigits: 2,
-              style: 'currency',
-              currency: 'INR'
-          }), "result")
-        } catch (err) {
-      setError(err.message);
+        }
+      );
+      
+      const pharmaResult = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(pharmaResult.message || 'Failed to fetch pharmacy data');
+      }
+      
+      console.log("Pharmacy data:", pharmaResult.data);
+      setPharmacyData(pharmaResult.data);
+      
+      // Fetch outstanding data
+      const dresponse = await fetch(
+        `${config.API_HOST}/api/user/getUploadedData?licenseNo=${license}`,
+        {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json'
+          }
+        }
+      );
+      
+      const dresult = await dresponse.json();
+      console.log("Outstanding total:", dresult[0]?.Total);
+      
+      if (dresult && dresult[0] && dresult[0].Total) {
+        setOutStandingTotal(Number(dresult[0].Total).toLocaleString('en-IN', { 
+          maximumFractionDigits: 2,
+          minimumFractionDigits: 2,
+          style: 'currency',
+          currency: 'INR'
+        }));
+      } else {
+        setOutStandingTotal("₹0.00");
+      }
+      
+      // Handle invoice data
+      if (!invoiceResponse.ok || !invoiceResult.data || invoiceResult.data.length === 0) {
+        console.log("No invoice data found, setting default score");
+        setScore(1000);
+        setInvoiceData([]);
+      } else {
+        setInvoiceData(invoiceResult.data);
+        const calculatedScore = calculateScore(invoiceResult.data);
+        setScore(calculatedScore);
+      }
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError(err.message || "Failed to load data. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchInvoiceData();
-  }, []);
+    if (license) {
+      fetchInvoiceData();
+      fetchOutstandingData();
+    }
+  }, [license]);
 
   const getDelayCategory = (days) => {
     if (days <= 0) return 'On Time';
@@ -325,22 +305,6 @@ const DistributorSerchedCreditscore = () => {
     return { pieData, lineData };
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center gap-2 text-red-500 p-6 bg-red-50 rounded-lg">
-        <AlertCircle className="h-5 w-5" />
-        <span className="font-medium">{error}</span>
-      </div>
-    );
-  }
   const getStatusConfig = (value) => {
     if (value >= 900) {
       return {
@@ -374,114 +338,172 @@ const DistributorSerchedCreditscore = () => {
       };
     }
   };
+
   const { status, textColor, bgColor } = getStatusConfig(score);
   const { pieData, lineData } = processDataForCharts();
-  // const { status, color,backgroundcolor } = getCreditScoreStatus(score);
+
+  // Handle navigation with license preservation
+  const handleNavigate = (path) => {
+    // console.log("handleNavigate",path,license)
+    navigate(path, { state: { license } });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+        <div className="fixed top-0 left-0 w-full z-50">
+          <Navbar />
+        </div>
+        <div className="pt-36 px-6 max-w-7xl mx-auto flex flex-col items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+          <p className="mt-4 text-slate-700">Loading pharmacy data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+        <div className="fixed top-0 left-0 w-full z-50">
+          <Navbar />
+        </div>
+        <div className="pt-36 px-6 max-w-7xl mx-auto">
+          <div className="flex flex-col items-center gap-4 text-red-500 p-8 bg-red-50 rounded-lg shadow-sm">
+            <AlertCircle className="h-12 w-12" />
+            <h2 className="text-xl font-bold">Error Loading Data</h2>
+            <p className="text-center">{error}</p>
+            <button 
+              onClick={() => navigate('/')}
+              className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+            >
+              Return to Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-400">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
       <div className="fixed top-0 left-0 w-full z-50">
         <Navbar />
       </div>
       
-      <div className="pt-20 px-6 max-w-7xl mx-auto">
+      <div className="pt-36 px-6 max-w-7xl mx-auto">
         <div className="flex flex-col gap-8">
-          {/* Header Section */}
+          {/* Header Section with Breadcrumb */}
           <div className="flex flex-col gap-2">
-            <h1 className="text-4xl font-bold text-slate-900">
-              Pharmacy Analytics
+            <div className="flex items-center text-sm mb-2">
+              <span className="text-blue-600 hover:underline cursor-pointer" onClick={() => navigate('/')}>Dashboard</span>
+              <span className="mx-2 text-slate-400">/</span>
+              <span className="text-slate-600">MedScore Analytics</span>
+            </div>
+            <h1 className="text-4xl font-bold text-slate-900 flex items-center gap-3">
+              <Activity className="w-8 h-8 text-blue-600" />
+              MedScore Analytics
             </h1>
-            <p className="text-slate-600">Comprehensive view of pharmacy performance and credit metrics</p>
+            <p className="text-slate-600">Comprehensive analysis of pharmacy performance and credit metrics</p>
           </div>
 
           {/* Pharmacy Info Card */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-blue-50 rounded-lg">
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-slate-100">
+            <h2 className="text-xl font-semibold text-slate-800 mb-4">Pharmacy Details</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="flex items-center gap-4 group">
+                <div className="p-3 bg-blue-50 rounded-lg group-hover:bg-blue-100 transition-colors">
                   <Building2 className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">Pharmacy Name</p>
-                  <p className="font-semibold text-slate-900">{pharmacyData[0]?.pharmacy_name}</p>
+                  <p className="font-semibold text-slate-900">{pharmacyData[0]?.pharmacy_name || "N/A"}</p>
                 </div>
               </div>
-            </div>
 
-            <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-purple-50 rounded-lg">
+              <div className="flex items-center gap-4 group">
+                <div className="p-3 bg-purple-50 rounded-lg group-hover:bg-purple-100 transition-colors">
                   <Hash className="w-6 h-6 text-purple-600" />
-                  
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">License No</p>
-                  <p className="font-semibold text-slate-900">{pharmacyData[0]?.dl_code}</p>
+                  <p className="font-semibold text-slate-900">{pharmacyData[0]?.dl_code || license || "N/A"}</p>
                 </div>
               </div>
-            </div>
 
-            <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-emerald-50 rounded-lg">
+              <div className="flex items-center gap-4 group">
+                <div className="p-3 bg-emerald-50 rounded-lg group-hover:bg-emerald-100 transition-colors">
                   <Phone className="w-6 h-6 text-emerald-600" />
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">Contact</p>
-                  <p className="font-semibold text-slate-900">{pharmacyData[0]?.phone_number}</p>
+                  
+                 
+                 <p className="font-semibold text-slate-900">
+  {pharmacyData[0]?.phone_number 
+    ? String(pharmacyData[0].phone_number).substring(0, 4) + "XXXXXX" 
+    : "N/A"}
+</p>
+
                 </div>
               </div>
-            </div>
 
-            <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-rose-50 rounded-lg">
+              <div className="flex items-center gap-4 group">
+                <div className="p-3 bg-rose-50 rounded-lg group-hover:bg-rose-100 transition-colors">
                   <Calendar className="w-6 h-6 text-rose-600" />
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">Expires On</p>
-                  <p className="font-semibold text-slate-900">{pharmacyData[0]?.expiry_date}</p>
+                  <p className="font-semibold text-slate-900">{pharmacyData[0]?.expiry_date || "N/A"}</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Outstanding Amount & Action Button */}
-          <div className="flex flex-col md:flex-row gap-4 mb-8 items-center justify-between bg-white rounded-xl shadow-sm p-6">
+          {/* Outstanding Amount & Action Buttons */}
+          <div className="flex flex-col md:flex-row gap-4 mb-4 items-center justify-between bg-white rounded-xl shadow-sm p-6 border border-slate-100">
             <div>
               <p className="text-sm text-slate-500">Total Market Outstanding</p>
               <p className="text-3xl font-bold text-slate-900">{oustandingTotal}</p>
             </div>
-            <button 
-              onClick={() => navigate('/ReportOfPharama', { state: { license: pharmacyData[0]?.dl_code }})}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-            >
-              View Detailed Report
-              <ArrowRight className="w-4 h-4" />
-            </button>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => handleNavigate('/OutstandingAnalysis')}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-sm"
+              >
+                View Detailed Report
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <button 
+                onClick={() => handleNavigate('/ReportOfPharama')}
+                className="flex items-center gap-2 bg-slate-700 hover:bg-slate-800 text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-sm"
+              >
+                View Defaulted Report
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Analytics Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* MedScore Card */}
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Activity className="w-5 h-5 text-blue-600" />
-          <h2 className="text-lg font-semibold text-slate-900">MedScore</h2>
-        </div>
-        
-        <div 
-          className="px-3 py-1 rounded-full font-medium text-sm"
-          style={{ backgroundColor: bgColor }}
-        >
-          <span style={{ color: textColor }}>{status}</span>
-        </div>
-      </div>
-
-
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl shadow-sm p-6 border border-blue-100">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-blue-600" />
+                  <h2 className="text-lg font-semibold text-slate-900">MedScore</h2>
+                </div>
+                
+                <div 
+                  className="px-3 py-1 rounded-full font-medium text-sm"
+                  style={{ backgroundColor: bgColor }}
+                >
+                  <span style={{ color: textColor }}>{status}</span>
+                </div>
+              </div>
 
               <div className="relative p-4">
-              <svg viewBox="0 0 200 140" className="w-full">
+                <svg viewBox="0 0 200 140" className="w-full">
                   <defs>
                     <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                       <stop offset="0%" stopColor="#ef4444" />
@@ -534,21 +556,35 @@ const DistributorSerchedCreditscore = () => {
                   >
                     {score}
                   </text>
-                  
-               
                 </svg>
+              </div>
+              
+              <div className="mt-2 p-4 bg-white bg-opacity-70 rounded-lg">
+                <h3 className="font-medium text-slate-900 mb-1">Score Interpretation</h3>
+                <p className="text-sm text-slate-600">
+                  {score >= 900 ? 
+                    "Excellent payment history. Very low risk for creditors." : 
+                    score >= 800 ? 
+                    "Good payment history with minimal delays." :
+                    score >= 700 ?
+                    "Moderate risk with occasional payment delays." :
+                    score >= 600 ?
+                    "Higher risk with frequent payment delays." :
+                    "Very high risk with significant payment defaults."
+                  }
+                </p>
               </div>
             </div>
 
             {/* Payment Distribution Card */}
-            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl shadow-sm p-6">
+            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl shadow-sm p-6 border border-purple-100">
               <div className="flex items-center gap-2 mb-4">
                 <PieChartIcon className="w-5 h-5 text-purple-600" />
-                <h2 className="text-lg font-semibold text-slate-900">Payment Distribution</h2>
+                <h2 className="text-lg font-semibold text-slate-900">Payment Delay Distribution</h2>
               </div>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
+                  <PieChart>
                     <Pie
                       data={pieData}
                       dataKey="value"
@@ -580,15 +616,14 @@ const DistributorSerchedCreditscore = () => {
             </div>
 
             {/* Trend Chart Card */}
-            <div className="lg:col-span-2 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 rounded-xl shadow-sm p-6">
+            <div className="lg:col-span-2 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 rounded-xl shadow-sm p-6 border border-blue-100">
               <div className="flex items-center gap-2 mb-4">
                 <TrendingUp className="w-5 h-5 text-emerald-600" />
-                <h2 className="text-lg font-semibold text-slate-900">Score Trend</h2>
-                
+                <h2 className="text-lg font-semibold text-slate-900">Score Trend Analysis</h2>
               </div>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={lineData}>
+                  <LineChart data={lineData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis 
                       dataKey="month" 
@@ -624,7 +659,25 @@ const DistributorSerchedCreditscore = () => {
                   </LineChart>
                 </ResponsiveContainer>
               </div>
+              <div className="mt-2 p-4 bg-white bg-opacity-70 rounded-lg">
+                <h3 className="font-medium text-slate-900 mb-1">Monthly Trend Insights</h3>
+                <p className="text-sm text-slate-600">
+                  This chart shows how the MedScore has evolved over time, factoring in payment behavior 
+                  for each month. Higher scores indicate better payment performance.
+                </p>
+              </div>
             </div>
+          </div>
+          
+          {/* Footer Section */}
+          <div className="mt-6 mb-10 flex justify-center">
+            <button 
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-800 px-4 py-2 rounded-lg transition-colors"
+            >
+              <ArrowRight className="w-4 h-4 rotate-180" />
+              Return to Dashboard
+            </button>
           </div>
         </div>
       </div>

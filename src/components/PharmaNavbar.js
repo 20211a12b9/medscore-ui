@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, User, LogOut, ChevronLeft, Menu, X } from 'lucide-react';
+import { Home, User, LogOut, ChevronLeft, Menu, X,NetworkIcon } from 'lucide-react';
 
 export const PharmaNavbar = () => {
   const navigate = useNavigate();
@@ -20,11 +20,11 @@ export const PharmaNavbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex justify-between items-center py-4">
           {/* Logo Section */}
-          <div className="flex items-center">
+          <div className="flex h-20 items-center">
             <img
-              src="img/logo/white-logo.png"
+              src="medscore_newlogo.png"
               alt="MedScore Logo"
-              className="h-14 w-auto"
+              className="h-32 w-32"
             />
           </div>
 
@@ -37,7 +37,13 @@ export const PharmaNavbar = () => {
               <Home className="h-5 w-5" />
               <span className="font-medium">Home</span>
             </button>
-
+            <button
+              onClick={() => navigate('/PhramaConnections')}
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg text-white hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
+            >
+              <NetworkIcon className="h-5 w-5" />
+              <span className="font-medium">My Connections</span>
+            </button>
             <button
               onClick={() => navigate('/PharmaProfile')}
               className="flex items-center space-x-2 px-4 py-2 rounded-lg text-white hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
@@ -94,10 +100,19 @@ export const PharmaNavbar = () => {
               <Home className="h-5 w-5" />
               <span className="font-medium">Home</span>
             </button>
-
             <button
               onClick={() => {
                 navigate('/PharmaProfile');
+                setIsMobileMenuOpen(false);
+              }}
+              className="flex items-center space-x-2 px-4 py-3 rounded-lg hover:bg-blue-50 text-gray-600 hover:text-blue-600 transition-all duration-200"
+            >
+              <NetworkIcon className="h-5 w-5" />
+              <span className="font-medium">My Connections</span>
+            </button>
+            <button
+              onClick={() => {
+                navigate('/PhramaConnections');
                 setIsMobileMenuOpen(false);
               }}
               className="flex items-center space-x-2 px-4 py-3 rounded-lg hover:bg-blue-50 text-gray-600 hover:text-blue-600 transition-all duration-200"

@@ -3,6 +3,7 @@ import { LogOut, Search, X, Menu, User, IndianRupee, AlertCircle } from 'lucide-
 import { useNavigate } from 'react-router-dom';
 import { config } from '../config';
 import { Navbar } from './Navbar';
+import Chatbot from './Chatbot';
 
 export const DistributorHomePage = ({ onLogout }) => {
   const [license, setLicenseNo] = useState('');
@@ -26,7 +27,13 @@ export const DistributorHomePage = ({ onLogout }) => {
         
         const response = await fetch(
           `${config.API_HOST}/api/user/countDisputes?licenseNo=${userId}`,
-          { method: 'GET', headers: { 'Accept': 'application/json' } }
+          {
+            method: 'GET',
+            // headers: {
+            //     'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+            //     'Content-Type': 'application/json',
+            // },
+          }
         );
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const result = await response.json();
@@ -64,8 +71,10 @@ export const DistributorHomePage = ({ onLogout }) => {
         `${config.API_HOST}/api/user/getPharmaData?licenseNo=${license2}`,
         {
           method: 'GET',
-          credentials: 'include',
-          headers: { 'Accept': 'application/json' }
+          // headers: {
+          //     'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+          //     'Content-Type': 'application/json',
+          // },
         }
       );
       
@@ -158,12 +167,120 @@ export const DistributorHomePage = ({ onLogout }) => {
       notificationCount: countDipsutes 
     }
   ];
+  const loadingnavigationButtons = [
+    { 
+      label: 'Link Customer', 
+      path: '/PharmacySearch', 
+      color: 'bg-grey-300 hover:bg-grey-500',
+      icon: User
+    },
+    { 
+      label: 'Send Reminder', 
+      path: '/SendNotice', 
+      color: 'bg-grey-300 hover:bg-grey-500',
+      icon: AlertCircle
+    },
+    { 
+      label: 'Report Default', 
+      path: '/ReportDefault', 
+      color: 'bg-grey-300 hover:bg-grey-500',
+      icon: AlertCircle
+    },
+    { 
+      label: 'Update Payment Details', 
+      path: '/UpdateDefaultReport', 
+      color: 'bg-grey-300 hover:bg-grey-500',
+      icon: IndianRupee
+    },
+    { 
+      label: 'Add Customer', 
+      path: '/Addcustomer', 
+      color: 'bg-grey-300 hover:bg-grey-500',
+      icon: User
+    },
+    { 
+      label: 'Upload Outstanding File', 
+      path: '/FileUpload', 
+      color: 'bg-grey-300 hover:bg-grey-500',
+      icon: Menu
+    },
+    { 
+      label: 'Disputed Data', 
+      path: '/DisputedDatainDistribuorScn', 
+      color: 'bg-grey-300 hover:bg-grey-500',
+      icon: AlertCircle,
+      notificationCount: countDipsutes 
+    }
+  ];
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500" />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
+       <div className="fixed top-0 left-0 w-full z-50">
+                      <Navbar />
+                    </div>
+     
+      <div className="container mx-auto px-4 py-8">
+      {/* <img className="absolute  left-0" src="img/Distributor.png" /> */}
+        {/* Hero Section */}
+        
+
+<section className=" text-white text-center py-10 rounded-2xl shadow-xl mt-20 mb-10 transform hover:scale-[1.02] transition-transform duration-300"style={{ backgroundImage: `url('img/cta-bg.jpg')` }}>
+          <h1 className="text-5xl font-serif mb-6 text-white">World's First Credit Risk Assessment Platform for Pharma & Healthcare Distribution</h1>
+          <p className="text-lg mb-8 max-w-3xl mx-auto italic font-mono">
+            Revolutionizing credit risk management for the pharmaceutical industry. MedScore gives distributors reliable
+            data to assess credit risks.
+          </p>
+          {noticeCount !== null && (
+            <p className="text-lg">
+              Total Notices: <span className="font-bold">{noticeCount}</span>
+            </p>
+          )}
+        </section>
+        
+
+        {/* Search Section */}
+        <div className="relative max-w-2xl mx-auto mb-12 animate-pulse">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <input
+              type="text"
+              value={license}
+              onChange={(e) => setLicenseNo(e.target.value)}
+              placeholder=""
+              className="w-full pl-10 pr-10 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 animate-pulse focus:ring-gray-400 focus:border-transparent transition-all duration-200 bg-gray-200"
+            />
+            
+          </div>
+
+        </div>
+
+        {/* Navigation Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-pulse">
+          {loadingnavigationButtons.map((btn, index) => {
+            const IconComponent = btn.icon;
+            return (
+              <button
+                key={index}
+                
+                className={`relative group bg-gray-200 text-gray-300 rounded-lg p-6 shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl`}
+              >
+                <div className="flex items-center space-x-3 animate-pulse">
+                  <IconComponent className="bg-gray-300 p-3 rounded-lg w-12 h-12 animate-pulse" />
+                  <span className="h-8 w-64 bg-gray-300 rounded animate-pulse"></span>
+                  
+                </div>
+                {btn.notificationCount < 0 && (
+                  <span className="absolute -top-2 -right-2 bg-gray-200 text-gray-300 text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
+                   
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
+    </div>
     );
   }
 
@@ -179,7 +296,7 @@ export const DistributorHomePage = ({ onLogout }) => {
         
 
 <section className=" text-white text-center py-10 rounded-2xl shadow-xl mt-20 mb-10 transform hover:scale-[1.02] transition-transform duration-300"style={{ backgroundImage: `url('img/cta-bg.jpg')` }}>
-          <h1 className="text-5xl font-serif mb-6 text-white">World's First Credit Risk Platform for Pharma & Healthcare Distribution</h1>
+          <h1 className="text-5xl font-serif mb-6 text-white">World's First Credit Risk Assessment Platform for Pharma & Healthcare Distribution</h1>
           <p className="text-lg mb-8 max-w-3xl mx-auto italic font-mono">
             Revolutionizing credit risk management for the pharmaceutical industry. MedScore gives distributors reliable
             data to assess credit risks.
@@ -233,7 +350,7 @@ export const DistributorHomePage = ({ onLogout }) => {
             </div>
           )}
         </div>
-
+<Chatbot/>
         {/* Navigation Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {navigationButtons.map((btn, index) => {

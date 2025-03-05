@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, User, LogOut, ChevronLeft, Menu, X } from 'lucide-react';
+import { Home, User, LogOut, ChevronLeft, Menu, X ,NetworkIcon,Network} from 'lucide-react';
 
 export const Navbar = () => {
   const navigate = useNavigate();
@@ -23,11 +23,11 @@ export const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex justify-between items-center py-3">
           {/* Logo Section */}
-          <div className="flex items-center">
+          <div className="flex items-center h-20">
             <img
-              src="img/logo/white-logo.png"
+              src="medscore_newlogo.png"
               alt="MedScore Logo"
-              className="h-20 w-20 object-contain"
+              className="h-32 w-32 object-contain"
             />
           </div>
 
@@ -56,7 +56,13 @@ export const Navbar = () => {
               <ChevronLeft className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
               <span className="font-medium">Back</span>
             </button>
-
+            <button
+              onClick={()=>navigate('/DistributorConnections')}
+              className="flex items-center space-x-2 text-gray-100  hover:bg-white rounded-md p-2 hover:text-blue-600 transition-colors duration-200 group"
+            >
+              <Network className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
+              <span className="font-medium">My Connections</span>
+            </button>
             <button
               onClick={handleLogout}
               className="flex items-center space-x-2 text-red-100  hover:bg-white rounded-md p-2 hover:text-blue-600 transition-colors duration-200 group"
@@ -64,6 +70,7 @@ export const Navbar = () => {
               <LogOut className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
               <span className="font-medium">Logout</span>
             </button>
+            
           </div>
 
           {/* Mobile Menu Button */}
@@ -120,6 +127,13 @@ export const Navbar = () => {
               <span className="text-gray-800 font-medium">Back</span>
             </button>
 
+            <button
+              onClick={()=>navigate('/DistributorConnections')}
+              className="flex items-center space-x-3 px-6 py-4 hover:bg-red-50 group transition-colors duration-200"
+            >
+              <Network className="h-5 w-5 text-blue-600 group-hover:text-red-700" />
+              <span className="text-gray-800 font-medium ">My Connections</span>
+            </button>
             <button
               onClick={handleLogout}
               className="flex items-center space-x-3 px-6 py-4 hover:bg-red-50 group transition-colors duration-200"

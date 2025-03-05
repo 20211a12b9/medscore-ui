@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Upload, File, CheckCircle, AlertCircle, CloudUpload, X } from 'lucide-react';
 import { config } from '../config';
 import { Navbar } from './Navbar';
@@ -8,6 +8,7 @@ const FileUpload = () => {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState(null);
   const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef(null);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -71,6 +72,16 @@ const FileUpload = () => {
   const clearFile = () => {
     setFile(null);
     setStatus(null);
+    // Reset the file input value
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
   };
 
   return (
@@ -102,6 +113,7 @@ const FileUpload = () => {
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
+                onClick={!file ? triggerFileInput : undefined}
               >
                 <input
                   type="file"
@@ -109,13 +121,11 @@ const FileUpload = () => {
                   onChange={handleFileChange}
                   className="hidden"
                   id="file-upload"
+                  ref={fileInputRef}
                 />
                 
                 {!file ? (
-                  <label 
-                    htmlFor="file-upload" 
-                    className="cursor-pointer flex flex-col items-center gap-4"
-                  >
+                  <div className="cursor-pointer flex flex-col items-center gap-4">
                     <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center">
                       <CloudUpload className="w-10 h-10 text-purple-600" />
                     </div>
@@ -127,7 +137,7 @@ const FileUpload = () => {
                         Supported formats: XLSX, XLS, CSV
                       </p>
                     </div>
-                  </label>
+                  </div>
                 ) : (
                   <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm">
                     <div className="flex items-center gap-4">
@@ -142,14 +152,29 @@ const FileUpload = () => {
                       </div>
                     </div>
                     <button
-                      onClick={clearFile}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        clearFile();
+                      }}
                       className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      aria-label="Remove file"
                     >
                       <X className="w-5 h-5 text-gray-500" />
                     </button>
                   </div>
                 )}
               </div>
+
+              {file && (
+                <div className="flex justify-center">
+                  <button
+                    onClick={triggerFileInput}
+                    className="px-4 py-2 text-sm font-medium text-purple-600 hover:text-purple-800 transition-colors"
+                  >
+                    Choose a different file
+                  </button>
+                </div>
+              )}
 
               {status === 'success' && (
                 <div className="flex items-center gap-3 p-4 bg-green-50 text-green-700 rounded-lg border border-green-200">

@@ -13,7 +13,15 @@ const navigate=useNavigate();
     const fetchDistributorData = async () => {
       try {
         const license = await localStorage.getItem("dl_code");
-        const response = await fetch(`${config.API_HOST}/api/user/getPharmaData?licenseNo=${license}`);
+        const response = await fetch(`${config.API_HOST}/api/user/getPharmaData?licenseNo=${license}`,
+          {
+            method: 'GET',
+            // headers: {
+            //     'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+            //     'Content-Type': 'application/json',
+            // },
+          }
+        );
         const data = await response.json();
         console.log(data.data[0],"data")
         setDistributorData(data.data[0]);
@@ -27,9 +35,81 @@ const navigate=useNavigate();
 
   if (!distributorData) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-pulse text-gray-500">Loading...</div>
-      </div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 animate-pulse">
+           <div className="fixed top-0 left-0 w-full z-50">
+             <PharmaNavbar />
+           </div>
+           <div className="max-w-6xl mx-auto pt-20 px-4">
+           {/* Header Card */}
+           <div className="bg-white rounded-lg shadow-lg mb-8">
+             <div className="relative h-32 bg-gradient-to-r from-indigo-600 to-blue-500 rounded-t-lg">
+               <div className="absolute -bottom-16 left-8">
+                 <div className="bg-white p-4 rounded-xl shadow-lg">
+                   <Building2 className="h-16 w-16 text-blue-600" />
+                 </div>
+               </div>
+             </div>
+             
+             <div className="pt-20 px-8 pb-8">
+               <div className="flex justify-between items-start">
+                 <div>
+                   <div className="h-8 w-64 bg-gray-200 rounded animate-pulse" />
+                   <div className="h-4 w-48 bg-gray-200 rounded animate-pulse mt-2" />
+                 </div>
+                 <div className="h-8 w-32 bg-gray-200 rounded-full animate-pulse" />
+               </div>
+             </div>
+           </div>
+     
+           {/* Main Content Grid */}
+           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+             {/* Overview Card */}
+             <div className="bg-white rounded-lg shadow-lg p-6 col-span-2">
+               <div className="h-6 w-32 bg-gray-200 rounded animate-pulse mb-6" />
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                 {/* Left Column */}
+                 <div className="space-y-6">
+                   {[...Array(3)].map((_, i) => (
+                     <div key={`left-${i}`} className="flex items-start gap-4">
+                       <div className="bg-gray-200 p-3 rounded-lg w-12 h-12 animate-pulse" />
+                       <div className="flex-1">
+                         <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+                         <div className="h-4 w-48 bg-gray-200 rounded animate-pulse mt-2" />
+                       </div>
+                     </div>
+                   ))}
+                 </div>
+                 
+                 {/* Right Column */}
+                 <div className="space-y-6">
+                   {[...Array(2)].map((_, i) => (
+                     <div key={`right-${i}`} className="flex items-start gap-4">
+                       <div className="bg-gray-200 p-3 rounded-lg w-12 h-12 animate-pulse" />
+                       <div className="flex-1">
+                         <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+                         <div className="h-4 w-48 bg-gray-200 rounded animate-pulse mt-2" />
+                       </div>
+                     </div>
+                   ))}
+                 </div>
+               </div>
+             </div>
+     
+             {/* License Details Card */}
+             <div className="bg-white rounded-lg shadow-lg p-6">
+               <div className="h-6 w-32 bg-gray-200 rounded animate-pulse mb-6" />
+               <div className="space-y-4">
+                 <div className="bg-gray-50 p-4 rounded-lg">
+                   <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+                   <div className="h-4 w-48 bg-gray-200 rounded animate-pulse mt-2" />
+                 </div>
+                 
+                 <div className="h-12 bg-gray-200 rounded-lg w-full animate-pulse" />
+               </div>
+             </div>
+           </div>
+         </div>
+         </div>
     );
   }
 

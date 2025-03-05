@@ -29,7 +29,16 @@ const navigate=useNavigate();
 const fetchDistributorData = async (customerId) => {
   try {
     setDistLoading(true);
-    const response = await fetch(`${config.API_HOST}/api/user/getDistData/${customerId}`);
+    const token=localStorage.getItem('jwttoken');
+    const response = await fetch(`${config.API_HOST}/api/user/getDistData/${customerId}`,
+      {
+        method: 'GET',
+        // headers: {
+        //   // 'Authorization': `Bearer ${token}`,
+        //   'Content-Type': 'application/json'
+        // }
+      }
+    );
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const result = await response.json();
     if (result.success) {
@@ -45,7 +54,16 @@ const fetchDistributorData = async (customerId) => {
 
 const fetchPharmaData = async (license) => {
   try {
-    const response = await fetch(`${config.API_HOST}/api/user/getPharmaData?licenseNo=${license}`);
+    const token=localStorage.getItem('token')
+    const response = await fetch(`${config.API_HOST}/api/user/getPharmaData?licenseNo=${license}`,
+      {
+        method: 'GET',
+        // headers: {
+        //   // 'Authorization': `Bearer ${token}`,
+        //   'Content-Type': 'application/json'
+        // }
+      }
+    );
     const data = await response.json();
     if (data.success) {
       setPharmaData(prevState => ({
@@ -60,9 +78,11 @@ const fetchPharmaData = async (license) => {
 
 const updateSeenStatus = async (invoiceIds) => {
   try {
+    const token =localStorage.getItem('jwttoken')
     const response = await fetch(`${config.API_HOST}/api/user/updateDisputeAdminSeenStatus`, {
       method: 'PUT',
       headers: {
+        // 'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ invoiceIds }),
@@ -86,7 +106,16 @@ useEffect(() => {
   const fetchDisputeData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${config.API_HOST}/api/user/getDipsutedData?page=${pagination.currentPage}&limit=${pagination.perPage}&address=${debouncedSearchTerm}&licenseNo=${debouncedSearchTerm}`);
+      const token= localStorage.getItem('jwttoken')
+      const response = await fetch(`${config.API_HOST}/api/user/getDipsutedData?page=${pagination.currentPage}&limit=${pagination.perPage}&address=${debouncedSearchTerm}&licenseNo=${debouncedSearchTerm}`,
+        {
+          method: 'GET',
+          // headers: {
+          //   // 'Authorization': `Bearer ${token}`,
+          //   'Content-Type': 'application/json'
+          // }
+        }
+      );
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -165,8 +194,21 @@ useEffect(() => {
   };
 
   if (loading) return (
-    <div className="flex justify-center items-center min-h-screen">
-      <Loader2 className="h-12 w-12 animate-spin text-blue-500" />
+    <div className="flex items-center justify-center min-h-screen bg-white">
+      <div className="absolute">
+        {/* Spinning border */}
+        
+        {/* Logo in center - not spinning */}
+        <div className=" animate-circle top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <img 
+            src="medscore_newlogo.png"
+            alt="Company Logo" 
+            className="h-24 w-24 object-contain"
+          />
+         
+        </div>
+        <h1 className='text-wrap font-serif'>Loading</h1>
+      </div>
     </div>
   );
 

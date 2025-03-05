@@ -29,54 +29,81 @@ const InvoiceFormRD = () => {
   }, []);
 
   const checkScheduledActions = async () => {
-      try {
-          const scheduleInfoListStr = localStorage.getItem('scheduleInfoList');
-          if (!scheduleInfoListStr) return;
+    try {
+        const scheduleInfoListStr = localStorage.getItem('scheduleInfoList');
+        if (!scheduleInfoListStr) return;
 
-          const scheduleInfoList = JSON.parse(scheduleInfoListStr);
-          const currentTime = new Date().getTime();
-          const updatedScheduleList = [];
+        const scheduleInfoList = JSON.parse(scheduleInfoListStr);
+        const currentTime = new Date().getTime();
+        const updatedScheduleList = [];
 
-          for (const scheduleInfo of scheduleInfoList) {
-              if (currentTime - scheduleInfo.timestamp >= 72 * 24 * 60 * 1000 && !scheduleInfo.processed) {
-                  try {
-                      const disputeResponse = await fetch(
-                          `${config.API_HOST}/api/user/checkifdisputedtrue/${scheduleInfo.pharmacyId}?pharmadrugliseanceno=${scheduleInfo.drugLicenseNo}&invoice=${scheduleInfo.invoice}`
-                      );
-                      const disputeData = await disputeResponse.json();
-                      
-                      if (!disputeData.disputed) {
-                          const getalldistData = await fetch(`${config.API_HOST}/api/user/getdistdatabyphid/${scheduleInfo.pharmacyId}`);
-                          const distributors = (await getalldistData.json()).data;
-                          
-                          await Promise.all(distributors.filter(d => d.phone_number).map(async (distributor) => {
-                              const distFullPhoneNumber = `91${distributor.phone_number.trim()}`;
-                              await fetch(`${config.API_HOST}/api/user/sendSMS`, {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({
-                                      phone: distFullPhoneNumber,
-                                      message: `MedScore Update for ${distributor.pharmacy_name} Dear Partner, Please be advised that ${scheduleInfo.pharmacyName}'s MedScore has been reduced due to a ${scheduleInfo.delayDays}-day delay in payment. This adjustment reflects their recent credit performance. Click the link for detailed report medscore.in. Thank you for your attention. Best regards, MedScore Team`
-                                  })
-                              });
-                          }));
-                          scheduleInfo.processed = true;
-                      }
-                  } catch (error) {
-                      console.error(`Error processing schedule: ${error}`);
-                  }
-              }
-              
-              if (!scheduleInfo.processed) {
-                  updatedScheduleList.push(scheduleInfo);
-              }
-          }
+        for (const scheduleInfo of scheduleInfoList) {
+            if (currentTime - scheduleInfo.timestamp >= 72 * 24 * 60 * 1000 && !scheduleInfo.processed) {
+                try {
+                    const disputeResponse = await fetch(
+                        `${config.API_HOST}/api/user/checkifdisputedtrue/${scheduleInfo.pharmacyId}?pharmadrugliseanceno=${scheduleInfo.drugLicenseNo}&invoice=${scheduleInfo.invoice}`,
+                        {
+                            method: 'GET',
+                            headers: {
+                                // 'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+                                'Content-Type': 'application/json',
+                            },
+                          });
+                    const disputeData = await disputeResponse.json();
 
-          localStorage.setItem('scheduleInfoList', JSON.stringify(updatedScheduleList));
-      } catch (error) {
-          console.error('Error in checkScheduledActions:', error);
-      }
-  };
+                    if (!disputeData.disputed) {
+                        const getalldistData = await fetch(`${config.API_HOST}/api/user/getdistdatabyphid/${scheduleInfo.pharmacyId}`,
+                            {
+                                method: 'GET',
+                                headers: {
+                                    // 'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+                                    'Content-Type': 'application/json',
+                                },
+                              }
+                        );
+                        const distributors = (await getalldistData.json()).data;
+
+                        await Promise.all(distributors.filter(d => d.phone_number).map(async (distributor) => {
+                            try {
+                                // Ensure phone_number is a string before trimming
+                                const distPhoneNumber = String(distributor.phone_number).trim();
+                                if (distPhoneNumber) {
+                                    const distFullPhoneNumber = `91${distPhoneNumber}`;
+                                    const smsResponse = await fetch(`${config.API_HOST}/api/user/sendSMS`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                            phone: distFullPhoneNumber,
+                                            message: `MedScore Update for ${distributor.pharmacy_name} Dear Partner, Please be advised that ${scheduleInfo.pharmacyName}'s MedScore has been reduced due to a ${scheduleInfo.delayDays}-day delay in payment. This adjustment reflects their recent credit performance. Click the link for detailed report medscore.in. Thank you for your attention. Best regards, MedScore Team`
+                                        })
+                                    });
+
+                                    if (!smsResponse.ok) {
+                                        console.error(`Error sending SMS to ${distFullPhoneNumber}`);
+                                    }
+                                }
+                            } catch (error) {
+                                console.error(`Error sending SMS to distributor ${distributor.pharmacy_name}: ${error}`);
+                            }
+                        }));
+                        scheduleInfo.processed = true;
+                    }
+                } catch (error) {
+                    console.error(`Error processing schedule for pharmacy ${scheduleInfo.pharmacyName}: ${error}`);
+                }
+            }
+
+            if (!scheduleInfo.processed) {
+                updatedScheduleList.push(scheduleInfo);
+            }
+        }
+
+        localStorage.setItem('scheduleInfoList', JSON.stringify(updatedScheduleList));
+    } catch (error) {
+        console.error('Error in checkScheduledActions:', error);
+    }
+};
+
 
     const handleDueDateChange = (dueDate) => {
         if (dueDate) {
@@ -107,7 +134,24 @@ const InvoiceFormRD = () => {
             handleDueDateChange(value);
         }
     };
-
+const sendSMS = async (phoneNumbers,dist_pharmacy_name) => {
+    const smsPromises = phoneNumbers.map(async (phone) => {
+        console.log("fullPhoneNumber--",phone)
+      const smsResult = await fetch(`${config.API_HOST}/api/user/sendSMS`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            phone,
+          message: `Important Update: MedScore Reduced Due to Payment Delay Dear ${pharmacy_name}, We are writing to inform you that your MedScore has been reduced due to a delayed payment of ${formData.delayDays} days on Invoice No. ${formData.invoice}. Maintaining a strong MedScore is essential for seamless credit access with distributors. Please click the link below for a detailed report on your updated score: medscore.in Thank you for your attention to this matter. Best regards, MedScore Team`
+        })
+      });
+  
+      return smsResult;
+    });
+  
+    const results = await Promise.all(smsPromises);
+    return results;
+  };
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -116,12 +160,17 @@ const InvoiceFormRD = () => {
         
         const customerId = localStorage.getItem('userId');
 
-        const fullPhoneNumber = `91${phone_number.trim()}`;
+        const dist_pharmacy_name = localStorage.getItem('pharmacy_name');
+        const fullPhoneNumbers = phone_number && Array.isArray(phone_number)
+          ? phone_number.map(num => `91${String(num).trim()}`)
+          : [];
 
         try {
             const response = await fetch(`${config.API_HOST}/api/user/InvoiceReportDefault/${customerId}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    // 'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+                     'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
 
@@ -133,7 +182,7 @@ const InvoiceFormRD = () => {
                     timestamp: new Date().getTime(),
                     pharmacyId: pharmaId,
                     pharmacyName: pharmacy_name,
-                    phoneNumber: fullPhoneNumber,
+                    phoneNumber: fullPhoneNumbers,
                     drugLicenseNo: formData.pharmadrugliseanceno,
                     invoice: formData.invoice,
                     delayDays: formData.delayDays,
@@ -147,22 +196,14 @@ const InvoiceFormRD = () => {
 
                 await checkScheduledActions();
 
-                const smsResult = await fetch(`${config.API_HOST}/api/user/sendSMS`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        phone: fullPhoneNumber,
-                        message: `Important Update: MedScore Reduced Due to Payment Delay Dear ${pharmacy_name}, We are writing to inform you that your MedScore has been reduced due to a delayed payment of ${formData.delayDays} days on Invoice No. ${formData.invoice}. Maintaining a strong MedScore is essential for seamless credit access with distributors. Please click the link below for a detailed report on your updated score: medscore.in Thank you for your attention to this matter. Best regards, MedScore Team`
-                    })
-                });
-
-                if (!smsResult.ok) {
-                    setSmsStatus('SMS delivery failed');
-                    throw new Error('Failed to send SMS');
+                const smsResult = await sendSMS(fullPhoneNumbers,dist_pharmacy_name);
+                const failedSms = smsResult.find(result => !result.ok);
+                if (failedSms) {
+                  setSmsStatus('SMS delivery failed');
+                  throw new Error('Failed to send SMS');
                 }
-
-                const smsData = await smsResult.json();
-                setSmsStatus(`SMS Status: ${smsData.status || 'Sent'}`);
+            
+                setSmsStatus('SMS Status: Sent');
                 setSuccess('Invoice created and notification sent successfully!');
                 navigate("/ReportDefault");
             } else {

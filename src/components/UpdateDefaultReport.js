@@ -34,9 +34,10 @@ const UpdateDefaultReport = () => {
         `${config.API_HOST}/api/user/getInvoiceRDforDistUpdate?licenseNo=${license}`,
         {
           method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-          }
+          // headers: {
+          //     'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+          //     'Content-Type': 'application/json',
+          // },
         }
       );
 
@@ -81,12 +82,11 @@ const UpdateDefaultReport = () => {
       const response = await fetch(`${config.API_HOST}/api/user/updateReportDefault`, {
         method: 'PUT',
         headers: {
-            'Content-Type': 'application/json', // Ensures the server knows you're sending JSON
+          // 'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+            'Content-Type': 'application/json', 
         },
         body: JSON.stringify({
-            pharmadrugliseanceno: invoice.pharmadrugliseanceno,
-            invoice: invoice.invoice,
-            customerId: invoice.customerId,
+            _id:invoice._id
         }),
     });
 
@@ -131,7 +131,7 @@ const UpdateDefaultReport = () => {
       <div className="flex items-center gap-4 mb-8">
             <div className="h-12 w-2 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full" />
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-              Update Default Report
+            Update Payment Details
             </h1>
           </div>
          <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-purple-100 p-6">

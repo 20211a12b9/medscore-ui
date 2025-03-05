@@ -25,6 +25,25 @@ import AdminCentralData from './components/AdminCentralData.js';
 import DistributorSerchedCreditscore from './components/DistributorSerchedCreditscore.js';
 import AddCustomer from './components/Addcustomer.js';
 
+import AdminDefaulters from './components/AdminDefaulters.js';
+import AdminNotices from './components/AdminNotices.js';
+import AdminLinkedData from './components/AdminLinkedData.js';
+import AdminDIsputedbydata from './components/AdminDIsputedbydata.js';
+import AdminDispytesClaimed from './components/AdminDispytesClaimed.js';
+import DistributorConnections from './components/DistributorConnections.js';
+import PhramaConnections from './components/PhramaConnections.js';
+import DetailedDefaultedData from './components/DetailedDefaultedData.js';
+import DetailedNoticesHistory from './components/DetailedNoticesHistory.js';
+import { Culture } from './components/Culture.js';
+import { Life } from './components/Life.js';
+import { Openings } from './components/Openings.js';
+import HomeFooter from './components/HomeFooter.js';
+import JobPostingForm from './components/JobPostingForm.js';
+import AdminJobManagement from './components/AdminJobManagement.js';
+import Chatbot from './components/Chatbot.js';
+import Testimonials from './components/Testimonials.js';
+import { OutstandingAnalysis } from './components/OutstandingAnalysis.js';
+
 // Lazy load all components
 const Home = lazy(() => import('./components/Home'));
 const Login = lazy(() => import('./components/Login'));
@@ -68,6 +87,12 @@ const AuthNavigator = () => {
         <Route path="/BlogList" element={<BlogList />} />
         <Route path="/blog/:blogId" element={<BlogDetail />} />
         <Route path="/HomeNavbar" element={<HomeNavbar />} />
+        <Route path="/Culture" element={<Culture />} />
+        <Route path="/Life" element={<Life />} />
+        <Route path="/Openings" element={<Openings />} />
+        <Route path="/HomeFooter" element={<HomeFooter />} />
+        <Route path="/Chatbot" element={<Chatbot />} />
+        <Route path="/Testimonials" element={<Testimonials />} />
         <Route path="/" element={<Home />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
@@ -87,7 +112,13 @@ const AdminRoutes = () => {
         <Route path="/AdminDistData" element={<AdminDistData />} />
         <Route path="/AdminpharmacyData" element={<AdminpharmacyData />} />
         <Route path="/AdminCentralData" element={<AdminCentralData />} />
- 
+        <Route path="/AdminNotices" element={<AdminNotices />} />
+        <Route path="/AdminDefaulters" element={<AdminDefaulters />} />
+        <Route path="/AdminLinkedData" element={<AdminLinkedData />} />
+        <Route path="/AdminDIsputedbydata" element={<AdminDIsputedbydata />} />
+        <Route path="/AdminDispytesClaimed" element={<AdminDispytesClaimed />} />
+        <Route path="/JobPostingForm" element={<JobPostingForm />} />
+        <Route path="/AdminJobManagement" element={<AdminJobManagement />} />
         <Route path="*" element={<Navigate to="/AdminHomeScreen" replace />} />
       </Routes>
     </Suspense>
@@ -115,7 +146,10 @@ const DistributorRoutes = () => {
         <Route path="/DisputedDatainDistribuorScn" element={<DisputedDatainDistribuorScn />} />
         <Route path="/DistributorSerchedCreditscore" element={<DistributorSerchedCreditscore />} />
         <Route path="/Navbar" element={<Navbar/>} />
-       
+        <Route path="/DistributorConnections" element={<DistributorConnections/>} />
+        <Route path="/DetailedDefaultedData" element={<DetailedDefaultedData/>} />
+        <Route path="/DetailedNoticesHistory" element={<DetailedNoticesHistory/>} />
+        <Route path="/OutstandingAnalysis" element={<OutstandingAnalysis/>} />
         <Route path="*" element={<Navigate to="DistributorHomePage" replace />} />
       </Routes>
     </Suspense>
@@ -135,7 +169,7 @@ const PharmacyRoutes = () => {
         <Route path="/ConfirmReset" element={<ConfirmReset />} />
         <Route path="/PharmaProfile" element={<PharmaProfile />} />
         <Route path="/PharmaNavbar" element={<PharmaNavbar />} />
-  
+        <Route path="/PhramaConnections" element={<PhramaConnections/>} />
         <Route path="*" element={<Navigate to="PharmacyHomepage" replace />} />
       </Routes>
     </Suspense>
@@ -150,6 +184,7 @@ function App() {
     // Initialize Analytics
     initializeAnalytics();
   }, []);
+  
   // useEffect(() => {
     
   //   const handleContextMenu = (e) => {

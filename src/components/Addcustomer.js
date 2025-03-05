@@ -15,7 +15,8 @@ export const Addcustomer = () => {
         user_type: 'pharmacy',
         expiry_date: '',
     });
-
+    const [showForm, setShowForm] = useState(false);
+    const [state,setState]=useState('');
     const [isManualEntry, setIsManualEntry] = useState(false);
     const [suggestionList, setSuggestionList] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -43,8 +44,22 @@ export const Addcustomer = () => {
 
         try {
             const license2 = searchTerm.trim().toUpperCase();
+            let endpoint;
+           
+            console.log(state,"state")
+            if(state==='Maharashtra')
+            {
+                endpoint='getMHCentalData'
+            }
+            else if(state==='Telangana'){
+              endpoint='getPharmaCentalData'
+            }
+            else {
+              console.log('Unsupported state:', state);
+              return; // Exit if state is not supported
+          }
             const response = await fetch(
-                `${config.API_HOST}/api/user/getPharmaCentalData?licenseNo=${license2}`,
+                `${config.API_HOST}/api/user/${endpoint}?licenseNo=${license2}`,
                 {
                     method: 'GET',
                     credentials: 'include',
@@ -54,7 +69,7 @@ export const Addcustomer = () => {
 
             const result = await response.json();
             if (!response.ok) throw new Error(result.message);
-
+             console.log('result.data',result.data)
             setSuggestionList(result.data || []);
             setShowSuggestions(Boolean(result.data?.length));
         } catch (err) {
@@ -62,7 +77,7 @@ export const Addcustomer = () => {
             setSuggestionList([]);
             setShowSuggestions(false);
         }
-    }, [hasSelectedSuggestion, isManualEntry]);
+    }, [hasSelectedSuggestion, isManualEntry,state]);
 
     const debouncedFetchSuggestions = useCallback(
         debounce(fetchPharmacySuggestions, 300),
@@ -95,10 +110,10 @@ export const Addcustomer = () => {
 
         setFormData(prev => ({
             ...prev,
-            pharmacy_name: selectedPharmacy.FirmName,
+            pharmacy_name: selectedPharmacy.FirmName ||selectedPharmacy.Firm_Name,
             dl_code: selectedPharmacy.LicenceNumber,
             address: selectedPharmacy.Address,
-            expiry_date: convertToValidDate(selectedPharmacy.ExpDate || '')
+            expiry_date: convertToValidDate(selectedPharmacy.ExpDate || selectedPharmacy.ExpiryDate || '')
         }));
 
         setHasSelectedSuggestion(true);
@@ -125,7 +140,24 @@ export const Addcustomer = () => {
             setHasSelectedSuggestion(false);
         }
     };
-
+    const handleState = (e) => {
+        const newState = e.target.value;
+        setState(newState);
+        setShowForm(true);
+        
+        // Reset suggestion-related state when state changes
+        setSuggestionList([]);
+        setShowSuggestions(false);
+        setHasSelectedSuggestion(false);
+    };
+    const indianStates = [
+        "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", 
+        "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", 
+        "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", 
+        "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", 
+        "Uttarakhand", "West Bengal", "Andaman and Nicobar Islands", "Chandigarh", 
+        "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Ladakh", "Lakshadweep", "Puducherry"
+    ];
     const toggleManualEntry = () => {
         setIsManualEntry(!isManualEntry);
         if (!isManualEntry) {
@@ -162,7 +194,8 @@ export const Addcustomer = () => {
                                headers: { 'Content-Type': 'application/json' },
                                body: JSON.stringify({
                                  phone: fullPhoneNumber,
-                                 message: `Hello ${formData.pharmacy_name} , your information has been successfully added to MedScore by distributor  . To access your account, please go to medscore.in Select ‘Forgot Password’ and use your drug license number as the username to reset your password and log in. Best regards, MedScore`
+                                 message: `Hello ${formData.pharmacy_name} , your information has been successfully added to MedScore by distributor . To access your account, please go to medscore.in and Select Forgot Password then use your drug license number as the username to reset your password and login. Best regards, MedScore`
+                                  
                                })
                              });
                        
@@ -219,8 +252,27 @@ export const Addcustomer = () => {
                                 {isManualEntry ? "Switch to Search Mode" : "Switch to Manual Entry"}
                             </button>
                         </div> */}
-
-                        <form onSubmit={handleSubmit} className="space-y-6">
+ <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Select State *
+                    </label>
+                    <select
+                        name="state"
+                        value={state}
+                        onChange={handleState}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1565C0] focus:border-transparent outline-none transition-all"
+                        required
+                    >
+                        <option value="">Select a state</option>
+                        {indianStates.map((state, index) => (
+                            <option key={index} value={state}>
+                                {state}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                        {showForm &&(
+                            <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="relative">
                                 <div className="flex items-center border-2 rounded-lg focus-within:border-indigo-500 transition-colors">
                                     <Building2 className="w-5 h-5 text-gray-400 ml-3" />
@@ -243,7 +295,7 @@ export const Addcustomer = () => {
                                                 onClick={() => handleSuggestionSelect(suggestion)}
                                                 className="p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 transition-colors"
                                             >
-                                                <div className="font-medium text-gray-800">{suggestion.FirmName}</div>
+                                                <div className="font-medium text-gray-800">{suggestion.FirmName || suggestion.Firm_Name}</div>
                                                 <div className="text-sm text-gray-600 mt-1">
                                                     <div>License: {suggestion.LicenceNumber}</div>
                                                     <div className="truncate">Address: {suggestion.Address}</div>
@@ -323,6 +375,7 @@ export const Addcustomer = () => {
                                 )}
                             </button>
                         </form>
+                        )}
                     </div>
                 </div>
             </div>

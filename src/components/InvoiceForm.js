@@ -18,7 +18,7 @@ const InvoiceForm = () => {
     dueDate: '',
     delayDays: '0'
   });
-
+  console.log("phone_number",phone_number)
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -48,40 +48,57 @@ const InvoiceForm = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setSmsStatus('');
-
-    const customerId = localStorage.getItem('userId');
-    const dist_pharmacy_name = localStorage.getItem('pharmacy_name');
-    const fullPhoneNumber = phone_number ? `91${phone_number.trim()}` : '';
-
-    try {
-      const invoiceResponse = await fetch(`${config.API_HOST}/api/user/Invoice/${customerId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-
-      if (!invoiceResponse.ok) throw new Error('Failed to create invoice');
-
+  const sendSMS = async (phoneNumbers,dist_pharmacy_name) => {
+    const smsPromises = phoneNumbers.map(async (phone) => {
+      console.log("fullPhoneNumber--",phone)
       const smsResult = await fetch(`${config.API_HOST}/api/user/sendSMS`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phone: fullPhoneNumber,
+          phone,
           message: `Payment Reminder - Invoice No. ${formData.invoice} Dear ${pharmacy_name}, This is a reminder from MedScore, on behalf of ${dist_pharmacy_name}, regarding your pending payment for Invoice No. ${formData.invoice}, dated ${formData.invoiceDate}, which was due on ${formData.dueDate}. The payment is currently overdue by ${formData.delayDays} days. To maintain a strong MedScore rating and ensure continued access to credit, please complete the payment at your earliest convenience. If payment has already been processed, kindly disregard this notice. Thank you for your prompt attention. Best regards, MedScore`
+          
         })
       });
-
-      if (!smsResult.ok) {
+  
+      return smsResult;
+    });
+  
+    const results = await Promise.all(smsPromises);
+    return results;
+  };
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setSmsStatus('');
+  
+    const customerId = localStorage.getItem('userId');
+    const dist_pharmacy_name = localStorage.getItem('pharmacy_name');
+    const fullPhoneNumbers = phone_number && Array.isArray(phone_number)
+      ? phone_number.map(num => `91${String(num).trim()}`)
+      : [];
+    console.log("fullPhoneNumbers",fullPhoneNumbers)
+    try {
+      const invoiceResponse = await fetch(`${config.API_HOST}/api/user/Invoice/${customerId}`, {
+        method: 'POST',
+        headers: { 
+          // 'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+          'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+  
+      if (!invoiceResponse.ok) throw new Error('Failed to create invoice');
+  
+      const smsResult = await sendSMS(fullPhoneNumbers,dist_pharmacy_name); // Correctly await sendSMS
+  
+      const failedSms = smsResult.find(result => !result.ok);
+      if (failedSms) {
         setSmsStatus('SMS delivery failed');
         throw new Error('Failed to send SMS');
       }
-
-      const smsData = await smsResult.json();
-      setSmsStatus(`SMS Status: ${smsData.status || 'Sent'}`);
+  
+      setSmsStatus('SMS Status: Sent');
       setSuccess('Invoice created and notification sent successfully!');
       navigate("/SendNotice");
     } catch (err) {
@@ -90,6 +107,7 @@ const InvoiceForm = () => {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">

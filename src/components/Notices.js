@@ -8,12 +8,26 @@ const Notices = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [pharmaData, setPharmaData] = useState({});
-
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 0,
+    limit: 10,
+    totalRecords: 0
+  });
   const fetchPharmaData = async (license) => {
     try {
-      const response = await fetch(`${config.API_HOST}/api/user/getPharmaData?licenseNo=${license}`);
+      const response = await fetch(`${config.API_HOST}/api/user/getPharmaData?licenseNo=${license}`,
+        {
+          method: 'GET',
+          // headers: {
+          //     'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+          //     'Content-Type': 'application/json',
+          // },
+        }
+      );
       const data = await response.json();
       if (data.success) {
+        console.log("data.data[0]",data.data[0])
         setPharmaData(prevState => ({
           ...prevState,
           [license]: data.data[0]
@@ -29,6 +43,7 @@ const Notices = () => {
       const response = await fetch(`${config.API_HOST}/api/user/updateNoticeSeenStatus`, {
         method: 'PUT',
         headers: {
+          // 'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ invoiceIds }),
@@ -44,6 +59,7 @@ const Notices = () => {
 
   const fetchInvoiceData = async () => {
     const license = localStorage.getItem("dl_code");
+    const { currentPage, limit } = pagination;
     if (!license) {
       setError("License number not found");
       return;
@@ -52,7 +68,15 @@ const Notices = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`${config.API_HOST}/api/user/getInvoice?licenseNo=${license}`);
+      const response = await fetch(`${config.API_HOST}/api/user/getInvoice?licenseNo=${license}&page=${currentPage}&limit=${limit}`,
+        {
+          method: 'GET',
+          // headers: {
+          //     'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+          //     'Content-Type': 'application/json',
+          // },
+        }
+      );
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -64,6 +88,11 @@ const Notices = () => {
           new Date(b.createdAt) - new Date(a.createdAt)
         );
         setInvoices(sortedInvoices);
+        setPagination(prev => ({
+          ...prev,
+          totalPages: result.pagination?.totalPages || 0,
+          totalRecords: result.pagination?.totalCount || 0
+        }));
         
         const unseenInvoiceIds = sortedInvoices
           .filter(invoice => !invoice.seen)
@@ -80,10 +109,14 @@ const Notices = () => {
       setLoading(false);
     }
   };
-
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      setPagination(prev => ({ ...prev, currentPage: newPage }));
+    }
+  };
   useEffect(() => {
     fetchInvoiceData();
-  }, []);
+  }, [pagination.currentPage]);
 
   useEffect(() => {
     const missingPharmaData = invoices.filter(
@@ -156,6 +189,27 @@ const Notices = () => {
           </div>
         ) : (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="flex justify-center items-center gap-4 p-4 bg-white/50">
+                <button 
+                  onClick={() => handlePageChange(pagination.currentPage - 1)} 
+                  disabled={pagination.currentPage === 1}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-purple-700 bg-purple-100 hover:bg-purple-200 disabled:opacity-50 disabled:hover:bg-purple-100 transition-colors"
+                >
+                  Previous
+                </button>
+                
+                <span className="text-sm text-purple-900">
+                  Page {pagination.currentPage} of {pagination.totalPages}
+                </span>
+                
+                <button 
+                  onClick={() => handlePageChange(pagination.currentPage + 1)} 
+                  disabled={pagination.currentPage === pagination.totalPages}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-purple-700 bg-purple-100 hover:bg-purple-200 disabled:opacity-50 disabled:hover:bg-purple-100 transition-colors"
+                >
+                  Next
+                </button>
+              </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>

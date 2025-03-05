@@ -27,7 +27,15 @@ const DownloadReport = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`${config.API_HOST}/api/user/getInvoiceRD?licenseNo=${license}`);
+      const response = await fetch(`${config.API_HOST}/api/user/getInvoiceRD?licenseNo=${license}`,
+        {
+          method: 'GET',
+          // headers: {
+          //     'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+          //     'Content-Type': 'application/json',
+          // },
+        }
+      );
       
       if (response.status === 404) {
         setError('No invoices found in database');
@@ -62,8 +70,12 @@ const DownloadReport = () => {
     const license = await localStorage.getItem("dl_code");
     try {
       setDownloading(true);
-      const response = await fetch(`${config.API_HOST}/api/user/downloadReport/excel?license=${license}`, {
+      const response = await fetch(`${config.API_HOST}/api/user/downloadReport/excel?license=${license}`,  {
         method: 'GET',
+        // headers: {
+        //     'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+        //     'Content-Type': 'application/json',
+        // },
       });
       
       if (!response.ok) {

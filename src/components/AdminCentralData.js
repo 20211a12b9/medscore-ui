@@ -47,10 +47,26 @@ const AdminCentralData = () => {
     const fetchCentralData = async () => {
       try {
         setLoading(true);
+        let endpoint;
+        if(selectedState==="Maharashtra")
+        {
+          endpoint='getMaharastraCentaldata'
+        }
+        else{
+          endpoint='getCentaldata'
+        }
+        const token =localStorage.getItem('jwttoken')
         const response = await fetch(
-          `${config.API_HOST}/api/user/getCentaldata?page=${pagination.currentPage}&limit=${pagination.perPage}&address=${address}&licenseNo=${debouncedSearchTerm}`
+          `${config.API_HOST}/api/user/${endpoint}?page=${pagination.currentPage}&limit=${pagination.perPage}&address=${address}&licenseNo=${debouncedSearchTerm}`, {
+            method: 'GET',
+            // headers: {
+            //   'Authorization': `Bearer ${token}`,
+            //   'Content-Type': 'application/json'
+            // }
+          }
         );
         const data = await response.json();
+        console.log("data",data.dist)
         setCentralData(data.dist || []);
         setPagination(data.pagination || {});
         setLoading(false);
@@ -72,9 +88,22 @@ const AdminCentralData = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="flex items-center justify-center min-h-screen bg-white">
+      <div className="absolute">
+        {/* Spinning border */}
+        
+        {/* Logo in center - not spinning */}
+        <div className=" animate-circle top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <img 
+            src="medscore_newlogo.png"
+            alt="Company Logo" 
+            className="h-24 w-24 object-contain "
+          />
+         
+        </div>
+        <h1 className='text-wrap font-serif'>Loading</h1>
       </div>
+    </div>
     );
   }
 
@@ -158,7 +187,7 @@ const AdminCentralData = () => {
         {centralData.map((item) => (
           <div key={item._id} className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
             <div className="bg-gray-50 p-4">
-              <h3 className="text-lg font-semibold">{item.FirmName}</h3>
+              <h3 className="text-lg font-semibold">{item.FirmName ||item.Firm_Name}</h3>
             </div>
             <div className="p-4">
               <div className="space-y-2">

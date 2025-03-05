@@ -1,7 +1,18 @@
-import React, { useState,useEffect, useCallback,useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { config } from '../config';
-import { CalendarDays, DollarSign, Clock, AlertCircle, IndianRupee,Search,Send,Building2 } from 'lucide-react';
+import { 
+  CalendarDays, 
+  DollarSign, 
+  Clock, 
+  AlertCircle, 
+  IndianRupee, 
+  Search, 
+  Building2, 
+  Send ,
+  BarChart2,
+  ChevronRight
+} from 'lucide-react';
 import { Navbar } from './Navbar';
 
 export const SendNotice = () => {
@@ -9,43 +20,91 @@ export const SendNotice = () => {
   const [pharmacyData, setPharmacyData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [linkingStatus, setLinkingStatus] = useState('');
-  const [pharmaDrugliceId,setPharmaDrugLicId]=useState('');
   const [invoiceHistory, setInvoiceHistory] = useState([]);
-  const navigate=useNavigate();
-  useEffect(() => {
-    const fetchInvoiceHistory = async () => {
-      try {
-        const distId = localStorage.getItem('userId');
-        const response = await fetch(`${config.API_HOST}/api/user/getinvoicesbydistId/${distId}`);
-        const result = await response.json();
-        if (result.success) {
-          setInvoiceHistory(result.data);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 0,
+    limit: 10,
+    totalRecords: 0
+  });
+  const navigate = useNavigate();
+
+  const fetchInvoiceHistory = async () => {
+    try {
+      const distId = localStorage.getItem('userId');
+      const { currentPage, limit } = pagination;
+      
+      const response = await fetch(
+        `${config.API_HOST}/api/user/getinvoicesbydistId/${distId}?page=${currentPage}&limit=${limit}`,
+        {
+          method: 'GET',
+          // headers: {
+          //     'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+          //     'Content-Type': 'application/json',
+          // },
         }
-      } catch (err) {
-        console.error('Error fetching invoice history:', err);
+      );
+      const result = await response.json();
+      
+      if (result.success) {
+        const sortedInvoices = result.data.sort((a, b) => 
+          new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        setInvoiceHistory(sortedInvoices);
+        setPagination(prev => ({
+          ...prev,
+          totalPages: result.pagination?.totalPages || 0,
+          totalRecords: result.pagination?.totalCount || 0
+        }));
       }
-    };
-
-    fetchInvoiceHistory();
-  }, []);
-
-
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+    } catch (err) {
+      console.error('Error fetching invoice history:', err);
+    }
   };
+
+  const handleUpdateRD = async (invoice) => {
+    try {
+      if (!window.confirm('Are you sure you want to mark this invoice as received?')) {
+        return;
+      }
+
+      setLoading(true);
+      const response = await fetch(`${config.API_HOST}/api/user/updateNotice`, {
+        method: 'PUT',
+        headers: {
+          // 'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          _id: invoice._id
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update report status');
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert(result.message);
+        await fetchInvoiceHistory();
+      } else {
+        throw new Error(result.message || 'Failed to update report status');
+      }
+    } catch (err) {
+      alert(`Error updating report status: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const debounce = useMemo(() => {
     return (func, delay) => {
       let timeoutId;
       return (...args) => {
         if (timeoutId) {
           clearTimeout(timeoutId);
-          
         }
         timeoutId = setTimeout(() => {
           func(...args);
@@ -61,8 +120,6 @@ export const SendNotice = () => {
       return;
     }
 
-    setPharmacyData([]);
-    setPharmaDrugLicId('');
     setLoading(true);
     setError(null);
 
@@ -72,10 +129,10 @@ export const SendNotice = () => {
         `${config.API_HOST}/api/user/getPharmaData?licenseNo=${license2}`,
         {
           method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Accept': 'application/json',
-          }
+          // headers: {
+          //     'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+          //     'Content-Type': 'application/json',
+          // },
         }
       );
       
@@ -83,10 +140,9 @@ export const SendNotice = () => {
 
       if (!response.ok) {
         throw new Error(result.message || 'Failed to fetch pharmacy data');
-      }
+      } 
 
       if (result.data && result.data.length > 0) {
-        setPharmaDrugLicId(result.data[0].dl_code);
         setPharmacyData(result.data);
       } else {
         setPharmacyData([]);
@@ -100,48 +156,69 @@ export const SendNotice = () => {
     }
   }, []);
 
-  // Create a debounced version of fetchPharmacyData
+  const handleLink = async (licenseNumber, phone_number, pharmacy_name, _id) => {
+    try {
+      const distId = localStorage.getItem('userId');
+      const response = await fetch(`${config.API_HOST}/api/user/checkIfLinked/${_id}/${distId}`,
+        {
+          method: 'GET',
+          // headers: {
+          //     'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+          //     'Content-Type': 'application/json',
+          // },
+        }
+      );
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to fetch pharmacy data');
+      }
+     
+      navigate("/InvoiceForm", {
+        state: { 
+          pharmaDrugLicense: licenseNumber,
+          phone_number: phone_number,
+          pharmacy_name: pharmacy_name,
+          pharmaId: _id 
+        }
+      });
+    } catch (err) {
+      setError(err.message || 'Error fetching pharmacy data');
+    }
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      setPagination(prev => ({ ...prev, currentPage: newPage }));
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  // Debounced search
   const debouncedFetchPharmacyData = useCallback(
-    debounce(fetchPharmacyData, 500), // 500ms delay
+    debounce(fetchPharmacyData, 500),
     [fetchPharmacyData]
   );
 
-  // Use effect to trigger search when license number changes
   useEffect(() => {
     if (licenseNo.trim()) {
       debouncedFetchPharmacyData(licenseNo);
-    }
-    else{
+    } else {
       setPharmacyData([]);
       setError(null);
     }
   }, [licenseNo, debouncedFetchPharmacyData]);
 
-
-  const handleLink =async (licenseNumber,phone_number,pharmacy_name,_id) => {
-    try {
-        const distId = localStorage.getItem('userId');
-        const pharmaId=_id;
-        console.log("_id",_id,"distId",distId)
-        const response = await fetch(`${config.API_HOST}/api/user/checkIfLinked/${pharmaId}/${distId}`);
-        const result = await response.json();
-  
-        if (!response.ok) {
-          throw new Error(result.message || 'Failed to fetch pharmacy data');
-        }
-        
-        navigate("/InvoiceForm", {
-            state: { pharmaDrugLicense: licenseNumber,phone_number:phone_number,pharmacy_name:pharmacy_name }
-          });
-      } catch (err) {
-        setError(err.message || 'Error fetching pharmacy data');
-      } finally {
-        setLoading(false);
-      }
-    
-  };
-  
-
+  useEffect(() => {
+    fetchInvoiceHistory();
+  }, [pagination.currentPage]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
@@ -155,7 +232,7 @@ export const SendNotice = () => {
           <div className="flex items-center gap-4 mb-8">
             <div className="h-12 w-2 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full" />
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-              Payment Reminder Notice
+            Search and Send Payment Reminder
             </h1>
           </div>
 
@@ -211,7 +288,7 @@ export const SendNotice = () => {
                       className="inline-flex items-center px-6 py-3 rounded-xl text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all shadow-md hover:shadow-lg"
                     >
                       <Send className="w-4 h-4 mr-2" />
-                      Send Notice
+                      Send Remainder
                     </button>
                   </div>
                 </div>
@@ -220,19 +297,43 @@ export const SendNotice = () => {
           </div>
         )}
 
-        {/* Reminders History */}
+        {/* Default History Section */}
         <div>
           <div className="flex items-center gap-3 mb-6">
             <Clock className="w-6 h-6 text-purple-400" />
             <h2 className="text-2xl font-bold text-purple-900">Reminders History</h2>
           </div>
           
+          <button 
+          onClick={() => navigate('/DetailedNoticesHistory')}
+          className="w-full p-4 text-left"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-purple-100 rounded-lg">
+                <BarChart2 className="w-6 h-6 text-purple-700" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Detailed Remainder History
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Click here to get Detailed Remainder History
+                </p>
+              </div>
+            </div>
+            <ChevronRight 
+             
+            />
+          </div>
+        </button>
+
           <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-purple-100 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="bg-purple-50/50">
-                    {["S.No", "Reminder Date", "Pharmacy Name", "Invoice No.", "Amount", "Invoice Date", "Due Date", "Delay", "Status"].map((header) => (
+                    {["S.No", "Reminder Date", "Pharmacy Name", "Invoice No.", "Amount", "Invoice Date", "Due Date", "Delay", "Actions"].map((header) => (
                       <th key={header} className="px-6 py-4 text-left text-sm font-semibold text-purple-900">{header}</th>
                     ))}
                   </tr>
@@ -247,7 +348,7 @@ export const SendNotice = () => {
                           {formatDate(invoice.createdAt)}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-purple-900">{invoice.pharmadrugliseanceno}</td>
+                      <td className="px-6 py-4 text-sm text-purple-900">{invoice.pharmacy_name}</td>
                       <td className="px-6 py-4 text-sm font-medium text-purple-900">{invoice.invoice}</td>
                       <td className="px-6 py-4 text-sm text-purple-900">
                         <div className="flex items-center gap-1">
@@ -268,7 +369,7 @@ export const SendNotice = () => {
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4">
+                      {/* <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                           invoice.reportDefault 
                             ? 'bg-red-100 text-red-800' 
@@ -279,19 +380,51 @@ export const SendNotice = () => {
                               <AlertCircle className="w-4 h-4 mr-1" />
                               Defaulted
                             </>
-                          ) : 'Active'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                          )  : 'Active'}
+                          </span>
+                        </td> */}
+                        <td className="px-6 py-4">
+                          <button
+                            onClick={() => handleUpdateRD(invoice)}
+                            disabled={loading}
+                            className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all shadow-md hover:shadow-lg disabled:opacity-50"
+                          >
+                            {loading ? 'Processing...' : 'Received'}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+  
+              {/* Pagination Controls */}
+              <div className="flex justify-center items-center gap-4 p-4 bg-white/50">
+                <button 
+                  onClick={() => handlePageChange(pagination.currentPage - 1)} 
+                  disabled={pagination.currentPage === 1}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-purple-700 bg-purple-100 hover:bg-purple-200 disabled:opacity-50 disabled:hover:bg-purple-100 transition-colors"
+                >
+                  Previous
+                </button>
+                
+                <span className="text-sm text-purple-900">
+                  Page {pagination.currentPage} of {pagination.totalPages}
+                </span>
+                
+                <button 
+                  onClick={() => handlePageChange(pagination.currentPage + 1)} 
+                  disabled={pagination.currentPage === pagination.totalPages}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-purple-700 bg-purple-100 hover:bg-purple-200 disabled:opacity-50 disabled:hover:bg-purple-100 transition-colors"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-};
-
-export default SendNotice;
+    );
+  };
+  
+  export default SendNotice;

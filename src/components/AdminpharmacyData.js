@@ -14,7 +14,7 @@ const PharmacyCard = ({ pharmacy }) => (
         </div>
         <div className="flex items-center text-gray-600">
           <Phone className="h-5 w-5 mr-2 text-green-500" />
-          <span>{pharmacy.phone_number}</span>
+          <span>{pharmacy.phone_number.join(", ")}</span>
         </div>
         <div className="flex items-center text-gray-600">
           <Key className="h-5 w-5 mr-2 text-purple-500" />
@@ -23,6 +23,10 @@ const PharmacyCard = ({ pharmacy }) => (
         <div className="flex items-center text-gray-600">
           <Calendar className="h-5 w-5 mr-2 text-red-500" />
           <span>Expires: {new Date(pharmacy.expiry_date).toLocaleDateString()}</span>
+        </div>
+        <div className="flex items-center text-gray-600">
+          <Calendar className="h-5 w-5 mr-2 text-red-500" />
+          <span>createdAt: {new Date(pharmacy.createdAt).toISOString().split('T')[0]}</span>
         </div>
       </div>
     </div>
@@ -37,6 +41,9 @@ export const AdminpharmacyData = () => {
   const navigate = useNavigate();
   const [selectedState, setSelectedState] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
+  const [dateFilter, setDateFilter] = useState({
+      endDate: '',
+    });
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -68,7 +75,15 @@ const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
   useEffect(() => {
     const fetchPharmacyData = async () => {
       try {
-        const response = await fetch(`${config.API_HOST}/api/user/getPharmacyData?page=${pagination.currentPage}&limit=${pagination.perPage}&address=${address}&licenseNo=${debouncedSearchTerm}`);
+        const response = await fetch(`${config.API_HOST}/api/user/getPharmacyData?page=${pagination.currentPage}&limit=${pagination.perPage}&address=${address}&licenseNo=${debouncedSearchTerm}&endDate=${dateFilter.endDate}`,
+          {
+            method:'GET',
+            // headers:{
+            //   // 'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+            //   'content-type':'application/json'
+            // }
+          }
+        );
         if (!response.ok) {
           
         }
@@ -91,7 +106,7 @@ const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
     };
 
     fetchPharmacyData();
-  }, [pagination.currentPage, address, pagination.perPage, debouncedSearchTerm]);
+  }, [pagination.currentPage, address, pagination.perPage, debouncedSearchTerm,dateFilter]);
 
 
   const handlePageChange = (newPage) => {
@@ -102,9 +117,22 @@ const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="flex items-center justify-center min-h-screen bg-white">
+      <div className="absolute">
+        {/* Spinning border */}
+        
+        {/* Logo in center - not spinning */}
+        <div className=" animate-circle top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <img 
+            src="medscore_newlogo.png"
+            alt="Company Logo" 
+            className="h-24 w-24 object-contain"
+          />
+          
+        </div>
+        <h1 className='text-wrap font-serif'>Loading</h1>
       </div>
+    </div>
     );
   }
 
@@ -153,7 +181,26 @@ const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
               aria-label="Search pharmacies"
             />
           </div>
-
+<div className="flex items-center gap-4 mt-4">
+    <div className="relative flex-1">
+      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+      <input
+        type="date"
+        placeholder="End Date"
+        className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+        value={dateFilter.endDate}
+        onChange={(e) => setDateFilter({ endDate: e.target.value })}
+      />
+      {dateFilter.endDate && (
+        <button
+          onClick={() => setDateFilter({ endDate: '' })}
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+        >
+          ×
+        </button>
+      )}
+    </div>
+  </div>
           {/* State and District Filter */}
           <div className="mt-6">
             <div className="mb-4">
@@ -213,6 +260,7 @@ const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
             <ChevronRight className="h-5 w-5" />
           </button>
         </div>
+        <h1 className='text-wrap font-serif '>Total Count: <span className='text-wrap font-bold'>{pagination.totalCount}</span></h1>
         {/* Pharmacy Cards Grid */}
         {pharmacyData.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

@@ -4,11 +4,13 @@ import { ArrowRight, Mail, Phone, MapPin, Star, Shield, Bell, BarChart, Database
 import { Github, Linkedin, Twitter, Instagram, Facebook, X } from 'lucide-react';
 import { HomeNavbar } from './HomeNavbar';
 import { useState } from 'react';
-import { ChevronsRight, ArrowUpRight } from 'lucide-react';
+import { ChevronsRight, ArrowUpRight,ChevronRight } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useEffect } from 'react';
 import { CalendarDays,ArrowUp } from 'lucide-react';
 import emailjs from '@emailjs/browser'; 
+import HomeFooter from './HomeFooter';
+import Chatbot from './Chatbot';
 const Card = ({ children, className, ...props }) => (
   <div className={`bg-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 ${className}`} {...props}>
     {children}
@@ -33,9 +35,7 @@ export const Home = () => {
   const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const isLoggedIn = localStorage.getItem('jwttoken') !== null;
-  const [isChecked, setIsChecked] = useState(false);
+ 
   const [formData,setFormData]=useState({
     name:'',
     city:'',
@@ -89,15 +89,9 @@ export const Home = () => {
     }
   };
   
-  const handleLogout = () => {
-    localStorage.removeItem('jwttoken');
-    localStorage.removeItem('userId');
-    window.location.href = '/';
-  };
 
-  const handleRegister = () => {
-    navigate('/register');
-  };
+
+ 
   const toggleVisibility = () => {
     if (window.pageYOffset > 300) {
       setIsVisible(true);
@@ -116,34 +110,10 @@ export const Home = () => {
     };
   }, []);
 
-  // Scroll to top smoothly
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    });
-  };
+ 
 
-  const features = [
-    { icon: <BarChart className="w-6 h-6 text-[#121441]" />, title: 'Comprehensive Dashboard' },
-    { icon: <Star className="w-6 h-6 text-[#121441]" />, title: 'Custom Reports & Insights' },
-    { icon: <Bell className="w-6 h-6 text-[#121441]" />, title: 'Real-Time Alerts' },
-    { icon: <Shield className="w-6 h-6 text-[#121441]" />, title: 'Data Security' },
-    { icon: <Headphones className="w-6 h-6 text-[#121441]" />, title: '24/7 Support' },
-    { icon: <Database className="w-6 h-6 text-[#121441]" />, title: 'API Access' }
-  ];
 
-  const scrollToSection = (id) => {
-    if (id === '#') {
-      // If on the home page, scroll to the top
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      const element = document.getElementById(id);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-  };
+ 
   const testimonials = [
     {
       name: "Neha K",
@@ -159,22 +129,7 @@ export const Home = () => {
     }
   ];
  
-    const posts = [
-      {
-        id: 1,
-        image: "/img/news/pp1.jpg",
-        date: "20 Feb, 2024",
-        title: "Top 5 Most Famous Technology Trend In 2024",
-        link: "news-details.html"
-      },
-      {
-        id: 2,
-        image: "/img/news/pp2.jpg",
-        date: "15 Dec, 2024",
-        title: "The Surfing Man Will Blow Your Mind",
-        link: "news-details.html"
-      }
-    ];
+ 
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -191,11 +146,11 @@ export const Home = () => {
        
      
      
- <section className="relative min-h-screen bg-cover bg-center py-24 md:py-24 lg:py-36 bg-[#121441]">
+ <section id='hero-section' className="relative min-h-screen bg-cover bg-center py-24 md:py-24 lg:py-36 bg-[#121441]">
       {/* Shape Images - Hidden on mobile, visible on larger screens */}
       <div className="relative hidden md:block">
         <img src="trophy-shape.png" alt="" className="absolute top-40 left-0 w-16 md:w-auto" />
-        <img src="left-shape.png" alt="" className="absolute left-0 top-80 w-16 md:w-60" />
+        {/* <img src="left-shape.png" alt="" className="absolute left-0 top-80 w-16 md:w-60" /> */}
         <img src="right-shape.png" alt="" className="absolute right-0 top-1/2 w-16 md:w-auto" />
       </div>
 
@@ -208,7 +163,7 @@ export const Home = () => {
               Simplify Credit. Build Trust. Empower Pharma.
             </h6>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight text-white">
-              World's First Credit Risk Platform for Pharma & Healthcare Distribution
+              World's First Credit Risk Assessment Platform for Pharma & Healthcare Distribution
             </h1>
             <p className="text-white text-base sm:text-lg max-w-2xl mx-auto lg:mx-0">
               Revolutionizing credit risk management for the pharmaceutical industry.
@@ -217,14 +172,24 @@ export const Home = () => {
             
             {/* Buttons - Responsive layout */}
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 sm:gap-6 pt-4">
-              <button
+             <div className='flex flex-row gap-4'>
+             <button
                 onClick={() => navigate('/login')}
-                className="w-full sm:w-auto font-mono bg-[#74b4d5] text-xl text-white hover:bg-[#17012C] px-6 py-3 sm:px-7 sm:py-4 rounded-3xl shadow-md transition-colors duration-300 flex items-center justify-center"
+                className="w-32 sm:w-auto font-serif bg-[#74b4d5] text-xl text-white hover:bg-[#17012C] px-6 py-3 sm:px-7 sm:py-4 rounded-xl shadow-md transition-colors duration-300 flex items-center justify-center"
                 aria-label="Go to Register"
               >
-                Get Started
+                Login
                 <ChevronsRight className="ml-2 h-4 w-4" />
               </button>
+              <button
+                onClick={() => navigate('/Register')}
+                className="sm:hidden w-36 sm:w-auto font-serif bg-[#74b4d5] text-xl text-white hover:bg-[#17012C] px-6 py-3 sm:px-7 sm:py-4 rounded-xl shadow-md transition-colors duration-300 flex items-center justify-center"
+                aria-label="Go to Register"
+              >
+                Register
+                <ChevronRight className="ml-1 h-6 w-6 text-white" />
+              </button>
+             </div>
               <button
                 onClick={() => navigate('/LearnMore')}
                 className="w-full sm:w-auto font-extrabold text-xl text-white hover:bg-[#17012C] px-6 py-3 sm:px-7 sm:py-4 rounded-3xl shadow-md transition-colors duration-300 flex items-center justify-center"
@@ -357,7 +322,7 @@ export const Home = () => {
       </div>
     </section>
      
-  
+  <Chatbot/>
   <section id='features' className="py-20 sm:py-24 lg:py-40" style={{ backgroundImage: `url('img/team/team-bg.jpg')`}}>
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
   <h1 className='text-6xl font-bold flex justify-items-start justify-self-start text-left mb-20'>Powerful Features</h1>
@@ -697,167 +662,8 @@ export const Home = () => {
   </div>
 </section>
 
+<HomeFooter/>
 
-<footer className="bg-[#18185E] py-16 px-6 lg:py-24">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
-        {/* Company Info */}
-        <div className="space-y-6">
-          <img 
-            className="w-36 h-auto" 
-            src="img/logo/white-logo.png" 
-            alt="MedScore Logo"
-          />
-          <p className="text-white/90 text-sm leading-relaxed">
-            MedScore is the world's first credit score platform dedicated to the medical and pharmaceutical industry.
-          </p>
-          <div className="flex gap-4">
-            {[
-              { icon: <Instagram />, href: "https://www.instagram.com/medscore.in/" },
-              { icon: <X />, href: "https://x.com/Medscore_in" },
-              { icon: <Facebook />, href: "https://www.facebook.com/Medscore.in/" },
-              { icon: <Linkedin />, href: "https://www.linkedin.com/company/medscore-in/" }
-            ].map((social, index) => (
-              <a
-                key={index}
-                href={social.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 text-white border border-white/20 rounded-md hover:bg-white/10 transition-colors"
-              >
-                {social.icon}
-              </a>
-            ))}
-          </div>
-        </div>
-
-        {/* Quick Links */}
-        <div className="space-y-6">
-          <h3 className="text-xl font-semibold text-white border-b border-white/20 pb-2">
-            Quick Links
-          </h3>
-          <nav className="space-y-3">
-            {['about', 'features', 'BlogList', 'FAQ\'S', 'contactUs'].map((section, index) => (
-              <button
-                key={index}
-                onClick={() => scrollToSection(section)}
-                className="flex items-center text-white/90 hover:text-white group w-full"
-              >
-                <span className="text-lg mr-2 group-hover:translate-x-1 transition-transform">→</span>
-                <span className="text-sm font-medium">{section.charAt(0).toUpperCase() + section.slice(1)}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {/* Recent Posts */}
-        <div className="space-y-6">
-          <h3 className="text-xl font-semibold text-white border-b border-white/20 pb-2">
-            Recent Posts
-          </h3>
-          <div className="space-y-6">
-            {posts?.map((post) => (
-              <article key={post.id} className="flex gap-4">
-                <img 
-                  src={post.image} 
-                  alt="" 
-                  className="w-16 h-16 object-cover rounded-md"
-                />
-                <div>
-                  <div className="flex items-center text-white/60 text-xs mb-1">
-                    <CalendarDays className="w-4 h-4 mr-1" />
-                    {post.date}
-                  </div>
-                  <a 
-                    href={post.link}
-                    className="text-white/90 text-sm hover:text-white transition-colors line-clamp-2"
-                  >
-                    {post.title}
-                  </a>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-
-        {/* Contact Info */}
-        <div className="space-y-6">
-          <h3 className="text-xl font-semibold text-white border-b border-white/20 pb-2">
-            Contact Us
-          </h3>
-          <div className="space-y-4">
-            <a 
-              href="mailto:support@medscore.in" 
-              className="flex items-center text-white/90 hover:text-white group"
-            >
-              <Mail className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-              <span className="text-sm">support@medscore.in</span>
-            </a>
-            <a 
-              href="tel:9347070310" 
-              className="flex items-center text-white/90 hover:text-white group"
-            >
-              <Phone className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-              <span className="text-sm">9347070310</span>
-            </a>
-            <div className="flex items-start text-white/90">
-              <MapPin className="w-5 h-5 mr-2 flex-shrink-0 mt-1" />
-              <p className="text-sm">
-                Incubated by AIC Aleap We Hub (supported by AIM, NITI AAYOG, GOI)
-                Head Office: Hyderabad - Telangana, India
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="privacyCheckbox"
-                className="h-4 w-4 rounded border-white/20 bg-transparent text-blue-500 focus:ring-blue-500 cursor-pointer"
-              />
-              <label className="text-sm text-white/90 cursor-pointer">
-                I agree to the{' '}
-                <button 
-                  onClick={()=>navigate('/PrivacyPolicy')}
-                  className="underline hover:text-white transition-colors"
-                >
-                  Privacy Policy
-                </button>
-              </label>
-            </div>
-          </div>
-        </div>
-      </div>
-    </footer>
-      <div className="footer-bottom bg-gray-800 text-white py-6">
-  <div className="container mx-auto px-4">
-    <div className="footer-wrapper flex flex-col sm:flex-row items-center justify-between">
-      <p className="text-gray-400 fadeInLeft" style={{ animationDelay: '.3s' }}>
-        © All Copyright 2024 by MedScore
-      </p>
-      <ul className="footer-menu flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 fadeInRight" style={{ animationDelay: '.5s' }}>
-        <li>
-          <button  className="text-gray-400 hover:text-white transition duration-300" onClick={()=>navigate('/TermsConditions')}>
-            Terms & Condition
-          </button>
-        </li>
-        <li>
-          <button onClick={()=>navigate('/PrivacyPolicy')} className="text-gray-400 hover:text-white transition duration-300">
-            Privacy Policy
-          </button>
-        </li>
-      </ul>
-    </div>
-  </div>
-</div>
-      {isVisible && (
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-8 right-1/2 p-3 rounded-full bg-blue-600 text-white shadow-lg transition-all duration-300 hover:bg-blue-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 z-50 group"
-          aria-label="Scroll to top"
-        >
-          <ArrowUp 
-            className="h-6 w-6 transition-transform duration-300 group-hover:-translate-y-1 " 
-          />
-        </button>
-      )}
     </div>
   );
 };

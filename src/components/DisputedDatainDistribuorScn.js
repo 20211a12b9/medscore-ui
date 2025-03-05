@@ -12,6 +12,7 @@ export const DisputedDatainDistribuorScn = () => {
   const [distLoading, setDistLoading] = useState(false);
   const [distError, setDistError] = useState(null);
   const [pharmaData, setPharmaData] = useState({});
+  const [pharmaData2, setPharmaData2] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [seenStatus, setSeenStatus] = useState({});
@@ -30,7 +31,15 @@ const navigate=useNavigate();
   const fetchDistributorData = async (customerId) => {
     try {
       setDistLoading(true);
-      const response = await fetch(`${config.API_HOST}/api/user/getDistData/${customerId}`);
+      const response = await fetch(`${config.API_HOST}/api/user/getDistData/${customerId}`,
+        {
+          method:'GET',
+          // headers:{
+          //   'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+          //   'content-type':'application/json'
+          // }
+        }
+      );
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const result = await response.json();
       if (result.success) {
@@ -46,9 +55,18 @@ const navigate=useNavigate();
 
   const fetchPharmaData = async (license) => {
     try {
-      const response = await fetch(`${config.API_HOST}/api/user/getPharmaData?licenseNo=${license}`);
+      const response = await fetch(`${config.API_HOST}/api/user/getPharmaData?licenseNo=${license}`,
+        {
+          method:'GET',
+          // headers:{
+          //   'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+          //   'content-type':'application/json'
+          // }
+        }
+      );
       const data = await response.json();
       if (data.success) {
+        console.log(data.data[0])
         setPharmaData(prevState => ({
           ...prevState,
           [license]: data.data[0]
@@ -59,13 +77,35 @@ const navigate=useNavigate();
       console.error('Error:', error);
     }
   };
+  const fetchPharmaData2 = async (license) => {
+    try {
+      const response = await fetch(`${config.API_HOST}/api/user/getPharmaData?licenseNo=${license}`,
+        {
+          method:'GET',
+          // headers:{
+          //   'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+          //   'content-type':'application/json'
+          // }
+        }
+      );
+      const data = await response.json();
+      if (data.success) {
+        console.log(data.data[0])
+        setPharmaData2(data.data[0])
+      }
+      
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
   const updateSeenStatus = async (invoiceIds) => {
     try {
       const response = await fetch(`${config.API_HOST}/api/user/updateDisputeSeenStatus`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        // headers: {
+        //   'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+        //   'Content-Type': 'application/json',
+        // },
         body: JSON.stringify({ invoiceIds }),
       });
      
@@ -86,7 +126,15 @@ const navigate=useNavigate();
       setLoading(true);
       const customerId = localStorage.getItem("userId");
       console.log(customerId)
-      const response = await fetch(`${config.API_HOST}/api/user/getDipsutedDatabyId?id=${customerId}&page=${pagination.currentPage}&limit=${pagination.perPage}&address=${debouncedSearchTerm}&licenseNo=${debouncedSearchTerm}`);
+      const response = await fetch(`${config.API_HOST}/api/user/getDipsutedDatabyId?id=${customerId}&page=${pagination.currentPage}&limit=${pagination.perPage}&address=${debouncedSearchTerm}&licenseNo=${debouncedSearchTerm}`,
+        {
+          method:'GET',
+          // headers:{
+          //   'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+          //   'content-type':'application/json'
+          // }
+        }
+      );
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -133,7 +181,7 @@ const navigate=useNavigate();
       const timer = setTimeout(() => {
         updateSeenStatus(unseenIds);
         setUnseenIds([]); // Clear the unseen IDs after updating
-      }, 30000); // 30 seconds delay
+      }, 3000); // 30 seconds delay
 
       return () => clearTimeout(timer);
     }
@@ -145,29 +193,85 @@ const navigate=useNavigate();
   
       return () => clearTimeout(timeoutId); // Cleanup the timeout on each change
     }, [searchTerm]);
+     const sendSMS = async (phoneNumbers,status,dispute) => {
+        const smsPromises = phoneNumbers.map(async (phone) => {
+          console.log("fullPhoneNumber--",phone)
+          const smsResult = await fetch(`${config.API_HOST}/api/user/sendSMS`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              phone: phone,
+              message: `Dear ${pharmaData2.pharmacy_name}, We have reviewed your dispute claim regarding Invoice No. ${dispute.invoice}. Status: ${status} If rejected, we kindly request you to contact us directly to resolve the issue and settle the outstanding payment immediately to avoid further MedScore reduction. For any clarifications, please reach out to ${distData.phone_number}. Thank you, Medscore Team`
+              
+            })
+          });
+      
+          return smsResult;
+        });
+      
+        const results = await Promise.all(smsPromises);
+        return results;
+      };
   const handleAccept = async (dispute) => {
     try {
       if (!window.confirm('Are you sure you want to accept this dispute?')) {
         return;
       }
-
+     
+      // await fetchPharmaData2(dispute.pharmadrugliseanceno)
+      const distResponse = await fetch(`${config.API_HOST}/api/user/getPharmaData?licenseNo=${dispute.pharmadrugliseanceno}`,
+        {
+          method: 'GET',
+          // headers: {
+          //     'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+          //     'Content-Type': 'application/json',
+          // },
+        }
+      );
+                if (!distResponse.ok) {
+                    throw new Error('Failed to fetch distributor data');
+                }
+                const distResult = await distResponse.json();
+                const pharmaData = distResult.data;
       setLoading(true);
       const response = await fetch(`${config.API_HOST}/api/user/updateReportDefault`, {
         method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        // headers: {
+        //     'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+        //     'Content-Type': 'application/json',
+        // },
         body: JSON.stringify({
-            pharmadrugliseanceno: dispute.pharmadrugliseanceno,
-            invoice: dispute.invoice,
-            customerId: dispute.customerId,
+            _id:dispute._id
         }),
     });
 
       if (!response.ok) {
         throw new Error('Failed to update report status');
       }
-
+      console.log("dispute.pharmadrugliseanceno",dispute.pharmadrugliseanceno,"dispute.customerId",dispute.customerId)
+     
+      new Promise(resolve => setTimeout(resolve, 2000));
+        const fullPhoneNumbers = pharmaData.phone_number && Array.isArray(pharmaData.phone_number)
+      ? pharmaData.phone_number.map(num => `91${String(num).trim()}`)
+      : [];
+        
+        const status='ACCEPTED'
+        
+      // const smsResult = await fetch(`${config.API_HOST}/api/user/sendSMS`, {
+      //                                               method: 'POST',
+      //                                               headers: { 'Content-Type': 'application/json' },
+      //                                               body: JSON.stringify({
+      //                                                 phone: fullPhoneNumber,
+      //                                                 message: `Dear ${pharmaData2.pharmacy_name}, We have reviewed your dispute claim regarding Invoice No. ${dispute.invoice}. Status: ${status} If rejected, we kindly request you to contact us directly to resolve the issue and settle the outstanding payment immediately to avoid further MedScore reduction. For any clarifications, please reach out to ${distData.phone_number}. Thank you, Medscore Team`
+                                                      
+      //                                               })
+      //                                             });
+                                            
+      //                                             if (!smsResult.ok) {
+                                                    
+      //                                               throw new Error('Failed to send SMS');
+      //                                             }
+                                                  await sendSMS(fullPhoneNumbers,status,dispute); 
       const result = await response.json();
 
       if (result.success) {
@@ -185,27 +289,66 @@ const navigate=useNavigate();
 
   const handleReject = async (dispute) => {
     try {
-        if (!window.confirm('Are you sure you want to accept this dispute?')) {
+        if (!window.confirm('Are you sure you want to reject this dispute?')) {
           return;
         }
-  
+        
+        // await fetchPharmaData2(dispute.pharmadrugliseanceno)
+        const distResponse = await fetch(`${config.API_HOST}/api/user/getPharmaData?licenseNo=${dispute.pharmadrugliseanceno}`,
+          {
+            method:'GET',
+            // headers:{
+            //   'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+            //   'content-type':'application/json'
+            // }
+          }
+        );
+                if (!distResponse.ok) {
+                    throw new Error('Failed to fetch distributor data');
+                }
+                const distResult = await distResponse.json();
+                const pharmaData = distResult.data;
         setLoading(true);
         
    const response = await fetch(`${config.API_HOST}/api/user/updateDefaultReject`, {
               method: 'PUT',
-              headers: {
-                  'Content-Type': 'application/json',
-              },
+              // headers: {
+              //   'Authorization':`Bearer ${localStorage.getItem('jwttoken')}`,
+              //     'Content-Type': 'application/json',
+              // },
               body: JSON.stringify({
                   pharmadrugliseanceno: dispute.pharmadrugliseanceno,
                   invoice: dispute.invoice,
                   customerId: dispute.customerId,
+                  _id:dispute._id
               }),
           });
         if (!response.ok) {
           throw new Error('Failed to update report status');
         }
-  
+       
+       new Promise(resolve => setTimeout(resolve, 2000));
+       const fullPhoneNumbers = pharmaData.phone_number && Array.isArray(pharmaData.phone_number)
+       ? pharmaData.phone_number.map(num => `91${String(num).trim()}`)
+       : [];
+         
+         const status='REJECTED'
+         
+      //  const smsResult = await fetch(`${config.API_HOST}/api/user/sendSMS`, {
+      //                                                method: 'POST',
+      //                                                headers: { 'Content-Type': 'application/json' },
+      //                                                body: JSON.stringify({
+      //                                                  phone: fullPhoneNumber,
+      //                                                  message: `Dear ${pharmaData2.pharmacy_name}, We have reviewed your dispute claim regarding Invoice No. ${dispute.invoice}. Status: ${status} If rejected, we kindly request you to contact us directly to resolve the issue and settle the outstanding payment immediately to avoid further MedScore reduction. For any clarifications, please reach out to ${distData.phone_number}. Thank you, Medscore Team`
+                                                       
+      //                                                })
+      //                                              });
+                                             
+      //                                              if (!smsResult.ok) {
+                                                     
+      //                                                throw new Error('Failed to send SMS');
+      //                                              }
+                                                   await sendSMS(fullPhoneNumbers,status,dispute); 
         const result = await response.json();
   
         if (result.success) {
@@ -356,13 +499,13 @@ const navigate=useNavigate();
                 </div>
                 
                 <div className="p-4 bg-gray-50 group-hover:bg-gray-100 transition-colors space-y-3">
-                <button 
+                {/* <button 
                   onClick={() => fetchDistributorData(dispute.customerId)}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center"
                 >
                   <User className="w-4 h-4 mr-2" />
                   View Distributor Details
-                </button>
+                </button> */}
                 
                 <div className="grid grid-cols-2 gap-3">
                   <button 
@@ -409,7 +552,7 @@ const navigate=useNavigate();
       </div>
 
       {/* Modal */}
-      {showDistModal && (
+      {/* {showDistModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="max-w-md w-full bg-white rounded-lg shadow-2xl">
             <div className="flex justify-between items-center p-6 border-b">
@@ -457,7 +600,7 @@ const navigate=useNavigate();
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 };
